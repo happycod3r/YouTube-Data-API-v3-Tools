@@ -1,6 +1,6 @@
 # Python3 YouTube Data API v3 Tools
 
-![YouTubeDataAPIv3Tools](./youtube_data_api_tools.png)
+![YouTubeDataAPIv3Tools](./docs/youtube_data_api_tools.png)
 
 > YouTube Data API v3 Tools is a concise wrapper around the YouTube API. The `YouTubeAPIv3` class contains over 150 methods to interact with YouTube. These methods cover all categories such as videos, playlists, channels, thumbnails, localization etc.
 I made sure to cover all the bases.
