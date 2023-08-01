@@ -1,3 +1,4 @@
 client_secret_671382908634-hudnrlsnhr3gqresomjga29a33s0chml.apps.googleusercontent.com.json
-
-https://www.googleapis.com/auth/youtube.readonly
+*.json
+dev/
+token.pickle
