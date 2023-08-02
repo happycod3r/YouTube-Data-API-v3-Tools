@@ -80,13 +80,15 @@ import youtube_api_tools
 ```
 
 Next create a `YouTubeAPIv3` object and pass the path to your ***client_secret.json*** file
-as the first argument to the constructor and optionally pass the name for the token file that 
-will hold the authorization token as the 2nd argument to the constructor, and lastly your 
+as the first argument to the constructor and a list of scopes that you want to use as the 
+2nd argument. Then optionally pass the name for the token file that 
+will hold the authorization token as the 3rd argument to the constructor, and lastly your 
 channel ID as the last argument to the constructor.
 
 ```python
 youtube = youtube_api_tools.YouTubeAPIV3(
-    "client_secret_913312345634-hsdfrlsskr1gqsedjdimjga57j84s0chml.apps.googleusercontent.com.json"
+    "client_secret_913312345634-hsdfrlsskr1gqsedjdimjga57j84s0chml.apps.googleusercontent.com.json",
+    ["https://www.googleapis.com/auth/youtube.readonly"]
 )
 ```
 

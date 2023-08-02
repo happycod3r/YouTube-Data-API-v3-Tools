@@ -1,6 +1,6 @@
 import youtube_api_tools
 
-tube = youtube_api_tools.YouTubeAPIV3(
+tube = youtube_api_tools.YouTubeAPIv3(
     "client_secret_671382908634-hudnrlsnhr3gqresomjga29a33s0chml.apps.googleusercontent.com.json",
     ["https://www.googleapis.com/auth/youtube.readonly"]
 )

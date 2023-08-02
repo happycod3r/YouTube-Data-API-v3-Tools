@@ -73,6 +73,7 @@ class YouTubeAPIv3:
     def __init__(
         self, 
         _client_secrets_json_path: str,
+        _scopes: list, 
         _token_file: str="token.pickle", 
         _channel_id: str=None
     ) -> None:
@@ -81,6 +82,11 @@ class YouTubeAPIv3:
             Initializes the YouTubeAPIClient object.
         """
 
+        self.api_scopes = []
+
+        if _scopes is not None:
+            for i in range(len(_scopes)):
+                self.api_scopes.append(_scopes[i])
         
         self.CLIENT_SECRETS_JSON_FILE = _client_secrets_json_path
         self.CHANNEL_ID = _channel_id
@@ -89,12 +95,47 @@ class YouTubeAPIv3:
             self.CHANNEL_ID = _channel_id
         
         self.api_obj = {
+            "scopes": self.api_scopes,
             "json": self.CLIENT_SECRETS_JSON_FILE
         }
         
         self.TOKEN_FILE = _token_file
         
         self.service = self.get_authenticated_service()
+        
+    def add_scope(self, scope: str) -> list:
+        """
+        This method will add the given scope to the list of scopes held
+        in the SCOPES list.
+        """
+        self.api_scopes.append(scope)
+        return self.api_scopes
+        
+    def add_scopes(self, scopes: list[str]) -> list:
+        """
+        Adds API scopes to the list of scopes that you want to use and
+        returns the new list.
+        """
+        for i in range(len(scopes)):
+            self.api_scopes.append(scopes[i])
+            return self.api_scopes
+            
+    def remove_scope(self, scope: str) -> list:
+        """
+        Removes the given scope from the list of scopes being used and
+        returns the new list.
+        """
+        for _scope in range(len(self.api_scopes)):
+            if self.api_scopes[_scope] == scope:
+                self.api_scopes.pop(_scope)
+                return self.api_scopes
+     
+    def remove_scopes(self, scopes: list) -> list:
+        for i in range(len(scopes)):
+            for j in range(len(self.api_scopes)):
+                if self.api_scopes[j] == scopes[i]:
+                    self.api_scopes.pop(j)           
+        return self.api_scopes
         
     def set_client_secrets_json(self, client_secrets_json: str) -> bool:
         """
