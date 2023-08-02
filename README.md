@@ -92,7 +92,17 @@ youtube = youtube_api_tools.YouTubeAPIV3(
 
 The constructor will call the `get_authenticated_service()` method which will use your 
 ***client_secret.json*** file to authenticate the user and will store the authorization token in 
-a ***token.pickle*** file.
+a ***token.pickle*** file. Pretty much all of the YouTubeAPIv3 class methods rely on this 
+authentication and token so the service returned from `get_authenticated_service` will be 
+stored in a class variable called `self.service` This way we are using the same instance of
+the authentication service in subsequent method calls. 
+
+If no calls to the API are made after a few minutes the user will have to reauthenticate and
+grant the app permissions again in the browser. The ***token.pickle*** file will no
+longer work until this is done.
+
+Note: The `token.pickle` file is important because without it the reauthentication process has to 
+be done with every call to the YouTube Data API.
 
 ### Get your channel ID:
 
