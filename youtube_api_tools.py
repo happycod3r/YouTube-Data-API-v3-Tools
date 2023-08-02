@@ -201,2319 +201,2323 @@ class YouTubeDataAPIv3Tools:
             return None
             
     #//////////// PLAYLISTS ////////////
+    class Playlist:
+        def __init__(self) -> None:
+            pass
+
+        def save_playlist(self, source_playlist_id: str, destination_playlist_id: str) -> bool:
+            """
+            Save a playlist using the source and destination playlists IDs. 
+            """
+            try:
+                videos = self.get_videos_in_playlist(source_playlist_id)
+                for video in videos:
+                    self.save_video_to_playlist(destination_playlist_id, video["video_id"])
+                return True
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return False
     
-    ############
-    def save_playlist(self, source_playlist_id: str, destination_playlist_id: str) -> bool:
-        """
-        Save a playlist using the source and destination playlists IDs. 
-        """
-        try:
-            videos = self.get_videos_in_playlist(source_playlist_id)
-            for video in videos:
-                self.save_video_to_playlist(destination_playlist_id, video["video_id"])
-            return True
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return False
-   
-    def create_playlist(self, title: str, description: str, privacy_status: str="public") -> (dict | None):
-        service = self.service
-        try:
-            request = service.playlists().insert(
-                part="snippet,status",
-                body={
-                    "snippet": {
-                        "title": title,
-                        "description": description
-                    },
-                    "status": {
-                        "privacyStatus": privacy_status
-                    }
-                }
-            )
-            response = request.execute()
-            new_playlist = {
-                "title": response['snippet']['title'],
-                "id": response['id']
-            }
-            return new_playlist
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-
-    def delete_playlist(self, playlist_id: str) -> bool:
-        """
-        With this method, you can provide the playlist_id of the playlist 
-        you want to delete, and it will be removed from your YouTube account.
-        """
-        service = self.service
-
-        try:
-            service.playlists().delete(
-                id=playlist_id
-            ).execute()
-
-            return True
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return False
-
-    def add_video_to_playlist(self, playlist_id: str, video_id: str) -> bool:
-        """
-        This method allows you to add a video with the specified video_id 
-        to a playlist with the specified playlist_id.
-        """
-        service = self.service
-        try:
-            request = service.playlistItems().insert(
-                part="snippet",
-                body={
-                    "snippet": {
-                        "playlistId": playlist_id,
-                        "resourceId": {
-                            "kind": "youtube#video",
-                            "videoId": video_id
+        def create_playlist(self, title: str, description: str, privacy_status: str="public") -> (dict | None):
+            service = self.service
+            try:
+                request = service.playlists().insert(
+                    part="snippet,status",
+                    body={
+                        "snippet": {
+                            "title": title,
+                            "description": description
+                        },
+                        "status": {
+                            "privacyStatus": privacy_status
                         }
                     }
+                )
+                response = request.execute()
+                new_playlist = {
+                    "title": response['snippet']['title'],
+                    "id": response['id']
                 }
-            )
-            response = request.execute()
-            return True
+                return new_playlist
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return False
-    
-    def remove_video_from_playlist(self, playlist_item_id: str) -> bool:
-        """
-        This method allows you to remove a video from a playlist using the 
-        playlist_item_id. Note that you need to retrieve the playlist_item_id 
-        of the specific video in the playlist before using this method.
-        """
-        service = self.service
+        def delete_playlist(self, playlist_id: str) -> bool:
+            """
+            With this method, you can provide the playlist_id of the playlist 
+            you want to delete, and it will be removed from your YouTube account.
+            """
+            service = self.service
 
-        try:
-            service.playlistItems().delete(
-                id=playlist_item_id
-            ).execute()
-            return True
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return False
-    
-    def update_playlist(self, playlist_id: str, title: str, description: str) -> (dict | None):
-        """
-        Update the playlist title and description. Returns the updated
-        playlist snippet. 
-        """
-        service = self.service
-        try:
-            request = service.playlists().update(
-                part="snippet",
-                body={
-                    "id": playlist_id,
-                    "snippet": {
-                        "title": title,
-                        "description": description
-                    }
-                }
-            )
-            response = request.execute()
-            return response['snippet']
-        except googleapiclient.errors.HttpError as e:
-            return None
+            try:
+                service.playlists().delete(
+                    id=playlist_id
+                ).execute()
 
-    def update_playlist_details(self, playlist_id, new_title: str=None, new_description: str=None) -> bool:
-        """
-        This method allows you to update the title and description of a 
-        playlist with the specified playlist_id.
-        """
-        service = self.service
+                return True
 
-        try:
-            playlist = service.playlists().list(
-                part="snippet",
-                id=playlist_id
-            ).execute()
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return False
 
-            snippet = playlist["items"][0]["snippet"]
-            if new_title:
-                snippet["title"] = new_title
-            if new_description:
-                snippet["description"] = new_description
-
-            service.playlists().update(
-                part="snippet",
-                body={
-                    "id": playlist_id,
-                    "snippet": snippet
-                }
-            ).execute()
-            return True
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return False
-
-    def update_playlist_title(self, playlist_id, new_title=None) -> bool:
-        """
-        This method allows you to update the title and description of a 
-        playlist with the specified playlist_id.
-        """
-        service = self.service
-
-        try:
-            playlist = service.playlists().list(
-                part="snippet",
-                id=playlist_id
-            ).execute()
-
-            snippet = playlist["items"][0]["snippet"]
-            if new_title:
-                snippet["title"] = new_title
-
-            service.playlists().update(
-                part="snippet",
-                body={
-                    "id": playlist_id,
-                    "snippet": snippet
-                }
-            ).execute()
-
-            return True
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return False
-    
-    def update_playlist_description(self, playlist_id, new_description: str=None) -> bool:
-        """
-        This method allows you to update the title and description of a 
-        playlist with the specified playlist_id.
-        """
-        service = self.service
-
-        try:
-            playlist = service.playlists().list(
-                part="snippet",
-                id=playlist_id
-            ).execute()
-
-            snippet = playlist["items"][0]["snippet"]
-            if new_description:
-                snippet["description"] = new_description
-
-            service.playlists().update(
-                part="snippet",
-                body={
-                    "id": playlist_id,
-                    "snippet": snippet
-                }
-            ).execute()
-            return True
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return False
-
-    def reorder_playlist_items(self, playlist_id: str, video_ids: list) -> bool:
-        """
-        This method allows you to reorder videos in a playlist by providing 
-        a list of video_ids. The videos in the playlist will be reordered based 
-        on the order of the provided video_ids
-        """
-        service = self.service
-        try:
-            playlist_items = service.playlistItems().list(
-                part="snippet",
-                playlistId=playlist_id,
-                maxResults=len(video_ids)
-            ).execute()
-
-            video_positions = {}
-            for item in playlist_items["items"]:
-                video_positions[item["snippet"]["resourceId"]["videoId"]] = item["snippet"]["position"]
-            for video_id in video_ids:
-                position = video_positions.get(video_id, 0)
-                request = service.playlistItems().update(
+        def add_video_to_playlist(self, playlist_id: str, video_id: str) -> bool:
+            """
+            This method allows you to add a video with the specified video_id 
+            to a playlist with the specified playlist_id.
+            """
+            service = self.service
+            try:
+                request = service.playlistItems().insert(
                     part="snippet",
                     body={
-                        "id": f"{playlist_id}_{video_id}",
                         "snippet": {
                             "playlistId": playlist_id,
                             "resourceId": {
                                 "kind": "youtube#video",
                                 "videoId": video_id
-                            },
-                            "position": position
+                            }
                         }
                     }
                 )
-                request.execute()
-            return True
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return False
-    
-    def iterate_videos_in_playlist(self, playlist_id: str, func=None) -> (bool | None):
-        if func is not None:
-            videos = self.get_videos_in_playlist(playlist_id)
-            if videos:
-                for video in videos:
-                    func(video)
-                return True
-            else:
-                print(f"Unable to fetch videos in playlist with ID {playlist_id}.")
-                return False
-        return None
-
-    def search_playlists(self, query: str, max_results: int=10) -> (list[dict] | None):
-        """
-        Returns a list of result snippets that matched the query.
-        """
-        service = self.service
-        try:
-            request = service.search().list(
-                part="snippet",
-                q=query,
-                type="playlist",
-                maxResults=max_results
-            )
-            response = request.execute()
-            result_snippets = []
-            for item in response["items"]:
-                result_snippets.append(item["snippet"])
-            return result_snippets
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-    ##################
-    
-    def get_playlist_snippet(self, playlist_id: str) -> (str | None):
-        """
-        Get a playlists snippet using the playlist id.
-        """
-        service = self.service
-
-        try:
-            request = service.playlists().list(
-                part="snippet",
-                id=playlist_id
-            )
-            response = request.execute()
-
-            playlist_snippet_info = response["items"][0]["snippet"]
-            return playlist_snippet_info
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An API error occurred: {e}")
-            return None
-
-    def get_all_playlist_snippets(self, max_results: int=10):
-        """
-        Get a list of the kind of playlists the authenticated user
-        has.
-        """ 
-        service = self.service
-
-        try:
-            request = service.playlists().list(
-                part="snippet",
-                mine=True,
-                maxResults=max_results
-            )
-            response = request.execute()
-            snippets = []
-            for playlist in response["items"]:
-                snippets.append(playlist["snippet"])
-            return snippets
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-        
-    def get_playlist_kind(self, playlist_id: str) -> (str | None):
-        """
-        Get the kind of playlist that the playlist is tagged as.
-        """ 
-        service = self.service
-        try:
-            request = service.playlists().list(
-                part="snippet",
-                id=playlist_id
-            )
-            response = request.execute()
-            playlist_kind = response['kind']
-            return playlist_kind
-        except googleapiclient.errors.HttpError as e:
-            print(f"An API error occurred: {e}")
-            return None
-        
-    def get_all_playlist_kinds(self, max_results=10) -> (list | None):
-        """
-        Get a list of the kind of playlists the authenticated user
-        has.
-        """ 
-        service = self.service
-
-        try:
-            request = service.playlists().list(
-                part="snippet",
-                mine=True,
-                maxResults=max_results
-            )
-            response = request.execute()
-            kinds = []
-            for playlist in response["items"]:
-                kinds.append(playlist["kind"])
-            return kinds
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-        
-    def get_playlist_etag(self, playlist_id: str) -> (str | None):
-        """
-        Get the etag for the playlist specified by playlist_id.
-        """ 
-        service = self.service
-        try:
-            request = service.playlists().list(
-                part="snippet",
-                id=playlist_id
-            )
-            response = request.execute()
-            playlist_kind = response['kind']
-            return playlist_kind
-        except googleapiclient.errors.HttpError as e:
-            print(f"An API error occurred: {e}")
-            return None
-
-    def get_all_playlist_etags(self, max_results=10) -> (list | None): 
-        service = self.service
-
-        try:
-            request = service.playlists().list(
-                part="snippet",
-                mine=True,
-                maxResults=max_results
-            )
-            response = request.execute()
-            etags = []
-            print(response['items'])
-            for playlist in response["items"]:
-                etags.append(playlist["etag"])
-            return etags
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-    
-    def get_playlist_id(self, playlist_title: str, channel_id: str=None, max_results: int=1) -> (str | None):
-        service = self.service
-        try:
-            request = service.search().list(
-                part="id",
-                channelId=channel_id,
-                maxResults=max_results,
-                q=playlist_title,
-                type="playlist"
-            )
-            response = request.execute()
-
-            if response.get("items"):
-                playlist_id = response["items"][0]["id"]["playlistId"]
-                return playlist_id
-
-            return None
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An HTTP error occurred: {e}")
-            return None
-
-        except IndexError:
-            print(f"No playlist found with title '{playlist_title}'.")
-            return None
-
-    def get_all_playlist_ids(self, max_results=10) -> (list | None):
-        service = self.service
-
-        try:
-            request = service.playlists().list(
-                part="snippet",
-                mine=True,
-                maxResults=max_results
-            )
-            response = request.execute()
-            ids = []
-            for playlist in response["items"]:
-                ids.append(playlist["id"])
-            return ids
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-    
-    def get_playlists_channel_id(self, playlist_id: str):
-        playlist_info = self.get_playlist_snippet(playlist_id)
-        if playlist_info is not None:
-            return playlist_info["channelId"]
-            
-    def get_playlist_title(self, playlist_id: str) -> (str | None):
-        """
-        Get the name of a playlist using the playlst id.
-        """
-        playlist_info = self.get_playlist_snippet(playlist_id)
-        if playlist_info:
-            return playlist_info["title"]
-        return None
-
-    def get_all_playlist_titles(self, max_results=10) -> (list | None):
-        service = self.service
-
-        try:
-            request = service.playlists().list(
-                part="snippet",
-                mine=True,
-                maxResults=max_results
-            )
-            response = request.execute()
-            titles = []
-            for playlist in response["items"]:
-                titles.append(playlist["snippet"]["title"])
-            return titles
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-
-    def get_playlist_channel_title(self, playlist_id: str) -> (str | None):
-        """
-        Get the name of a playlist using the playlst id.
-        """
-        playlist_info = self.get_playlist_snippet(playlist_id)
-        if playlist_info:
-            return playlist_info["channelTitle"]
-        return None
-
-    def get_all_playlist_channel_titles(self, max_results=10) -> (list | None):
-        """
-        I don't know why you would need to do this since this method
-        will return a list of the same title due to all playlists being
-        in the same channel, but I figured what the hell. Why not?
-        Who knows what someone may be coding or need, so here it is 
-        anyway.
-        """
-        service = self.service
-
-        try:
-            request = service.playlists().list(
-                part="snippet",
-                mine=True,
-                maxResults=max_results
-            )
-            response = request.execute()
-            titles = []
-            for playlist in response["items"]:
-                titles.append(playlist["snippet"]["title"])
-            return titles
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-    
-    def get_playlist_description(self, playlist_id: str) -> (str | None):
-        """
-        Get the description of a playlist using the playlist ID.
-        """
-        playlist_info = self.get_playlist_snippet(playlist_id)
-        if playlist_info:
-            return playlist_info["description"]
-        return None
-
-    def get_all_playlist_descriptions(self, max_results=10) -> (list | None):
-        service = self.service
-
-        try:
-            request = service.playlists().list(
-                part="snippet",
-                mine=True,
-                maxResults=max_results
-            )
-            response = request.execute()
-            descriptions = []
-            for playlist in response["items"]:
-                descriptions.append(playlist["snippet"]["description"])
-            return descriptions
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-
-    def get_date_playlist_published(self, playlist_id: str) -> (str | None):
-        """
-        Get the name of a playlist using the playlst id.
-        """
-        playlist_info = self.get_playlist_snippet(playlist_id)
-        if playlist_info:
-            return playlist_info["publishedAt"]
-        return None
-
-    def get_all_playlist_published_dates(self, max_results: int=20) -> (str | None):
-        service = self.service
-
-        try:
-            request = service.playlists().list(
-                part="snippet",
-                mine=True,
-                maxResults=max_results
-            )
-            response = request.execute()
-            published_dates = []
-            for playlist in response["items"]:
-                published_dates.append(playlist["snippet"]["publishedAt"])
-            return published_dates
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-    
-    def get_playlist_localized_data(self, playlist_id: str) -> (str | None):
-        """
-        Get the name of a playlist using the playlst id.
-        """
-        playlist_info = self.get_playlist_snippet(playlist_id)
-        if playlist_info:
-            return playlist_info["localized"]
-        return None
-
-    def get_all_playlists_localized_data(self, max_results=10) -> (list | None):
-        """
-        I don't know why you would need to do this since this method
-        will return a list of the same title due to all playlists being
-        in the same channel, but I figured what the hell. Why not?
-        Who knows what someone may be coding or need, so here it is 
-        anyway.
-        """
-        service = self.service
-
-        try:
-            request = service.playlists().list(
-                part="snippet",
-                mine=True,
-                maxResults=max_results
-            )
-            response = request.execute()
-            titles = []
-            for playlist in response["items"]:
-                titles.append(playlist["snippet"]["localized"])
-            return titles
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-    
-    def get_playlist_localized_title(self, playlist_id: str) -> (str | None):
-        """
-        Get the name of a playlist using the playlst id.
-        """
-        playlist_info = self.get_playlist_snippet(playlist_id)
-        if playlist_info:
-            return playlist_info["localized"]["title"]
-        return None
-
-    def get_all_playlists_localized_titles(self, max_results=10) -> (list | None):
-        """
-        I don't know why you would need to do this since this method
-        will return a list of the same title due to all playlists being
-        in the same channel, but I figured what the hell. Why not?
-        Who knows what someone may be coding or need, so here it is 
-        anyway.
-        """
-        service = self.service
-
-        try:
-            request = service.playlists().list(
-                part="snippet",
-                mine=True,
-                maxResults=max_results
-            )
-            response = request.execute()
-            titles = []
-            for playlist in response["items"]:
-                titles.append(playlist["snippet"]["localized"]["title"])
-            return titles
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-    
-    def get_playlist_localized_description(self, playlist_id: str) -> (str | None):
-        """
-        Get the name of a playlist using the playlst id.
-        """
-        playlist_info = self.get_playlist_snippet(playlist_id)
-        if playlist_info:
-            return playlist_info["localized"]["description"]
-        return None
-
-    def get_all_playlists_localized_descriptions(self, max_results=10) -> (list | None):
-        """
-        I don't know why you would need to do this since this method
-        will return a list of the same title due to all playlists being
-        in the same channel, but I figured what the hell. Why not?
-        Who knows what someone may be coding or need, so here it is 
-        anyway.
-        """
-        service = self.service
-
-        try:
-            request = service.playlists().list(
-                part="snippet",
-                mine=True,
-                maxResults=max_results
-            )
-            response = request.execute()
-            descriptions = []
-            for playlist in response["items"]:
-                descriptions.append(playlist["snippet"]["localized"]["description"])
-            return descriptions
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-    
-    def get_playlist_thumbnails(self, playlist_id: str) -> (str | None):
-        """
-        Get the name of a playlist using the playlst id.
-        """
-        playlist_info = self.get_playlist_snippet(playlist_id)
-        if playlist_info:
-            return playlist_info["thumbnails"]
-        return None
-
-    def get_all_playlist_thumbnails(self, max_results=10) -> (list | None):
-        service = self.service
-
-        try:
-            request = service.playlists().list(
-                part="snippet",
-                mine=True,
-                maxResults=max_results
-            )
-            response = request.execute()
-            thumbnails = []
-            for playlist in response["items"]:
-                thumbnails.append(playlist["snippet"]["thumbnails"])
-            return thumbnails
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-
-    def get_playlist_default_res_thumbnail(self, playlist_id: str) -> (dict | None):
-        """
-        Get the name of a playlist using the playlst id.
-        """
-        playlist_info = self.get_playlist_snippet(playlist_id)
-        if playlist_info:
-            return playlist_info["thumbnails"]["default"]
-        return None
-
-    def get_all_playlist_default_res_thumbnails(self, max_results=10) -> (list | None):
-        service = self.service
-
-        try:
-            request = service.playlists().list(
-                part="snippet",
-                mine=True,
-                maxResults=max_results
-            )
-            response = request.execute()
-            thumbnails = []
-            for playlist in response["items"]:
-                thumbnails.append(playlist["snippet"]["thumbnails"]["default"])
-            return thumbnails
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-    
-    def get_playlist_default_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
-        """
-        Get the name of a playlist using the playlst id.
-        """
-        playlist_info = self.get_playlist_snippet(playlist_id)
-        if playlist_info:
-            return playlist_info["thumbnails"]["default"]["url"]
-        return None
-
-    def get_all_playlist_default_res_thumbnail_urls(self, max_results=10) -> (list | None):
-        service = self.service
-
-        try:
-            request = service.playlists().list(
-                part="snippet",
-                mine=True,
-                maxResults=max_results
-            )
-            response = request.execute()
-            thumbnails = []
-            for playlist in response["items"]:
-                thumbnails.append(playlist["snippet"]["thumbnails"]["default"]["url"])
-            return thumbnails
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-    
-    def get_playlist_medium_res_thumbnail(self, playlist_id: str) -> (dict | None):
-        """
-        Get the name of a playlist using the playlst id.
-        """
-        playlist_info = self.get_playlist_snippet(playlist_id)
-        if playlist_info:
-            return playlist_info["thumbnails"]["medium"]
-        return None
-
-    def get_all_playlist_medium_res_thumbnails(self, max_results=10) -> (list | None):
-        service = self.service
-
-        try:
-            request = service.playlists().list(
-                part="snippet",
-                mine=True,
-                maxResults=max_results
-            )
-            response = request.execute()
-            thumbnails = []
-            for playlist in response["items"]:
-                thumbnails.append(playlist["snippet"]["thumbnails"]["medium"])
-            return thumbnails
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-    
-    def get_playlist_medium_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
-        """
-        Get the name of a playlist using the playlst id.
-        """
-        playlist_info = self.get_playlist_snippet(playlist_id)
-        if playlist_info:
-            return playlist_info["thumbnails"]["medium"]["url"]
-        return None
-
-    def get_all_playlist_medium_res_thumbnail_urls(self, max_results=10) -> (list | None):
-        service = self.service
-
-        try:
-            request = service.playlists().list(
-                part="snippet",
-                mine=True,
-                maxResults=max_results
-            )
-            response = request.execute()
-            thumbnails = []
-            for playlist in response["items"]:
-                thumbnails.append(playlist["snippet"]["thumbnails"]["medium"]["url"])
-            return thumbnails
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-    
-    def get_playlist_high_res_thumbnail(self, playlist_id: str) -> (dict | None):
-        """
-        Get the name of a playlist using the playlst id.
-        """
-        playlist_info = self.get_playlist_snippet(playlist_id)
-        if playlist_info:
-            return playlist_info["thumbnails"]["high"]
-        return None
-
-    def get_all_playlist_high_res_thumbnails(self, max_results=10) -> (list | None):
-        service = self.service
-
-        try:
-            request = service.playlists().list(
-                part="snippet",
-                mine=True,
-                maxResults=max_results
-            )
-            response = request.execute()
-            thumbnails = []
-            for playlist in response["items"]:
-                thumbnails.append(playlist["snippet"]["thumbnails"]["high"])
-            return thumbnails
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-    
-    def get_playlist_high_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
-        """
-        Get the name of a playlist using the playlst id.
-        """
-        playlist_info = self.get_playlist_snippet(playlist_id)
-        if playlist_info:
-            return playlist_info["thumbnails"]["high"]["url"]
-        return None
-
-    def get_all_playlist_high_res_thumbnail_urls(self, max_results=10) -> (list | None):
-        service = self.service
-
-        try:
-            request = service.playlists().list(
-                part="snippet",
-                mine=True,
-                maxResults=max_results
-            )
-            response = request.execute()
-            thumbnails = []
-            for playlist in response["items"]:
-                thumbnails.append(playlist["snippet"]["thumbnails"]["high"]["url"])
-            return thumbnails
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-    
-    def get_playlist_standard_res_thumbnail(self, playlist_id: str) -> (dict | None):
-        """
-        Get the name of a playlist using the playlst id.
-        """
-        playlist_info = self.get_playlist_snippet(playlist_id)
-        if playlist_info:
-            return playlist_info["thumbnails"]["standard"]
-        return None
-
-    def get_all_playlist_standard_res_thumbnails(self, max_results=10) -> (list | None):
-        service = self.service
-
-        try:
-            request = service.playlists().list(
-                part="snippet",
-                mine=True,
-                maxResults=max_results
-            )
-            response = request.execute()
-            thumbnails = []
-            for playlist in response["items"]:
-                thumbnails.append(playlist["snippet"]["thumbnails"]["standard"])
-            return thumbnails
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-    
-    def get_playlist_standard_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
-        """
-        Get the name of a playlist using the playlst id.
-        """
-        playlist_info = self.get_playlist_snippet(playlist_id)
-        if playlist_info:
-            return playlist_info["thumbnails"]["standard"]["url"]
-        return None
-
-    def get_all_playlist_standard_res_thumbnail_urls(self, max_results=10) -> (list | None):
-        service = self.service
-
-        try:
-            request = service.playlists().list(
-                part="snippet",
-                mine=True,
-                maxResults=max_results
-            )
-            response = request.execute()
-            thumbnails = []
-            for playlist in response["items"]:
-                thumbnails.append(playlist["snippet"]["thumbnails"]["standard"]["url"])
-            return thumbnails
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-    
-    def get_playlist_max_res_thumbnail(self, playlist_id: str) -> (dict | None):
-        """
-        Get the name of a playlist using the playlst id.
-        """
-        playlist_info = self.get_playlist_snippet(playlist_id)
-        if playlist_info:
-            return playlist_info["thumbnails"]["maxres"]
-        return None
-
-    def get_all_playlist_max_res_thumbnails(self, max_results=10) -> (list | None):
-        service = self.service
-
-        try:
-            request = service.playlists().list(
-                part="snippet",
-                mine=True,
-                maxResults=max_results
-            )
-            response = request.execute()
-            thumbnails = []
-            for playlist in response["items"]:
-                thumbnails.append(playlist["snippet"]["thumbnails"]["maxres"])
-            return thumbnails
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-    
-    def get_playlist_max_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
-        """
-        Get the name of a playlist using the playlst id.
-        """
-        playlist_info = self.get_playlist_snippet(playlist_id)
-        if playlist_info:
-            return playlist_info["thumbnails"]["maxres"]["url"]
-        return None
-
-    def get_all_playlist_max_res_thumbnail_urls(self, max_results=10) -> (list | None):
-        service = self.service
-
-        try:
-            request = service.playlists().list(
-                part="snippet",
-                mine=True,
-                maxResults=max_results
-            )
-            response = request.execute()
-            thumbnails = []
-            for playlist in response["items"]:
-                thumbnails.append(playlist["snippet"]["thumbnails"]["maxres"]["url"])
-            return thumbnails
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-    
-    
-    
-    def get_videos_in_playlist(self, playlist_id: str, max_results: int=50) -> (list | None):
-        """
-        Returns all videos in a playlist up to the number specified 
-        by max_results.
-        """
-        service = self.service
-        try:
-            videos = []
-            request = service.playlistItems().list(
-                part="snippet",
-                playlistId=playlist_id,
-                maxResults=int(max_results)
-            )
-            while request is not None:
                 response = request.execute()
-                for item in response.get("items", []):
-                    video_id = item["snippet"]["resourceId"]["videoId"]
-                    video_title = item["snippet"]["title"]
-                    # videos.append({
-                    #     "video_id": video_id,
-                    #     "video_title": video_title
-                    # })
-                    videos.append(item["snippet"])
-                    
+                return True
 
-                request = service.playlistItems().list_next(request, response)
-            return videos
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return False
+        
+        def remove_video_from_playlist(self, playlist_item_id: str) -> bool:
+            """
+            This method allows you to remove a video from a playlist using the 
+            playlist_item_id. Note that you need to retrieve the playlist_item_id 
+            of the specific video in the playlist before using this method.
+            """
+            service = self.service
 
-    def get_playlists(self, max_results: int=10) -> (list | None):
-        """
-            This method uses the playlists().list method to retrieve the user's playlists. 
-            Using the 'mine=True' parameter indicates that we want to retrieve playlists belonging 
-            to the authenticated user.
-        """
-        service = self.service
-        try:
-            request = service.playlists().list(
-                part="snippet",
-                mine=True,
-                maxResults=max_results
-            )
-            response = request.execute()
-            
-            playlists = []
-            for playlist in response["items"]:
-                playlists.append(playlist["snippet"])
-            return playlists
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-    
-    def get_liked_playlist(self) -> (dict | None):
-        """
-        Retrieve the snippet for the "Liked videos" playlist.
-        """
-        service = self.service
-
-        try:
-            liked_playlist = None
-            request = service.playlists().list(
-                part="snippet",
-                mine=True
-            )
-            response = request.execute()
-            for item in response.get("items", []):
-                if item["snippet"]["title"] == "Liked videos":
-                    liked_playlist = item
-                    return liked_playlist
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-         
-    def get_playlist_items(self, playlist_id, max_results=10) -> (list | None):
-        """
-        Returns a list of playlist item snippets for a given playlist. Returns None
-        if unsuccessful.
-        """
-        service = self.service
-        try:
-            request = service.playlistItems().list(
-                part="snippet",
-                playlistId=playlist_id,
-                maxResults=max_results
-            )
-            response = request.execute()
-            playlist_items = []
-            for item in response["items"]:
-                playlist_items.append(item["snippet"])
-            return playlist_items
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-    
-    def set_playlist_privacy_status(self, playlist_id, privacy_status):
-        """
-        This method allows you to update the privacy status of a playlist 
-        with the specified playlist_id. The privacy_status can be set to 
-        "private" or "public."
-        """
-       
-        service = self.service
-
-        try:
-            playlist = service.playlists().list(
-                part="status",
-                id=playlist_id
-            ).execute()
-
-            status = playlist["items"][0]["status"]
-            status["privacyStatus"] = privacy_status
-
-            service.playlists().update(
-                part="status",
-                body={
-                    "id": playlist_id,
-                    "status": status
-                }
-            ).execute()
-
-            return True
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return False
-
-    #//////////// VIDEOS ////////////
-    
-    def get_video_snippet(self, video_id):
-        """
-        This method, get_video_snippet(video_id), allows you to retrieve the 
-        snippet data of a video with the specified video_id. The snippet data 
-        includes information such as the video's title, description, tags, 
-        thumbnails, etc.
-        """
-        service = self.service
-
-        try:
-            video = service.videos().list(
-                part="snippet",
-                id=video_id
-            ).execute()
-
-            snippet = video["items"][0]["snippet"]
-            return snippet
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-
-    def upload_video(self, video_path, title, description, privacy_status="public"):
-        """
-        The upload_video(video_path, title, description, privacy_status), takes the 
-        following parameters:
-
-            video_path:     The local file path of the video you want to upload.
-            title:          The title of the video.
-            description:    The description of the video.
-            privacy_status: (Optional) The privacy status of the uploaded video. It can 
-            be set to "public," "private," or "unlisted." The default is "public."
-            
-        Before using this method or any method in this class, ensure you have the 
-        get_authenticated_service() method defined as shown in the previous responses 
-        to obtain an authenticated YouTube API service. This ensures that your 
-        application is authorized to make API requests and has the necessary permissions 
-        to upload videos on behalf of the user.
-
-        """
-        import requests
-        from googleapiclient.errors import HttpError
-
-        service = self.service
-
-        try:
-            request = service.videos().insert(
-                part="snippet,status",
-                body={
-                    "snippet": {
-                        "title": title,
-                        "description": description
-                    },
-                    "status": {
-                        "privacyStatus": privacy_status
-                    }
-                }
-            )
-            response = request.execute()
-            upload_url = response.get("uploadURL")
-            if upload_url:
-                headers = {
-                    "Authorization": f"Bearer {service.credentials.token}",
-                    "Content-Type": "video/*"
-                }
-
-                video_file = open(video_path, "rb")
-                response = requests.put(upload_url, data=video_file, headers=headers)
-
-                if response.status_code == 200:
-                    print("Video uploaded successfully!")
-                else:
-                    print("Video upload failed.")
-
-                video_file.close()
-
-            else:
-                print("Upload URL not found. Unable to start video upload.")
-
-        except HttpError as e:
-            print(f"An HTTP error occurred: {e}")
-        except OSError as e:
-            print(f"An OS error occurred: {e}")
-
-    def delete_video(self, video_id):
-        service = self.service
-
-        try:
-            service.videos().delete(
-                id=video_id
-            ).execute()
-
-            print(f"Video with ID {video_id} deleted successfully!")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def like_video(self, video_id):
-        """
-        This method like_video(video_id) takes the video_id of the video 
-        you want to like and calls the videos.rate method with rating="like" 
-        to like the video.
-        """
-        service = self.service
-
-        try:
-            request = service.videos().rate(
-                id=video_id,
-                rating="like"
-            )
-            response = request.execute()
-
-            print(f"Video with ID {video_id} liked successfully!")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def unlike_video(self, video_id):
-        service = self.service
-
-        try:
-            request = service.videos().rate(
-                id=video_id,
-                rating="none"
-            )
-            response = request.execute()
-
-            print(f"Video with ID {video_id} unliked successfully!")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_related_videos(self, video_id, max_results=10):
-        """
-        This method retrieves related videos for a specific video. It prints 
-        information about videos related to the given video based on YouTube's 
-        recommendation algorithm.
-        """
-        service = self.service
-
-        try:
-            request = service.search().list(
-                part="snippet",
-                relatedToVideoId=video_id,
-                type="video",
-                maxResults=max_results
-            )
-            response = request.execute()
-
-            for video in response["items"]:
-                title = video["snippet"]["title"]
-                video_id = video["id"]["videoId"]
-                print(f"Related Video: {title} (Video ID: {video_id})")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def iterate_related_videos(self, video_id, max_results=10):
-        service = self.service
-
-        try:
-            request = service.search().list(
-                part="snippet",
-                relatedToVideoId=video_id,
-                type="video",
-                maxResults=max_results
-            )
-            response = request.execute()
-
-            related_videos = response.get("items", [])
-            for video in related_videos:
-                video_id = video["id"]["videoId"]
-                video_title = video["snippet"]["title"]
-                channel_title = video["snippet"]["channelTitle"]
-                print(f"Video ID: {video_id}, Title: {video_title}, Channel: {channel_title}")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def save_video_to_playlist(self, playlist_id, video_id):
-        """
-        This method allows you to save a video specified by ID to a playlist
-        also specified by ID.
-        """
-        service = self.service
-
-        try:
-            service.playlistItems().insert(
-                part="snippet",
-                body={
-                    "snippet": {
-                        "playlistId": playlist_id,
-                        "resourceId": {
-                            "kind": "youtube#video",
-                            "videoId": video_id
+            try:
+                service.playlistItems().delete(
+                    id=playlist_item_id
+                ).execute()
+                return True
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return False
+        
+        def update_playlist(self, playlist_id: str, title: str, description: str) -> (dict | None):
+            """
+            Update the playlist title and description. Returns the updated
+            playlist snippet. 
+            """
+            service = self.service
+            try:
+                request = service.playlists().update(
+                    part="snippet",
+                    body={
+                        "id": playlist_id,
+                        "snippet": {
+                            "title": title,
+                            "description": description
                         }
                     }
-                }
-            ).execute()
-
-            print(f"Video with ID {video_id} saved to the playlist with ID {playlist_id} successfully!")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-    
-    def get_all_video_details(self, video_id):
-        service = self.service
-
-        try:
-            request = service.videos().list(
-                part="snippet,contentDetails,statistics",
-                id=video_id
-            )
-            response = request.execute()
-
-            video = response["items"][0]
-            print(f"Title: {video['snippet']['title']}")
-            print(f"Channel: {video['snippet']['channelTitle']}")
-            print(f"Published At: {video['snippet']['publishedAt']}")
-            print(f"Duration: {video['contentDetails']['duration']}")
-            print(f"Views: {video['statistics']['viewCount']}")
-            print(f"Likes: {video['statistics']['likeCount']}")
-            print(f"Dislikes: {video['statistics']['dislikeCount']}")
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_video_title(self, video_id):
-        service = self.service
-        try:
-            request = service.videos().list(
-                part="snippet,contentDetails,statistics",
-                id=video_id
-            )
-            response = request.execute()
-
-            video = response["items"][0]
-            return video['snippet']['title']
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            
-    def get_videos_channel_title(self, video_id):
-        service = self.service
-        try:
-            request = service.videos().list(
-                part="snippet,contentDetails,statistics",
-                id=video_id
-            )
-            response = request.execute()
-
-            video = response["items"][0]
-            return video['snippet']['channelTitle']
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            
-    def get_video_published_at(self, video_id):
-        service = self.service
-        try:
-            request = service.videos().list(
-                part="snippet,contentDetails,statistics",
-                id=video_id
-            )
-            response = request.execute()
-
-            video = response["items"][0]
-            return video['snippet']['publishedAt']
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            
-    def get_video_duration(self, video_id):
-        service = self.service
-        try:
-            request = service.videos().list(
-                part="snippet,contentDetails,statistics",
-                id=video_id
-            )
-            response = request.execute()
-
-            video = response["items"][0]
-            return video['contentDetails']['duration']
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-       
-    def get_video_view_count(self, video_id):
-        service = self.service
-        try:
-            request = service.videos().list(
-                part="snippet,contentDetails,statistics",
-                id=video_id
-            )
-            response = request.execute()
-
-            video = response["items"][0]
-            return video['statistics']['viewCount']
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-      
-    def get_video_like_count(self, video_id):
-        service = self.service
-        try:
-            request = service.videos().list(
-                part="snippet,contentDetails,statistics",
-                id=video_id
-            )
-            response = request.execute()
-
-            video = response["items"][0]
-            return video['statistics']['likeCount']
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-      
-    def get_video_dislike_count(self, video_id):
-        service = self.service
-        try:
-            request = service.videos().list(
-                part="snippet,contentDetails,statistics",
-                id=video_id
-            )
-            response = request.execute()
-
-            video = response["items"][0]
-            return video['statistics']['dislikeCount']
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-       
-    def get_video_categories(self, region_code="US"):
-        service = self.service
-
-        try:
-            request = service.videoCategories().list(
-                part="snippet",
-                regionCode=region_code
-            )
-            response = request.execute()
-
-            for item in response["items"]:
-                print(f"{item['id']} - {item['snippet']['title']}")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-     
-    def get_videos_by_category(self, category_id, region_code="US", max_results=10):
-        service = self.service
-
-        try:
-            request = service.search().list(
-                part="snippet",
-                videoCategoryId=category_id,
-                regionCode=region_code,
-                type="video",
-                maxResults=max_results
-            )
-            response = request.execute()
-
-            for item in response["items"]:
-                print(item["snippet"]["title"])
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-    
-    def get_trending_videos(self, region_code="US", max_results=10):
-        service = self.service
-        try:
-            request = service.videos().list(
-                part="snippet",
-                chart="mostPopular",
-                regionCode=region_code,
-                maxResults=max_results
-            )
-            response = request.execute()
-
-            for item in response["items"]:
-                print(item["snippet"]["title"])
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_videos_by_tag(self, tag, region_code="US", max_results=10):
-        service = self.service
-        try:
-            request = service.search().list(
-                part="snippet",
-                q=tag,
-                regionCode=region_code,
-                type="video",
-                maxResults=max_results
-            )
-            response = request.execute()
-
-            for item in response["items"]:
-                print(item["snippet"]["title"])
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-    
-    def get_recommended_videos(self, video_id, max_results=10):
-        """
-        This method will get recommended videos based on a given video's ID.
-        """
-        service = self.service
-
-        try:
-            # Get recommended videos for the given video ID
-            request = service.search().list(
-                part="snippet",
-                relatedToVideoId=video_id,
-                type="video",
-                maxResults=max_results
-            )
-            response = request.execute()
-
-            recommended_videos = []
-            for item in response["items"]:
-                video = item["snippet"]
-                recommended_videos.append({
-                    "video_id": item["id"]["videoId"],
-                    "title": video["title"],
-                    "channel": video["channelTitle"]
-                })
-
-            return recommended_videos
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
- 
-    def set_video_tags(self, video_id, tags):
-        """
-        This method allows you to set the tags for a video with 
-        the specified video_id. Provide a list of tags to update the video's tags.
-        """
-        service = self.service
-
-        try:
-            video = service.videos().list(
-                part="snippet",
-                id=video_id
-            ).execute()
-
-            snippet = video["items"][0]["snippet"]
-            snippet["tags"] = tags
-
-            service.videos().update(
-                part="snippet",
-                body={
-                    "id": video_id,
-                    "snippet": snippet
-                }
-            ).execute()
-
-            print(f"Tags for video with ID {video_id} updated successfully!")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
- 
-    def update_video_privacy_status(self, video_id, privacy_status):
-        """
-        This function allows you to update the privacy status of a video 
-        with the specified video_id. The privacy_status can be set to 
-        "private," "public," or "unlisted."
-        """
-        service = self.service
-
-        try:
-            video = service.videos().list(
-                part="status",
-                id=video_id
-            ).execute()
-
-            status = video["items"][0]["status"]
-            status["privacyStatus"] = privacy_status
-
-            service.videos().update(
-                part="status",
-                body={
-                    "id": video_id,
-                    "status": status
-                }
-            ).execute()
-
-            print(f"Privacy status for video with ID {video_id} updated successfully!")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def update_video_details(self, video_id, new_title=None, new_description=None, new_tags=None):
-        """
-        This method allows you to update the title, description, and tags of a 
-        video with the specified video_id. You can provide the new values for these 
-        parameters, and the snippet will be updated accordingly.
-        """
-        service = self.service
-
-        try:
-            video = service.videos().list(
-                part="snippet",
-                id=video_id
-            ).execute()
-
-            snippet = video["items"][0]["snippet"]
-            if new_title:
-                snippet["title"] = new_title
-            if new_description:
-                snippet["description"] = new_description
-            if new_tags:
-                snippet["tags"] = new_tags
-
-            service.videos().update(
-                part="snippet",
-                body={
-                    "id": video_id,
-                    "snippet": snippet
-                }
-            ).execute()
-
-            print(f"Video with ID {video_id} snippet updated successfully!")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def search_videos(self, query, max_results=10):
-        service = self.service
-
-        try:
-            request = service.search().list(
-                part="snippet",
-                q=query,
-                type="video",
-                maxResults=max_results
-            )
-            response = request.execute()
-
-            for item in response["items"]:
-                print(item["snippet"]["title"])
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")        
-
-    def search_videos_by_order(self, query, order="relevance", max_results=10):
-        service = self.service
-        try:
-            request = service.search().list(
-                part="snippet",
-                q=query,
-                type="video",
-                order=order,
-                maxResults=max_results
-            )
-            response = request.execute()
-            for item in response["items"]:
-                print(item["snippet"]["title"])
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def search_videos_by_category(self, query, category_id, max_results=10):
-        service = self.service
-        try:
-            request = service.search().list(
-                part="snippet",
-                q=query,
-                type="video",
-                videoCategoryId=category_id,
-                maxResults=max_results
-            )
-            response = request.execute()
-            for item in response["items"]:
-                print(item["snippet"]["title"])
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def search_videos_by_definition(self, query, definition="any", max_results=10):
-        service = self.service
-        try:
-            request = service.search().list(
-                part="snippet",
-                q=query,
-                type="video",
-                videoDefinition=definition,
-                maxResults=max_results
-            )
-            response = request.execute()
-            for item in response["items"]:
-                print(item["snippet"]["title"])
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def search_videos_by_duration(self, query, duration="any", max_results=10):
-        service = self.service
-        try:
-            request = service.search().list(
-                part="snippet",
-                q=query,
-                type="video",
-                videoDuration=duration,
-                maxResults=max_results
-            )
-            response = request.execute()
-
-            for item in response["items"]:
-                print(item["snippet"]["title"])
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")    
-
-    def search_videos_by_license(self, query, license_type="any", max_results=10):
-        service = self.service
-        try:
-            request = service.search().list(
-                part="snippet",
-                q=query,
-                type="video",
-                videoLicense=license_type,
-                maxResults=max_results
-            )
-            response = request.execute()
-            for item in response["items"]:
-                print(item["snippet"]["title"])
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-    
-    def search_videos_by_type(self, query, video_type="any", max_results=10):
-        service = self.service
-        try:
-            request = service.search().list(
-                part="snippet",
-                q=query,
-                type=video_type,
-                maxResults=max_results
-            )
-            response = request.execute()
-            for item in response["items"]:
-                print(item["snippet"]["title"])
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def search_embeddable_videos(self, query, embeddable="true", max_results=10):
-        service = self.service
-        try:
-            request = service.search().list(
-                part="snippet",
-                q=query,
-                type="video",
-                videoEmbeddable=embeddable,
-                maxResults=max_results
-            )
-            response = request.execute()
-            for item in response["items"]:
-                print(item["snippet"]["title"])
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def search_videos_by_published_date(self, query, published_after, published_before, max_results=10):
-        service = self.service
-        try:
-            request = service.search().list(
-                part="snippet",
-                q=query,
-                type="video",
-                publishedAfter=published_after,
-                publishedBefore=published_before,
-                maxResults=max_results
-            )
-            response = request.execute()
-
-            for item in response["items"]:
-                print(item["snippet"]["title"])
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-     
-    #//////////// CHANNELS ////////////
-
-    def get_channel_id(self, channel_identifier):
-        service = self.service
-
-        try:
-            request = service.channels().list(
-                part="id",
-                forUsername=channel_identifier  # Use 'forUsername' for channel's username or 'id' for channel URL
-            )
-            response = request.execute()
-
-            if response.get("items"):
-                channel_id = response["items"][0]["id"]
-                return channel_id
-
-            return None
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An HTTP error occurred: {e}")
-            return None
-
-        except IndexError:
-            print(f"Channel not found for '{channel_identifier}'.")
-            return None
-
-    def get_channel_name(self, channel_id):
-        """
-        This method allows you to retrieve the name (title) of a 
-        channel with the specified channel_id.
-        """
-        service = self.service
-
-        try:
-            channel = service.channels().list(
-                part="snippet",
-                id=channel_id
-            ).execute()
-
-            channel_name = channel["items"][0]["snippet"]["title"]
-            return channel_name
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-
-    def get_channel_id_by_name(self, channel_name):
-        """ 
-        This method takes the channel_name as input and returns 
-        the corresponding channel ID. It uses the search.list method 
-        with the type="channel" parameter to filter the results and
-        fetches the first channel ID that matches the search query.
-        """
-        service = self.service
-
-        try:
-            request = service.search().list(
-                part="id",
-                q=channel_name,
-                type="channel",
-                maxResults=1
-            )
-            response = request.execute()
-
-            if "items" in response:
-                channel_id = response["items"][0]["id"]["channelId"]
-                return channel_id
-            else:
-                print("Channel not found.")
+                )
+                response = request.execute()
+                return response['snippet']
+            except googleapiclient.errors.HttpError as e:
                 return None
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
+        def update_playlist_details(self, playlist_id, new_title: str=None, new_description: str=None) -> bool:
+            """
+            This method allows you to update the title and description of a 
+            playlist with the specified playlist_id.
+            """
+            service = self.service
 
-    def change_channel_name(self, channel_id, new_name):
-        service = self.service
-
-        try:
-            channel = service.channels().list(
-                part="snippet",
-                id=channel_id
-            ).execute()
-
-            snippet = channel["items"][0]["snippet"]
-            snippet["title"] = new_name
-
-            service.channels().update(
-                part="snippet",
-                body={
-                    "id": channel_id,
-                    "snippet": snippet
-                }
-            ).execute()
-
-            print(f"Channel with ID {channel_id} name changed to '{new_name}' successfully!")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_channels(self):
-        """
-        Retrieve information about channels that the authenticated user is 
-        subscribed to:
-        """
-        service = self.service
-
-        try:
-            channels = []
-
-            request = service.subscriptions().list(
-                part="snippet",
-                mine=True,
-                maxResults=50
-            )
-
-            while request is not None:
-                response = request.execute()
-
-                for item in response.get("items", []):
-                    channel_id = item["snippet"]["resourceId"]["channelId"]
-                    channel_title = item["snippet"]["title"]
-                    channels.append({
-                        "channel_id": channel_id,
-                        "channel_title": channel_title
-                    })
-
-                request = service.subscriptions().list_next(request, response)
-
-            return channels
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-
-    def subscribe_to_channel(self, channel_id):
-        """
-        Subscribe to a channel using its ID
-        """
-        service = self.service
-        try:
-            service.subscriptions().insert(
-                part="snippet",
-                body={
-                    "snippet": {
-                        "resourceId": {
-                            "kind": "youtube#channel",
-                            "channelId": channel_id
-                        }
-                    }
-                }
-            ).execute()
-            return True
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def unsubscribe_from_channel(self, channel_id):
-        """
-        Unsubscribe from a channel using it's ID.
-        """
-        service = self.service
-
-        try:
-            # First, get the subscription ID for the specified channel
-            request = service.subscriptions().list(
-                part="id",
-                mine=True,
-                forChannelId=channel_id
-            )
-            response = request.execute()
-
-            if response.get("items"):
-                subscription_id = response["items"][0]["id"]
-
-                # Unsubscribe from the channel using the subscription ID
-                service.subscriptions().delete(
-                    id=subscription_id
+            try:
+                playlist = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
                 ).execute()
 
-                print(f"Unsubscribed from the channel with ID {channel_id} successfully!")
-            else:
-                print(f"You are not subscribed to the channel with ID {channel_id}.")
+                snippet = playlist["items"][0]["snippet"]
+                if new_title:
+                    snippet["title"] = new_title
+                if new_description:
+                    snippet["description"] = new_description
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-    
-    def iterate_subscriptions_in_channel(self, channel_id):
-        """
-        Iterate over the subscriptions in a channel.
-        """
-        service = self.service
-
-        try:
-            subscriptions = []
-
-            request = service.subscriptions().list(
-                part="snippet",
-                channelId=channel_id,
-                maxResults=50
-            )
-
-            while request is not None:
-                response = request.execute()
-
-                for item in response.get("items", []):
-                    subscribed_channel_id = item["snippet"]["resourceId"]["channelId"]
-                    subscribed_channel_title = item["snippet"]["title"]
-                    subscriptions.append({
-                        "subscribed_channel_id": subscribed_channel_id,
-                        "subscribed_channel_title": subscribed_channel_title
-                    })
-
-                request = service.subscriptions().list_next(request, response)
-
-            return subscriptions
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-
-    def get_subscriptions_channel_ids(self):
-        """
-        retrieves the channel IDs of the channels to which the authenticated 
-        user is subscribed. The function uses pagination to handle cases 
-        where the user has more than 50 subscriptions (the default API result limit).
-        """
-        service = self.service
-
-        try:
-            channel_ids = []
-
-            # Set the 'mine' parameter to True to get subscriptions of the authenticated user
-            request = service.subscriptions().list(
-                part="snippet",
-                mine=True,
-                maxResults=50  # Adjust the number of results as needed
-            )
-
-            while request is not None:
-                response = request.execute()
-
-                # Extract channel IDs from the response
-                for item in response.get("items", []):
-                    channel_id = item["snippet"]["resourceId"]["channelId"]
-                    channel_ids.append(channel_id)
-
-                # Check if there are more subscriptions to fetch
-                request = service.subscriptions().list_next(request, response)
-
-            return channel_ids
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-
-    def get_channel_snippet(self, channel_id):
-        """
-        This method allows you to retrieve the snippet of a channel with 
-        the specified channel_id. It returns the snippet data, which includes 
-        information like the channel's title, description, and profile picture.
-        """
-        service = self.service
-
-        try:
-            channel = service.channels().list(
-                part="snippet",
-                id=channel_id
-            ).execute()
-
-            snippet = channel["items"][0]["snippet"]
-            return snippet
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-
-    def get_channel_info(self, channel_id):
-        service = self.service
-
-        try:
-            request = service.channels().list(
-                part="snippet,statistics",
-                id=channel_id
-            )
-            response = request.execute()
-
-            channel = response["items"][0]
-            print(f"Channel Title: {channel['snippet']['title']}")
-            print(f"Subscriber Count: {channel['statistics']['subscriberCount']}")
-            print(f"Video Count: {channel['statistics']['videoCount']}")
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_channel_videos(self, channel_id, max_results=100):
-        service = self.service
-        try:
-            request = service.search().list(
-            part="snippet",
-            channelId=channel_id,
-            type="video",
-            maxResults=max_results
-            )
-            response = request.execute()
-            for item in response["items"]:
-                print(item["snippet"]["title"])
-        except googleapiclient.errors.HttpError as e:
-            print(f"googleapiclient.errors.HttpError:\n {e}")
-        except UnicodeEncodeError as uee:
-            print(f"UnicodeEncodeError:\nUnable to encode one or more characters in a video title.\nMost likely an emoji\n{uee}")
-
-    def get_featured_channels(self, channel_id):
-        service = self.service
-
-        try:
-            request = service.channels().list(
-                part="snippet,brandingSettings",
-                id=channel_id
-            )
-            response = request.execute()
-
-            featured_channels = response["items"][0]["brandingSettings"]["channel"]["featuredChannelsUrls"]
-            for channel_url in featured_channels:
-                print(channel_url)
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_channel_sections(self, channel_id):
-        service = self.service
-
-        try:
-            request = service.channelSections().list(
-                part="snippet",
-                channelId=channel_id
-            )
-            response = request.execute()
-
-            for item in response["items"]:
-                print(item["snippet"]["title"] )
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_channel_subscribers(self, channel_id):
-        service = self.service
-
-        try:
-            request = service.channels().list(
-                part="statistics",
-                id=channel_id
-            )
-            response = request.execute()
-
-            subscriber_count = response["items"][0]["statistics"]["subscriberCount"]
-            print(f"Channel '{channel_id}' has {subscriber_count} subscribers.")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_latest_subscriptions(self, max_results=10):
-        service = self.service
-        try:
-            request = service.subscriptions().list(
-                part="snippet",
-                mine=True,
-                maxResults=max_results,
-                order="newest"
-            )
-            response = request.execute()
-
-            for subscription in response["items"]:
-                channel_title = subscription["snippet"]["title"]
-                channel_id = subscription["snippet"]["resourceId"]["channelId"]
-                print(f"Subscribed Channel: {channel_title} (Channel ID: {channel_id})")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_subscribed_channels(self, max_results=10):
-        service = self.service
-        try:
-            request = service.subscriptions().list(
-                part="snippet",
-                mine=True,
-                maxResults=max_results
-            )
-            response = request.execute()
-
-            for subscription in response["items"]:
-                channel_title = subscription["snippet"]["title"]
-                channel_id = subscription["snippet"]["resourceId"]["channelId"]
-                print(f"Subscribed Channel: {channel_title} (Channel ID: {channel_id})")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def is_subscribed_to_channel(self, channel_id):
-        service = self.service
-
-        try:
-            request = service.subscriptions().list(
-                part="snippet",
-                mine=True,
-                forChannelId=channel_id
-            )
-            response = request.execute()
-
-            if "items" in response and len(response["items"]) > 0:
+                service.playlists().update(
+                    part="snippet",
+                    body={
+                        "id": playlist_id,
+                        "snippet": snippet
+                    }
+                ).execute()
                 return True
-            else:
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
                 return False
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return False
+        def update_playlist_title(self, playlist_id, new_title=None) -> bool:
+            """
+            This method allows you to update the title and description of a 
+            playlist with the specified playlist_id.
+            """
+            service = self.service
 
-    def subscribe_to_channel(self, channel_id):
-        service = self.service
+            try:
+                playlist = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                ).execute()
 
-        try:
-            request = service.subscriptions().insert(
-                part="snippet",
-                body={
-                    "snippet": {
-                        "resourceId": {
-                            "kind": "youtube#channel",
-                            "channelId": channel_id
+                snippet = playlist["items"][0]["snippet"]
+                if new_title:
+                    snippet["title"] = new_title
+
+                service.playlists().update(
+                    part="snippet",
+                    body={
+                        "id": playlist_id,
+                        "snippet": snippet
+                    }
+                ).execute()
+
+                return True
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return False
+        
+        def update_playlist_description(self, playlist_id, new_description: str=None) -> bool:
+            """
+            This method allows you to update the title and description of a 
+            playlist with the specified playlist_id.
+            """
+            service = self.service
+
+            try:
+                playlist = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                ).execute()
+
+                snippet = playlist["items"][0]["snippet"]
+                if new_description:
+                    snippet["description"] = new_description
+
+                service.playlists().update(
+                    part="snippet",
+                    body={
+                        "id": playlist_id,
+                        "snippet": snippet
+                    }
+                ).execute()
+                return True
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return False
+
+        def reorder_playlist_items(self, playlist_id: str, video_ids: list) -> bool:
+            """
+            This method allows you to reorder videos in a playlist by providing 
+            a list of video_ids. The videos in the playlist will be reordered based 
+            on the order of the provided video_ids
+            """
+            service = self.service
+            try:
+                playlist_items = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id,
+                    maxResults=len(video_ids)
+                ).execute()
+
+                video_positions = {}
+                for item in playlist_items["items"]:
+                    video_positions[item["snippet"]["resourceId"]["videoId"]] = item["snippet"]["position"]
+                for video_id in video_ids:
+                    position = video_positions.get(video_id, 0)
+                    request = service.playlistItems().update(
+                        part="snippet",
+                        body={
+                            "id": f"{playlist_id}_{video_id}",
+                            "snippet": {
+                                "playlistId": playlist_id,
+                                "resourceId": {
+                                    "kind": "youtube#video",
+                                    "videoId": video_id
+                                },
+                                "position": position
+                            }
+                        }
+                    )
+                    request.execute()
+                return True
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return False
+        
+        def iterate_videos_in_playlist(self, playlist_id: str, func=None) -> (bool | None):
+            if func is not None:
+                videos = self.get_videos_in_playlist(playlist_id)
+                if videos:
+                    for video in videos:
+                        func(video)
+                    return True
+                else:
+                    print(f"Unable to fetch videos in playlist with ID {playlist_id}.")
+                    return False
+            return None
+
+        def search_playlists(self, query: str, max_results: int=10) -> (list[dict] | None):
+            """
+            Returns a list of result snippets that matched the query.
+            """
+            service = self.service
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    q=query,
+                    type="playlist",
+                    maxResults=max_results
+                )
+                response = request.execute()
+                result_snippets = []
+                for item in response["items"]:
+                    result_snippets.append(item["snippet"])
+                return result_snippets
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        def get_playlist_snippet(self, playlist_id: str) -> (str | None):
+            """
+            Get a playlists snippet using the playlist id.
+            """
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+
+                playlist_snippet_info = response["items"][0]["snippet"]
+                return playlist_snippet_info
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+
+        def get_all_playlist_snippets(self, max_results: int=10):
+            """
+            Get a list of the kind of playlists the authenticated user
+            has.
+            """ 
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                snippets = []
+                for playlist in response["items"]:
+                    snippets.append(playlist["snippet"])
+                return snippets
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+            
+        def get_playlist_kind(self, playlist_id: str) -> (str | None):
+            """
+            Get the kind of playlist that the playlist is tagged as.
+            """ 
+            service = self.service
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                playlist_kind = response['kind']
+                return playlist_kind
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            
+        def get_all_playlist_kinds(self, max_results=10) -> (list | None):
+            """
+            Get a list of the kind of playlists the authenticated user has.
+            """ 
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                kinds = []
+                for playlist in response["items"]:
+                    kinds.append(playlist["kind"])
+                return kinds
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+            
+        def get_playlist_etag(self, playlist_id: str) -> (str | None):
+            """
+            Get the etag for the playlist specified by playlist_id.
+            """ 
+            service = self.service
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                playlist_kind = response['kind']
+                return playlist_kind
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+
+        def get_all_playlist_etags(self, max_results=10) -> (list | None): 
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                etags = []
+                print(response['items'])
+                for playlist in response["items"]:
+                    etags.append(playlist["etag"])
+                return etags
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        def get_playlist_id(self, playlist_title: str, channel_id: str=None, max_results: int=1) -> (str | None):
+            service = self.service
+            try:
+                request = service.search().list(
+                    part="id",
+                    channelId=channel_id,
+                    maxResults=max_results,
+                    q=playlist_title,
+                    type="playlist"
+                )
+                response = request.execute()
+
+                if response.get("items"):
+                    playlist_id = response["items"][0]["id"]["playlistId"]
+                    return playlist_id
+
+                return None
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An HTTP error occurred: {e}")
+                return None
+
+            except IndexError:
+                print(f"No playlist found with title '{playlist_title}'.")
+                return None
+
+        def get_all_playlist_ids(self, max_results=10) -> (list | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                ids = []
+                for playlist in response["items"]:
+                    ids.append(playlist["id"])
+                return ids
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        def get_playlists_channel_id(self, playlist_id: str):
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info is not None:
+                return playlist_info["channelId"]
+                
+        def get_playlist_title(self, playlist_id: str) -> (str | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["title"]
+            return None
+
+        def get_all_playlist_titles(self, max_results=10) -> (list | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                titles = []
+                for playlist in response["items"]:
+                    titles.append(playlist["snippet"]["title"])
+                return titles
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+
+        def get_playlist_channel_title(self, playlist_id: str) -> (str | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["channelTitle"]
+            return None
+
+        def get_all_playlist_channel_titles(self, max_results=10) -> (list | None):
+            """
+            I don't know why you would need to do this since this method
+            will return a list of the same title due to all playlists being
+            in the same channel, but I figured what the hell. Why not?
+            Who knows what someone may be coding or need, so here it is 
+            anyway.
+            """
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                titles = []
+                for playlist in response["items"]:
+                    titles.append(playlist["snippet"]["title"])
+                return titles
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        def get_playlist_description(self, playlist_id: str) -> (str | None):
+            """
+            Get the description of a playlist using the playlist ID.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["description"]
+            return None
+
+        def get_all_playlist_descriptions(self, max_results=10) -> (list | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                descriptions = []
+                for playlist in response["items"]:
+                    descriptions.append(playlist["snippet"]["description"])
+                return descriptions
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+
+        def get_date_playlist_published(self, playlist_id: str) -> (str | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["publishedAt"]
+            return None
+
+        def get_all_playlist_published_dates(self, max_results: int=20) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                published_dates = []
+                for playlist in response["items"]:
+                    published_dates.append(playlist["snippet"]["publishedAt"])
+                return published_dates
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        def get_playlist_localized_data(self, playlist_id: str) -> (str | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["localized"]
+            return None
+
+        def get_all_playlists_localized_data(self, max_results=10) -> (list | None):
+            """
+            I don't know why you would need to do this since this method
+            will return a list of the same title due to all playlists being
+            in the same channel, but I figured what the hell. Why not?
+            Who knows what someone may be coding or need, so here it is 
+            anyway.
+            """
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                titles = []
+                for playlist in response["items"]:
+                    titles.append(playlist["snippet"]["localized"])
+                return titles
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        def get_playlist_localized_title(self, playlist_id: str) -> (str | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["localized"]["title"]
+            return None
+
+        def get_all_playlists_localized_titles(self, max_results=10) -> (list | None):
+            """
+            I don't know why you would need to do this since this method
+            will return a list of the same title due to all playlists being
+            in the same channel, but I figured what the hell. Why not?
+            Who knows what someone may be coding or need, so here it is 
+            anyway.
+            """
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                titles = []
+                for playlist in response["items"]:
+                    titles.append(playlist["snippet"]["localized"]["title"])
+                return titles
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        def get_playlist_localized_description(self, playlist_id: str) -> (str | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["localized"]["description"]
+            return None
+
+        def get_all_playlists_localized_descriptions(self, max_results=10) -> (list | None):
+            """
+            I don't know why you would need to do this since this method
+            will return a list of the same title due to all playlists being
+            in the same channel, but I figured what the hell. Why not?
+            Who knows what someone may be coding or need, so here it is 
+            anyway.
+            """
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                descriptions = []
+                for playlist in response["items"]:
+                    descriptions.append(playlist["snippet"]["localized"]["description"])
+                return descriptions
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        def get_playlist_thumbnails(self, playlist_id: str) -> (str | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["thumbnails"]
+            return None
+
+        def get_all_playlist_thumbnails(self, max_results=10) -> (list | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                thumbnails = []
+                for playlist in response["items"]:
+                    thumbnails.append(playlist["snippet"]["thumbnails"])
+                return thumbnails
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+
+        def get_playlist_default_res_thumbnail(self, playlist_id: str) -> (dict | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["thumbnails"]["default"]
+            return None
+
+        def get_all_playlist_default_res_thumbnails(self, max_results=10) -> (list | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                thumbnails = []
+                for playlist in response["items"]:
+                    thumbnails.append(playlist["snippet"]["thumbnails"]["default"])
+                return thumbnails
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        def get_playlist_default_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["thumbnails"]["default"]["url"]
+            return None
+
+        def get_all_playlist_default_res_thumbnail_urls(self, max_results=10) -> (list | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                thumbnails = []
+                for playlist in response["items"]:
+                    thumbnails.append(playlist["snippet"]["thumbnails"]["default"]["url"])
+                return thumbnails
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        def get_playlist_medium_res_thumbnail(self, playlist_id: str) -> (dict | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["thumbnails"]["medium"]
+            return None
+
+        def get_all_playlist_medium_res_thumbnails(self, max_results=10) -> (list | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                thumbnails = []
+                for playlist in response["items"]:
+                    thumbnails.append(playlist["snippet"]["thumbnails"]["medium"])
+                return thumbnails
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        def get_playlist_medium_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["thumbnails"]["medium"]["url"]
+            return None
+
+        def get_all_playlist_medium_res_thumbnail_urls(self, max_results=10) -> (list | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                thumbnails = []
+                for playlist in response["items"]:
+                    thumbnails.append(playlist["snippet"]["thumbnails"]["medium"]["url"])
+                return thumbnails
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        def get_playlist_high_res_thumbnail(self, playlist_id: str) -> (dict | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["thumbnails"]["high"]
+            return None
+
+        def get_all_playlist_high_res_thumbnails(self, max_results=10) -> (list | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                thumbnails = []
+                for playlist in response["items"]:
+                    thumbnails.append(playlist["snippet"]["thumbnails"]["high"])
+                return thumbnails
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        def get_playlist_high_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["thumbnails"]["high"]["url"]
+            return None
+
+        def get_all_playlist_high_res_thumbnail_urls(self, max_results=10) -> (list | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                thumbnails = []
+                for playlist in response["items"]:
+                    thumbnails.append(playlist["snippet"]["thumbnails"]["high"]["url"])
+                return thumbnails
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        def get_playlist_standard_res_thumbnail(self, playlist_id: str) -> (dict | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["thumbnails"]["standard"]
+            return None
+
+        def get_all_playlist_standard_res_thumbnails(self, max_results=10) -> (list | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                thumbnails = []
+                for playlist in response["items"]:
+                    thumbnails.append(playlist["snippet"]["thumbnails"]["standard"])
+                return thumbnails
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        def get_playlist_standard_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["thumbnails"]["standard"]["url"]
+            return None
+
+        def get_all_playlist_standard_res_thumbnail_urls(self, max_results=10) -> (list | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                thumbnails = []
+                for playlist in response["items"]:
+                    thumbnails.append(playlist["snippet"]["thumbnails"]["standard"]["url"])
+                return thumbnails
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        def get_playlist_max_res_thumbnail(self, playlist_id: str) -> (dict | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["thumbnails"]["maxres"]
+            return None
+
+        def get_all_playlist_max_res_thumbnails(self, max_results=10) -> (list | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                thumbnails = []
+                for playlist in response["items"]:
+                    thumbnails.append(playlist["snippet"]["thumbnails"]["maxres"])
+                return thumbnails
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        def get_playlist_max_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["thumbnails"]["maxres"]["url"]
+            return None
+
+        def get_all_playlist_max_res_thumbnail_urls(self, max_results=10) -> (list | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                thumbnails = []
+                for playlist in response["items"]:
+                    thumbnails.append(playlist["snippet"]["thumbnails"]["maxres"]["url"])
+                return thumbnails
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        def get_videos_in_playlist(self, playlist_id: str, max_results: int=50) -> (list | None):
+            """
+            Returns all videos in a playlist up to the number specified 
+            by max_results.
+            """
+            service = self.service
+            try:
+                videos = []
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id,
+                    maxResults=int(max_results)
+                )
+                while request is not None:
+                    response = request.execute()
+                    for item in response.get("items", []):
+                        video_id = item["snippet"]["resourceId"]["videoId"]
+                        video_title = item["snippet"]["title"]
+                        # videos.append({
+                        #     "video_id": video_id,
+                        #     "video_title": video_title
+                        # })
+                        videos.append(item["snippet"])
+                        
+
+                    request = service.playlistItems().list_next(request, response)
+                return videos
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+
+        def get_playlists(self, max_results: int=10) -> (list | None):
+            """
+                This method uses the playlists().list method to retrieve the user's playlists. 
+                Using the 'mine=True' parameter indicates that we want to retrieve playlists belonging 
+                to the authenticated user.
+            """
+            service = self.service
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                
+                playlists = []
+                for playlist in response["items"]:
+                    playlists.append(playlist["snippet"])
+                return playlists
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        def get_liked_playlist(self) -> (dict | None):
+            """
+            Retrieve the snippet for the "Liked videos" playlist.
+            """
+            service = self.service
+
+            try:
+                liked_playlist = None
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True
+                )
+                response = request.execute()
+                for item in response.get("items", []):
+                    if item["snippet"]["title"] == "Liked videos":
+                        liked_playlist = item
+                        return liked_playlist
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+            
+        def get_playlist_items(self, playlist_id, max_results=10) -> (list | None):
+            """
+            Returns a list of playlist item snippets for a given playlist. Returns None
+            if unsuccessful.
+            """
+            service = self.service
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                playlist_items = []
+                for item in response["items"]:
+                    playlist_items.append(item["snippet"])
+                return playlist_items
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        def set_playlist_privacy_status(self, playlist_id, privacy_status):
+            """
+            This method allows you to update the privacy status of a playlist 
+            with the specified playlist_id. The privacy_status can be set to 
+            "private" or "public."
+            """
+        
+            service = self.service
+
+            try:
+                playlist = service.playlists().list(
+                    part="status",
+                    id=playlist_id
+                ).execute()
+
+                status = playlist["items"][0]["status"]
+                status["privacyStatus"] = privacy_status
+
+                service.playlists().update(
+                    part="status",
+                    body={
+                        "id": playlist_id,
+                        "status": status
+                    }
+                ).execute()
+
+                return True
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return False
+
+    #//////////// VIDEOS ////////////
+    class Video:
+        def __init__(self) -> None:
+            pass
+        
+        def get_video_snippet(self, video_id):
+            """
+            This method, get_video_snippet(video_id), allows you to retrieve the 
+            snippet data of a video with the specified video_id. The snippet data 
+            includes information such as the video's title, description, tags, 
+            thumbnails, etc.
+            """
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                snippet = video["items"][0]["snippet"]
+                return snippet
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+
+        def upload_video(self, video_path, title, description, privacy_status="public"):
+            """
+            The upload_video(video_path, title, description, privacy_status), takes the 
+            following parameters:
+
+                video_path:     The local file path of the video you want to upload.
+                title:          The title of the video.
+                description:    The description of the video.
+                privacy_status: (Optional) The privacy status of the uploaded video. It can 
+                be set to "public," "private," or "unlisted." The default is "public."
+                
+            Before using this method or any method in this class, ensure you have the 
+            get_authenticated_service() method defined as shown in the previous responses 
+            to obtain an authenticated YouTube API service. This ensures that your 
+            application is authorized to make API requests and has the necessary permissions 
+            to upload videos on behalf of the user.
+
+            """
+            import requests
+            from googleapiclient.errors import HttpError
+
+            service = self.service
+
+            try:
+                request = service.videos().insert(
+                    part="snippet,status",
+                    body={
+                        "snippet": {
+                            "title": title,
+                            "description": description
+                        },
+                        "status": {
+                            "privacyStatus": privacy_status
                         }
                     }
-                }
-            )
-            response = request.execute()
+                )
+                response = request.execute()
+                upload_url = response.get("uploadURL")
+                if upload_url:
+                    headers = {
+                        "Authorization": f"Bearer {service.credentials.token}",
+                        "Content-Type": "video/*"
+                    }
 
-            print("Subscribed successfully!")
+                    video_file = open(video_path, "rb")
+                    response = requests.put(upload_url, data=video_file, headers=headers)
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
+                    if response.status_code == 200:
+                        print("Video uploaded successfully!")
+                    else:
+                        print("Video upload failed.")
 
-    def unsubscribe_from_channel(self, channel_id):
-        service = self.service
+                    video_file.close()
 
-        try:
-            request = service.subscriptions().delete(
-                id=channel_id
-            )
-            response = request.execute()
+                else:
+                    print("Upload URL not found. Unable to start video upload.")
 
-            print("Unsubscribed successfully!")
+            except HttpError as e:
+                print(f"An HTTP error occurred: {e}")
+            except OSError as e:
+                print(f"An OS error occurred: {e}")
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
+        def delete_video(self, video_id):
+            service = self.service
 
-    def get_subscription_count(self, channel_id):
-        service = self.service
-        try:
-            request = service.channels().list(
-                part="statistics",
-                id=channel_id
-            )
-            response = request.execute()
-            if "items" in response:
-                channel_info = response["items"][0]
-                if "statistics" in channel_info:
-                    subscription_count = channel_info["statistics"].get("subscriberCount", 0)
-                    return int(subscription_count)
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-        return 0
+            try:
+                service.videos().delete(
+                    id=video_id
+                ).execute()
 
-    def get_my_subscription_count(self):
-        service = self.service
+                print(f"Video with ID {video_id} deleted successfully!")
 
-        try:
-            request = service.subscriptions().list(
-                part="subscriberSnippet",
-                mine=True
-            )
-            response = request.execute()
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
 
-            subscription_count = response.get("pageInfo", {}).get("totalResults", 0)
-            return int(subscription_count)
+        def like_video(self, video_id):
+            """
+            This method like_video(video_id) takes the video_id of the video 
+            you want to like and calls the videos.rate method with rating="like" 
+            to like the video.
+            """
+            service = self.service
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
+            try:
+                request = service.videos().rate(
+                    id=video_id,
+                    rating="like"
+                )
+                response = request.execute()
 
-        return 0
+                print(f"Video with ID {video_id} liked successfully!")
 
-    def get_subscriber_counts(self, channel_ids):
-        service = self.service
-        try:
-            request = service.channels().list(
-                part="statistics",
-                id=",".join(channel_ids)
-            )
-            response = request.execute()
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
 
-            subscriber_counts = {}
-            for channel_info in response["items"]:
-                channel_id = channel_info["id"]
-                if "statistics" in channel_info:
-                    subscriber_count = channel_info["statistics"].get("subscriberCount", 0)
-                    subscriber_counts[channel_id] = int(subscriber_count)
+        def unlike_video(self, video_id):
+            service = self.service
 
-            return subscriber_counts
+            try:
+                request = service.videos().rate(
+                    id=video_id,
+                    rating="none"
+                )
+                response = request.execute()
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
+                print(f"Video with ID {video_id} unliked successfully!")
 
-        return {}
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
 
-    def get_channel_related_channels(self, channel_id, max_results=10):
-        service = self.service
+        def get_related_videos(self, video_id, max_results=10):
+            """
+            This method retrieves related videos for a specific video. It prints 
+            information about videos related to the given video based on YouTube's 
+            recommendation algorithm.
+            """
+            service = self.service
 
-        try:
-            request = service.channels().list(
-                part="snippet",
-                relatedToChannelId=channel_id,
-                type="channel",
-                maxResults=max_results
-            )
-            response = request.execute()
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    relatedToVideoId=video_id,
+                    type="video",
+                    maxResults=max_results
+                )
+                response = request.execute()
 
-            for item in response["items"]:
-                print(item["snippet"]["title"])
+                for video in response["items"]:
+                    title = video["snippet"]["title"]
+                    video_id = video["id"]["videoId"]
+                    print(f"Related Video: {title} (Video ID: {video_id})")
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-    
-    def search_channels(self, query, max_results=10):
-        service = self.service
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
 
-        try:
-            request = service.search().list(
-                part="snippet",
-                q=query,
-                type="channel",
-                maxResults=max_results
-            )
-            response = request.execute()
+        def iterate_related_videos(self, video_id, max_results=10):
+            service = self.service
 
-            for item in response["items"]:
-                print(item["snippet"]["title"])
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    relatedToVideoId=video_id,
+                    type="video",
+                    maxResults=max_results
+                )
+                response = request.execute()
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
+                related_videos = response.get("items", [])
+                for video in related_videos:
+                    video_id = video["id"]["videoId"]
+                    video_title = video["snippet"]["title"]
+                    channel_title = video["snippet"]["channelTitle"]
+                    print(f"Video ID: {video_id}, Title: {video_title}, Channel: {channel_title}")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def save_video_to_playlist(self, playlist_id, video_id):
+            """
+            This method allows you to save a video specified by ID to a playlist
+            also specified by ID.
+            """
+            service = self.service
+
+            try:
+                service.playlistItems().insert(
+                    part="snippet",
+                    body={
+                        "snippet": {
+                            "playlistId": playlist_id,
+                            "resourceId": {
+                                "kind": "youtube#video",
+                                "videoId": video_id
+                            }
+                        }
+                    }
+                ).execute()
+
+                print(f"Video with ID {video_id} saved to the playlist with ID {playlist_id} successfully!")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
         
+        def get_all_video_details(self, video_id):
+            service = self.service
+
+            try:
+                request = service.videos().list(
+                    part="snippet,contentDetails,statistics",
+                    id=video_id
+                )
+                response = request.execute()
+
+                video = response["items"][0]
+                print(f"Title: {video['snippet']['title']}")
+                print(f"Channel: {video['snippet']['channelTitle']}")
+                print(f"Published At: {video['snippet']['publishedAt']}")
+                print(f"Duration: {video['contentDetails']['duration']}")
+                print(f"Views: {video['statistics']['viewCount']}")
+                print(f"Likes: {video['statistics']['likeCount']}")
+                print(f"Dislikes: {video['statistics']['dislikeCount']}")
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_video_title(self, video_id):
+            service = self.service
+            try:
+                request = service.videos().list(
+                    part="snippet,contentDetails,statistics",
+                    id=video_id
+                )
+                response = request.execute()
+
+                video = response["items"][0]
+                return video['snippet']['title']
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                
+        def get_videos_channel_title(self, video_id):
+            service = self.service
+            try:
+                request = service.videos().list(
+                    part="snippet,contentDetails,statistics",
+                    id=video_id
+                )
+                response = request.execute()
+
+                video = response["items"][0]
+                return video['snippet']['channelTitle']
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                
+        def get_video_published_at(self, video_id):
+            service = self.service
+            try:
+                request = service.videos().list(
+                    part="snippet,contentDetails,statistics",
+                    id=video_id
+                )
+                response = request.execute()
+
+                video = response["items"][0]
+                return video['snippet']['publishedAt']
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                
+        def get_video_duration(self, video_id):
+            service = self.service
+            try:
+                request = service.videos().list(
+                    part="snippet,contentDetails,statistics",
+                    id=video_id
+                )
+                response = request.execute()
+
+                video = response["items"][0]
+                return video['contentDetails']['duration']
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
+        def get_video_view_count(self, video_id):
+            service = self.service
+            try:
+                request = service.videos().list(
+                    part="snippet,contentDetails,statistics",
+                    id=video_id
+                )
+                response = request.execute()
+
+                video = response["items"][0]
+                return video['statistics']['viewCount']
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
+        def get_video_like_count(self, video_id):
+            service = self.service
+            try:
+                request = service.videos().list(
+                    part="snippet,contentDetails,statistics",
+                    id=video_id
+                )
+                response = request.execute()
+
+                video = response["items"][0]
+                return video['statistics']['likeCount']
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
+        def get_video_dislike_count(self, video_id):
+            service = self.service
+            try:
+                request = service.videos().list(
+                    part="snippet,contentDetails,statistics",
+                    id=video_id
+                )
+                response = request.execute()
+
+                video = response["items"][0]
+                return video['statistics']['dislikeCount']
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
+        def get_video_categories(self, region_code="US"):
+            service = self.service
+
+            try:
+                request = service.videoCategories().list(
+                    part="snippet",
+                    regionCode=region_code
+                )
+                response = request.execute()
+
+                for item in response["items"]:
+                    print(f"{item['id']} - {item['snippet']['title']}")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
+        def get_videos_by_category(self, category_id, region_code="US", max_results=10):
+            service = self.service
+
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    videoCategoryId=category_id,
+                    regionCode=region_code,
+                    type="video",
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
+        def get_trending_videos(self, region_code="US", max_results=10):
+            service = self.service
+            try:
+                request = service.videos().list(
+                    part="snippet",
+                    chart="mostPopular",
+                    regionCode=region_code,
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_videos_by_tag(self, tag, region_code="US", max_results=10):
+            service = self.service
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    q=tag,
+                    regionCode=region_code,
+                    type="video",
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
+        def get_recommended_videos(self, video_id, max_results=10):
+            """
+            This method will get recommended videos based on a given video's ID.
+            """
+            service = self.service
+
+            try:
+                # Get recommended videos for the given video ID
+                request = service.search().list(
+                    part="snippet",
+                    relatedToVideoId=video_id,
+                    type="video",
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                recommended_videos = []
+                for item in response["items"]:
+                    video = item["snippet"]
+                    recommended_videos.append({
+                        "video_id": item["id"]["videoId"],
+                        "title": video["title"],
+                        "channel": video["channelTitle"]
+                    })
+
+                return recommended_videos
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+    
+        def set_video_tags(self, video_id, tags):
+            """
+            This method allows you to set the tags for a video with 
+            the specified video_id. Provide a list of tags to update the video's tags.
+            """
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                snippet = video["items"][0]["snippet"]
+                snippet["tags"] = tags
+
+                service.videos().update(
+                    part="snippet",
+                    body={
+                        "id": video_id,
+                        "snippet": snippet
+                    }
+                ).execute()
+
+                print(f"Tags for video with ID {video_id} updated successfully!")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+    
+        def update_video_privacy_status(self, video_id, privacy_status):
+            """
+            This function allows you to update the privacy status of a video 
+            with the specified video_id. The privacy_status can be set to 
+            "private," "public," or "unlisted."
+            """
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="status",
+                    id=video_id
+                ).execute()
+
+                status = video["items"][0]["status"]
+                status["privacyStatus"] = privacy_status
+
+                service.videos().update(
+                    part="status",
+                    body={
+                        "id": video_id,
+                        "status": status
+                    }
+                ).execute()
+
+                print(f"Privacy status for video with ID {video_id} updated successfully!")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def update_video_details(self, video_id, new_title=None, new_description=None, new_tags=None):
+            """
+            This method allows you to update the title, description, and tags of a 
+            video with the specified video_id. You can provide the new values for these 
+            parameters, and the snippet will be updated accordingly.
+            """
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                snippet = video["items"][0]["snippet"]
+                if new_title:
+                    snippet["title"] = new_title
+                if new_description:
+                    snippet["description"] = new_description
+                if new_tags:
+                    snippet["tags"] = new_tags
+
+                service.videos().update(
+                    part="snippet",
+                    body={
+                        "id": video_id,
+                        "snippet": snippet
+                    }
+                ).execute()
+
+                print(f"Video with ID {video_id} snippet updated successfully!")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def search_videos(self, query, max_results=10):
+            service = self.service
+
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    q=query,
+                    type="video",
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")        
+
+        def search_videos_by_order(self, query, order="relevance", max_results=10):
+            service = self.service
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    q=query,
+                    type="video",
+                    order=order,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def search_videos_by_category(self, query, category_id, max_results=10):
+            service = self.service
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    q=query,
+                    type="video",
+                    videoCategoryId=category_id,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def search_videos_by_definition(self, query, definition="any", max_results=10):
+            service = self.service
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    q=query,
+                    type="video",
+                    videoDefinition=definition,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def search_videos_by_duration(self, query, duration="any", max_results=10):
+            service = self.service
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    q=query,
+                    type="video",
+                    videoDuration=duration,
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")    
+
+        def search_videos_by_license(self, query, license_type="any", max_results=10):
+            service = self.service
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    q=query,
+                    type="video",
+                    videoLicense=license_type,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
+        def search_videos_by_type(self, query, video_type="any", max_results=10):
+            service = self.service
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    q=query,
+                    type=video_type,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def search_embeddable_videos(self, query, embeddable="true", max_results=10):
+            service = self.service
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    q=query,
+                    type="video",
+                    videoEmbeddable=embeddable,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def search_videos_by_published_date(self, query, published_after, published_before, max_results=10):
+            service = self.service
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    q=query,
+                    type="video",
+                    publishedAfter=published_after,
+                    publishedBefore=published_before,
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
+    #//////////// CHANNELS ////////////
+    class Channel:
+        def __init__(self) -> None:
+            pass
+        
+        def get_channel_id(self, channel_identifier):
+            service = self.service
+
+            try:
+                request = service.channels().list(
+                    part="id",
+                    forUsername=channel_identifier  # Use 'forUsername' for channel's username or 'id' for channel URL
+                )
+                response = request.execute()
+
+                if response.get("items"):
+                    channel_id = response["items"][0]["id"]
+                    return channel_id
+
+                return None
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An HTTP error occurred: {e}")
+                return None
+
+            except IndexError:
+                print(f"Channel not found for '{channel_identifier}'.")
+                return None
+
+        def get_channel_name(self, channel_id):
+            """
+            This method allows you to retrieve the name (title) of a 
+            channel with the specified channel_id.
+            """
+            service = self.service
+
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                channel_name = channel["items"][0]["snippet"]["title"]
+                return channel_name
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+
+        def get_channel_id_by_name(self, channel_name):
+            """ 
+            This method takes the channel_name as input and returns 
+            the corresponding channel ID. It uses the search.list method 
+            with the type="channel" parameter to filter the results and
+            fetches the first channel ID that matches the search query.
+            """
+            service = self.service
+
+            try:
+                request = service.search().list(
+                    part="id",
+                    q=channel_name,
+                    type="channel",
+                    maxResults=1
+                )
+                response = request.execute()
+
+                if "items" in response:
+                    channel_id = response["items"][0]["id"]["channelId"]
+                    return channel_id
+                else:
+                    print("Channel not found.")
+                    return None
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+
+        def change_channel_name(self, channel_id, new_name):
+            service = self.service
+
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                snippet = channel["items"][0]["snippet"]
+                snippet["title"] = new_name
+
+                service.channels().update(
+                    part="snippet",
+                    body={
+                        "id": channel_id,
+                        "snippet": snippet
+                    }
+                ).execute()
+
+                print(f"Channel with ID {channel_id} name changed to '{new_name}' successfully!")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_channels(self):
+            """
+            Retrieve information about channels that the authenticated user is 
+            subscribed to:
+            """
+            service = self.service
+
+            try:
+                channels = []
+
+                request = service.subscriptions().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=50
+                )
+
+                while request is not None:
+                    response = request.execute()
+
+                    for item in response.get("items", []):
+                        channel_id = item["snippet"]["resourceId"]["channelId"]
+                        channel_title = item["snippet"]["title"]
+                        channels.append({
+                            "channel_id": channel_id,
+                            "channel_title": channel_title
+                        })
+
+                    request = service.subscriptions().list_next(request, response)
+
+                return channels
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+
+        def subscribe_to_channel(self, channel_id):
+            """
+            Subscribe to a channel using its ID
+            """
+            service = self.service
+            try:
+                service.subscriptions().insert(
+                    part="snippet",
+                    body={
+                        "snippet": {
+                            "resourceId": {
+                                "kind": "youtube#channel",
+                                "channelId": channel_id
+                            }
+                        }
+                    }
+                ).execute()
+                return True
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def unsubscribe_from_channel(self, channel_id):
+            """
+            Unsubscribe from a channel using it's ID.
+            """
+            service = self.service
+
+            try:
+                # First, get the subscription ID for the specified channel
+                request = service.subscriptions().list(
+                    part="id",
+                    mine=True,
+                    forChannelId=channel_id
+                )
+                response = request.execute()
+
+                if response.get("items"):
+                    subscription_id = response["items"][0]["id"]
+
+                    # Unsubscribe from the channel using the subscription ID
+                    service.subscriptions().delete(
+                        id=subscription_id
+                    ).execute()
+
+                    print(f"Unsubscribed from the channel with ID {channel_id} successfully!")
+                else:
+                    print(f"You are not subscribed to the channel with ID {channel_id}.")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
+        def iterate_subscriptions_in_channel(self, channel_id):
+            """
+            Iterate over the subscriptions in a channel.
+            """
+            service = self.service
+
+            try:
+                subscriptions = []
+
+                request = service.subscriptions().list(
+                    part="snippet",
+                    channelId=channel_id,
+                    maxResults=50
+                )
+
+                while request is not None:
+                    response = request.execute()
+
+                    for item in response.get("items", []):
+                        subscribed_channel_id = item["snippet"]["resourceId"]["channelId"]
+                        subscribed_channel_title = item["snippet"]["title"]
+                        subscriptions.append({
+                            "subscribed_channel_id": subscribed_channel_id,
+                            "subscribed_channel_title": subscribed_channel_title
+                        })
+
+                    request = service.subscriptions().list_next(request, response)
+
+                return subscriptions
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+
+        def get_subscriptions_channel_ids(self):
+            """
+            retrieves the channel IDs of the channels to which the authenticated 
+            user is subscribed. The function uses pagination to handle cases 
+            where the user has more than 50 subscriptions (the default API result limit).
+            """
+            service = self.service
+
+            try:
+                channel_ids = []
+
+                # Set the 'mine' parameter to True to get subscriptions of the authenticated user
+                request = service.subscriptions().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=50  # Adjust the number of results as needed
+                )
+
+                while request is not None:
+                    response = request.execute()
+
+                    # Extract channel IDs from the response
+                    for item in response.get("items", []):
+                        channel_id = item["snippet"]["resourceId"]["channelId"]
+                        channel_ids.append(channel_id)
+
+                    # Check if there are more subscriptions to fetch
+                    request = service.subscriptions().list_next(request, response)
+
+                return channel_ids
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+
+        def get_channel_snippet(self, channel_id):
+            """
+            This method allows you to retrieve the snippet of a channel with 
+            the specified channel_id. It returns the snippet data, which includes 
+            information like the channel's title, description, and profile picture.
+            """
+            service = self.service
+
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                snippet = channel["items"][0]["snippet"]
+                return snippet
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+
+        def get_channel_info(self, channel_id):
+            service = self.service
+
+            try:
+                request = service.channels().list(
+                    part="snippet,statistics",
+                    id=channel_id
+                )
+                response = request.execute()
+
+                channel = response["items"][0]
+                print(f"Channel Title: {channel['snippet']['title']}")
+                print(f"Subscriber Count: {channel['statistics']['subscriberCount']}")
+                print(f"Video Count: {channel['statistics']['videoCount']}")
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_channel_videos(self, channel_id, max_results=100):
+            service = self.service
+            try:
+                request = service.search().list(
+                part="snippet",
+                channelId=channel_id,
+                type="video",
+                maxResults=max_results
+                )
+                response = request.execute()
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"googleapiclient.errors.HttpError:\n {e}")
+            except UnicodeEncodeError as uee:
+                print(f"UnicodeEncodeError:\nUnable to encode one or more characters in a video title.\nMost likely an emoji\n{uee}")
+
+        def get_featured_channels(self, channel_id):
+            service = self.service
+
+            try:
+                request = service.channels().list(
+                    part="snippet,brandingSettings",
+                    id=channel_id
+                )
+                response = request.execute()
+
+                featured_channels = response["items"][0]["brandingSettings"]["channel"]["featuredChannelsUrls"]
+                for channel_url in featured_channels:
+                    print(channel_url)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_channel_sections(self, channel_id):
+            service = self.service
+
+            try:
+                request = service.channelSections().list(
+                    part="snippet",
+                    channelId=channel_id
+                )
+                response = request.execute()
+
+                for item in response["items"]:
+                    print(item["snippet"]["title"] )
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_channel_subscribers(self, channel_id):
+            service = self.service
+
+            try:
+                request = service.channels().list(
+                    part="statistics",
+                    id=channel_id
+                )
+                response = request.execute()
+
+                subscriber_count = response["items"][0]["statistics"]["subscriberCount"]
+                print(f"Channel '{channel_id}' has {subscriber_count} subscribers.")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_latest_subscriptions(self, max_results=10):
+            service = self.service
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results,
+                    order="newest"
+                )
+                response = request.execute()
+
+                for subscription in response["items"]:
+                    channel_title = subscription["snippet"]["title"]
+                    channel_id = subscription["snippet"]["resourceId"]["channelId"]
+                    print(f"Subscribed Channel: {channel_title} (Channel ID: {channel_id})")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_subscribed_channels(self, max_results=10):
+            service = self.service
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                for subscription in response["items"]:
+                    channel_title = subscription["snippet"]["title"]
+                    channel_id = subscription["snippet"]["resourceId"]["channelId"]
+                    print(f"Subscribed Channel: {channel_title} (Channel ID: {channel_id})")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def is_subscribed_to_channel(self, channel_id):
+            service = self.service
+
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    mine=True,
+                    forChannelId=channel_id
+                )
+                response = request.execute()
+
+                if "items" in response and len(response["items"]) > 0:
+                    return True
+                else:
+                    return False
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return False
+
+        def subscribe_to_channel(self, channel_id):
+            service = self.service
+
+            try:
+                request = service.subscriptions().insert(
+                    part="snippet",
+                    body={
+                        "snippet": {
+                            "resourceId": {
+                                "kind": "youtube#channel",
+                                "channelId": channel_id
+                            }
+                        }
+                    }
+                )
+                response = request.execute()
+
+                print("Subscribed successfully!")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def unsubscribe_from_channel(self, channel_id):
+            service = self.service
+
+            try:
+                request = service.subscriptions().delete(
+                    id=channel_id
+                )
+                response = request.execute()
+
+                print("Unsubscribed successfully!")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_subscription_count(self, channel_id):
+            service = self.service
+            try:
+                request = service.channels().list(
+                    part="statistics",
+                    id=channel_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    channel_info = response["items"][0]
+                    if "statistics" in channel_info:
+                        subscription_count = channel_info["statistics"].get("subscriberCount", 0)
+                        return int(subscription_count)
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+            return 0
+
+        def get_my_subscription_count(self):
+            service = self.service
+
+            try:
+                request = service.subscriptions().list(
+                    part="subscriberSnippet",
+                    mine=True
+                )
+                response = request.execute()
+
+                subscription_count = response.get("pageInfo", {}).get("totalResults", 0)
+                return int(subscription_count)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+            return 0
+
+        def get_subscriber_counts(self, channel_ids):
+            service = self.service
+            try:
+                request = service.channels().list(
+                    part="statistics",
+                    id=",".join(channel_ids)
+                )
+                response = request.execute()
+
+                subscriber_counts = {}
+                for channel_info in response["items"]:
+                    channel_id = channel_info["id"]
+                    if "statistics" in channel_info:
+                        subscriber_count = channel_info["statistics"].get("subscriberCount", 0)
+                        subscriber_counts[channel_id] = int(subscriber_count)
+
+                return subscriber_counts
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+            return {}
+
+        def get_channel_related_channels(self, channel_id, max_results=10):
+            service = self.service
+
+            try:
+                request = service.channels().list(
+                    part="snippet",
+                    relatedToChannelId=channel_id,
+                    type="channel",
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
+        def search_channels(self, query, max_results=10):
+            service = self.service
+
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    q=query,
+                    type="channel",
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+            
     #//////////// COMMENTS ////////////
     
     def get_video_comments(self, video_id, max_results=10):
@@ -2622,319 +2626,322 @@ class YouTubeDataAPIv3Tools:
         except googleapiclient.errors.HttpError as e:
             print(f"An error occurred: {e}")
     
-    #//////////// LIVE BROADCASTS/STREAMING ///////////
+    #//////////// LIVE BROADCASTS ///////////
+    class LiveBroadcast:
+        def __init__(self):
+            pass
+        
+        def get_live_streams(self, max_results=10):
+            service = self.service
+            try:
+                request = service.liveStreams().list(
+                    part="snippet",
+                    maxResults=max_results
+                )
+                response = request.execute()
 
-    def get_live_streams(self, max_results=10):
-        service = self.service
-        try:
-            request = service.liveStreams().list(
-                part="snippet",
-                maxResults=max_results
-            )
-            response = request.execute()
+                for stream in response["items"]:
+                    print(stream["snippet"]["title"])
 
-            for stream in response["items"]:
-                print(stream["snippet"]["title"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
+        def get_live_broadcasts(self, max_results=10):
+            service = self.service
+            try:
+                request = service.liveBroadcasts().list(
+                    part="snippet",
+                    maxResults=max_results
+                )
+                response = request.execute()
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-    
-    def get_live_broadcasts(self, max_results=10):
-        service = self.service
-        try:
-            request = service.liveBroadcasts().list(
-                part="snippet",
-                maxResults=max_results
-            )
-            response = request.execute()
+                for broadcast in response["items"]:
+                    print(broadcast["snippet"]["title"])
 
-            for broadcast in response["items"]:
-                print(broadcast["snippet"]["title"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
+        def search_live_broadcasts(self, query, max_results=10):
+            service = self.service
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-    
-    def search_live_broadcasts(self, query, max_results=10):
-        service = self.service
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    q=query,
+                    type="video",
+                    eventType="live",
+                    maxResults=max_results
+                )
+                response = request.execute()
 
-        try:
-            request = service.search().list(
-                part="snippet",
-                q=query,
-                type="video",
-                eventType="live",
-                maxResults=max_results
-            )
-            response = request.execute()
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
 
-            for item in response["items"]:
-                print(item["snippet"]["title"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
+        def get_live_chat_messages(self, live_chat_id, max_results=10):
+            service = self.service
+            try:
+                request = service.liveChatMessages().list(
+                    liveChatId=live_chat_id,
+                    part="snippet",
+                    maxResults=max_results
+                )
+                response = request.execute()
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-      
-    def get_live_chat_messages(self, live_chat_id, max_results=10):
-        service = self.service
-        try:
-            request = service.liveChatMessages().list(
-                liveChatId=live_chat_id,
-                part="snippet",
-                maxResults=max_results
-            )
-            response = request.execute()
+                for message in response["items"]:
+                    print(message["snippet"]["displayMessage"])
 
-            for message in response["items"]:
-                print(message["snippet"]["displayMessage"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
+        def get_live_chat_moderators(self, live_chat_id, max_results=10):
+            service = self.service
+            try:
+                request = service.liveChatModerators().list(
+                    liveChatId=live_chat_id,
+                    part="snippet",
+                    maxResults=max_results
+                )
+                response = request.execute()
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-     
-    def get_live_chat_moderators(self, live_chat_id, max_results=10):
-        service = self.service
-        try:
-            request = service.liveChatModerators().list(
-                liveChatId=live_chat_id,
-                part="snippet",
-                maxResults=max_results
-            )
-            response = request.execute()
+                for moderator in response["items"]:
+                    print(moderator["snippet"]["moderatorDetails"]["displayName"])
 
-            for moderator in response["items"]:
-                print(moderator["snippet"]["moderatorDetails"]["displayName"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
+        def get_live_chat_bans(self, live_chat_id, max_results=10):
+            service = self.service
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-     
-    def get_live_chat_bans(self, live_chat_id, max_results=10):
-        service = self.service
+            try:
+                request = service.liveChatBans().list(
+                    liveChatId=live_chat_id,
+                    part="snippet",
+                    maxResults=max_results
+                )
+                response = request.execute()
 
-        try:
-            request = service.liveChatBans().list(
-                liveChatId=live_chat_id,
-                part="snippet",
-                maxResults=max_results
-            )
-            response = request.execute()
+                for ban in response["items"]:
+                    print(ban["snippet"]["bannedUserDetails"]["displayName"])
 
-            for ban in response["items"]:
-                print(ban["snippet"]["bannedUserDetails"]["displayName"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def insert_live_chat_message(self, live_chat_id, message_text):
-        service = self.service
-        try:
-            request = service.liveChatMessages().insert(
-                part="snippet",
-                body={
-                    "snippet": {
-                        "liveChatId": live_chat_id,
-                        "type": "textMessageEvent",
-                        "textMessageDetails": {
-                            "messageText": message_text
+        def insert_live_chat_message(self, live_chat_id, message_text):
+            service = self.service
+            try:
+                request = service.liveChatMessages().insert(
+                    part="snippet",
+                    body={
+                        "snippet": {
+                            "liveChatId": live_chat_id,
+                            "type": "textMessageEvent",
+                            "textMessageDetails": {
+                                "messageText": message_text
+                            }
                         }
                     }
-                }
-            )
-            response = request.execute()
+                )
+                response = request.execute()
 
-            print("Live chat message sent successfully!")
+                print("Live chat message sent successfully!")
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
 
-    def get_all_live_chat_details(self, live_chat_id):
-        service = self.service
-        try:
-            request = service.liveChat().list(
-                id=live_chat_id,
-                part="snippet,id,status,snippet.type,status.activeLiveChatId,status.actualStartTime,status.scheduledStartTime,status.concurrentViewers,status.activeParticipants,snippet.liveChatId,snippet.liveChatType,snippet.title,snippet.description,snippet.isModerated,snippet.scheduledStartTime,snippet.actualStartTime"
-            )
-            response = request.execute()
-            chat = response["items"][0]["snippet"]
-            status = response["items"][0]["status"]
-            _details = (
-                chat['liveChatId'], 
-                chat['liveChatType'], 
-                chat['title'], 
-                chat['description'],
-                chat['isModerated'], 
-                chat['scheduledStartTime'], 
-                status['actualStartTime'],
-                status['lifeCycleStatus'], 
-                status['activeLiveChatId'], 
-                status['concurrentViewers'],
-                status['activeParticipants']
-            )
-            return _details
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            
-    def get_live_chat_id(self, live_chat_id):
-        service = self.service
-        try:
-            request = service.liveChat().list(
-                id=live_chat_id,
-                part="snippet,id,status,snippet.type,status.activeLiveChatId,status.actualStartTime,status.scheduledStartTime,status.concurrentViewers,status.activeParticipants,snippet.liveChatId,snippet.liveChatType,snippet.title,snippet.description,snippet.isModerated,snippet.scheduledStartTime,snippet.actualStartTime"
-            )
-            response = request.execute()
-            chat = response["items"][0]["snippet"]
-            status = response["items"][0]["status"]
-            _id = chat['liveChatId']
-            return _id
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
+        def get_all_live_chat_details(self, live_chat_id):
+            service = self.service
+            try:
+                request = service.liveChat().list(
+                    id=live_chat_id,
+                    part="snippet,id,status,snippet.type,status.activeLiveChatId,status.actualStartTime,status.scheduledStartTime,status.concurrentViewers,status.activeParticipants,snippet.liveChatId,snippet.liveChatType,snippet.title,snippet.description,snippet.isModerated,snippet.scheduledStartTime,snippet.actualStartTime"
+                )
+                response = request.execute()
+                chat = response["items"][0]["snippet"]
+                status = response["items"][0]["status"]
+                _details = (
+                    chat['liveChatId'], 
+                    chat['liveChatType'], 
+                    chat['title'], 
+                    chat['description'],
+                    chat['isModerated'], 
+                    chat['scheduledStartTime'], 
+                    status['actualStartTime'],
+                    status['lifeCycleStatus'], 
+                    status['activeLiveChatId'], 
+                    status['concurrentViewers'],
+                    status['activeParticipants']
+                )
+                return _details
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                
+        def get_live_chat_id(self, live_chat_id):
+            service = self.service
+            try:
+                request = service.liveChat().list(
+                    id=live_chat_id,
+                    part="snippet,id,status,snippet.type,status.activeLiveChatId,status.actualStartTime,status.scheduledStartTime,status.concurrentViewers,status.activeParticipants,snippet.liveChatId,snippet.liveChatType,snippet.title,snippet.description,snippet.isModerated,snippet.scheduledStartTime,snippet.actualStartTime"
+                )
+                response = request.execute()
+                chat = response["items"][0]["snippet"]
+                status = response["items"][0]["status"]
+                _id = chat['liveChatId']
+                return _id
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
 
-    def get_live_chat_type(self, live_chat_id):
-        service = self.service
-        try:
-            request = service.liveChat().list(
-                id=live_chat_id,
-                part="snippet,id,status,snippet.type,status.activeLiveChatId,status.actualStartTime,status.scheduledStartTime,status.concurrentViewers,status.activeParticipants,snippet.liveChatId,snippet.liveChatType,snippet.title,snippet.description,snippet.isModerated,snippet.scheduledStartTime,snippet.actualStartTime"
-            )
-            response = request.execute()
-            chat = response["items"][0]["snippet"]
-            status = response["items"][0]["status"]
-            _type = chat['liveChatType']
-            return _type
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
+        def get_live_chat_type(self, live_chat_id):
+            service = self.service
+            try:
+                request = service.liveChat().list(
+                    id=live_chat_id,
+                    part="snippet,id,status,snippet.type,status.activeLiveChatId,status.actualStartTime,status.scheduledStartTime,status.concurrentViewers,status.activeParticipants,snippet.liveChatId,snippet.liveChatType,snippet.title,snippet.description,snippet.isModerated,snippet.scheduledStartTime,snippet.actualStartTime"
+                )
+                response = request.execute()
+                chat = response["items"][0]["snippet"]
+                status = response["items"][0]["status"]
+                _type = chat['liveChatType']
+                return _type
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
 
-    def get_live_chat_title(self, live_chat_id):
-        service = self.service
-        try:
-            request = service.liveChat().list(
-                id=live_chat_id,
-                part="snippet,id,status,snippet.type,status.activeLiveChatId,status.actualStartTime,status.scheduledStartTime,status.concurrentViewers,status.activeParticipants,snippet.liveChatId,snippet.liveChatType,snippet.title,snippet.description,snippet.isModerated,snippet.scheduledStartTime,snippet.actualStartTime"
-            )
-            response = request.execute()
-            chat = response["items"][0]["snippet"]
-            status = response["items"][0]["status"]
-            _title = chat['title']
-            return _title
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
+        def get_live_chat_title(self, live_chat_id):
+            service = self.service
+            try:
+                request = service.liveChat().list(
+                    id=live_chat_id,
+                    part="snippet,id,status,snippet.type,status.activeLiveChatId,status.actualStartTime,status.scheduledStartTime,status.concurrentViewers,status.activeParticipants,snippet.liveChatId,snippet.liveChatType,snippet.title,snippet.description,snippet.isModerated,snippet.scheduledStartTime,snippet.actualStartTime"
+                )
+                response = request.execute()
+                chat = response["items"][0]["snippet"]
+                status = response["items"][0]["status"]
+                _title = chat['title']
+                return _title
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
 
-    def get_live_chat_description(self, live_chat_id):
-        service = self.service
-        try:
-            request = service.liveChat().list(
-                id=live_chat_id,
-                part="snippet,id,status,snippet.type,status.activeLiveChatId,status.actualStartTime,status.scheduledStartTime,status.concurrentViewers,status.activeParticipants,snippet.liveChatId,snippet.liveChatType,snippet.title,snippet.description,snippet.isModerated,snippet.scheduledStartTime,snippet.actualStartTime"
-            )
-            response = request.execute()
-            chat = response["items"][0]["snippet"]
-            status = response["items"][0]["status"]
-            _description = chat['description']
-            return _description
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
+        def get_live_chat_description(self, live_chat_id):
+            service = self.service
+            try:
+                request = service.liveChat().list(
+                    id=live_chat_id,
+                    part="snippet,id,status,snippet.type,status.activeLiveChatId,status.actualStartTime,status.scheduledStartTime,status.concurrentViewers,status.activeParticipants,snippet.liveChatId,snippet.liveChatType,snippet.title,snippet.description,snippet.isModerated,snippet.scheduledStartTime,snippet.actualStartTime"
+                )
+                response = request.execute()
+                chat = response["items"][0]["snippet"]
+                status = response["items"][0]["status"]
+                _description = chat['description']
+                return _description
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
 
-    def is_live_chat_moderated(self, live_chat_id):
-        service = self.service
-        try:
-            request = service.liveChat().list(
-                id=live_chat_id,
-                part="snippet,id,status,snippet.type,status.activeLiveChatId,status.actualStartTime,status.scheduledStartTime,status.concurrentViewers,status.activeParticipants,snippet.liveChatId,snippet.liveChatType,snippet.title,snippet.description,snippet.isModerated,snippet.scheduledStartTime,snippet.actualStartTime"
-            )
-            response = request.execute()
-            chat = response["items"][0]["snippet"]
-            status = response["items"][0]["status"]
-            _is_moderated = chat['isModerated']
-            return _is_moderated
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-    
-    def get_live_chat_scheduled_start_time(self, live_chat_id):
-        service = self.service
-        try:
-            request = service.liveChat().list(
-                id=live_chat_id,
-                part="snippet,id,status,snippet.type,status.activeLiveChatId,status.actualStartTime,status.scheduledStartTime,status.concurrentViewers,status.activeParticipants,snippet.liveChatId,snippet.liveChatType,snippet.title,snippet.description,snippet.isModerated,snippet.scheduledStartTime,snippet.actualStartTime"
-            )
-            response = request.execute()
-            chat = response["items"][0]["snippet"]
-            status = response["items"][0]["status"]
-            _description = chat['scheduledStartTime']
-            return _description
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
+        def is_live_chat_moderated(self, live_chat_id):
+            service = self.service
+            try:
+                request = service.liveChat().list(
+                    id=live_chat_id,
+                    part="snippet,id,status,snippet.type,status.activeLiveChatId,status.actualStartTime,status.scheduledStartTime,status.concurrentViewers,status.activeParticipants,snippet.liveChatId,snippet.liveChatType,snippet.title,snippet.description,snippet.isModerated,snippet.scheduledStartTime,snippet.actualStartTime"
+                )
+                response = request.execute()
+                chat = response["items"][0]["snippet"]
+                status = response["items"][0]["status"]
+                _is_moderated = chat['isModerated']
+                return _is_moderated
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
+        def get_live_chat_scheduled_start_time(self, live_chat_id):
+            service = self.service
+            try:
+                request = service.liveChat().list(
+                    id=live_chat_id,
+                    part="snippet,id,status,snippet.type,status.activeLiveChatId,status.actualStartTime,status.scheduledStartTime,status.concurrentViewers,status.activeParticipants,snippet.liveChatId,snippet.liveChatType,snippet.title,snippet.description,snippet.isModerated,snippet.scheduledStartTime,snippet.actualStartTime"
+                )
+                response = request.execute()
+                chat = response["items"][0]["snippet"]
+                status = response["items"][0]["status"]
+                _description = chat['scheduledStartTime']
+                return _description
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
 
-    def get_live_chat_actual_start_time(self, live_chat_id):
-        service = self.service
-        try:
-            request = service.liveChat().list(
-                id=live_chat_id,
-                part="snippet,id,status,snippet.type,status.activeLiveChatId,status.actualStartTime,status.scheduledStartTime,status.concurrentViewers,status.activeParticipants,snippet.liveChatId,snippet.liveChatType,snippet.title,snippet.description,snippet.isModerated,snippet.scheduledStartTime,snippet.actualStartTime"
-            )
-            response = request.execute()
-            chat = response["items"][0]["snippet"]
-            status = response["items"][0]["status"]
-            _actual_start_time = status['actualStartTime']
-            return _actual_start_time
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
+        def get_live_chat_actual_start_time(self, live_chat_id):
+            service = self.service
+            try:
+                request = service.liveChat().list(
+                    id=live_chat_id,
+                    part="snippet,id,status,snippet.type,status.activeLiveChatId,status.actualStartTime,status.scheduledStartTime,status.concurrentViewers,status.activeParticipants,snippet.liveChatId,snippet.liveChatType,snippet.title,snippet.description,snippet.isModerated,snippet.scheduledStartTime,snippet.actualStartTime"
+                )
+                response = request.execute()
+                chat = response["items"][0]["snippet"]
+                status = response["items"][0]["status"]
+                _actual_start_time = status['actualStartTime']
+                return _actual_start_time
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
 
-    def get_live_chat_life_cycle_status(self, live_chat_id):
-        service = self.service
-        try:
-            request = service.liveChat().list(
-                id=live_chat_id,
-                part="snippet,id,status,snippet.type,status.activeLiveChatId,status.actualStartTime,status.scheduledStartTime,status.concurrentViewers,status.activeParticipants,snippet.liveChatId,snippet.liveChatType,snippet.title,snippet.description,snippet.isModerated,snippet.scheduledStartTime,snippet.actualStartTime"
-            )
-            response = request.execute()
-            chat = response["items"][0]["snippet"]
-            status = response["items"][0]["status"]
-            _life_cycle_status = status['lifeCycleStatus']
-            return _life_cycle_status
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
+        def get_live_chat_life_cycle_status(self, live_chat_id):
+            service = self.service
+            try:
+                request = service.liveChat().list(
+                    id=live_chat_id,
+                    part="snippet,id,status,snippet.type,status.activeLiveChatId,status.actualStartTime,status.scheduledStartTime,status.concurrentViewers,status.activeParticipants,snippet.liveChatId,snippet.liveChatType,snippet.title,snippet.description,snippet.isModerated,snippet.scheduledStartTime,snippet.actualStartTime"
+                )
+                response = request.execute()
+                chat = response["items"][0]["snippet"]
+                status = response["items"][0]["status"]
+                _life_cycle_status = status['lifeCycleStatus']
+                return _life_cycle_status
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
 
-    def get_active_live_chat_id(self, live_chat_id):
-        service = self.service
-        try:
-            request = service.liveChat().list(
-                id=live_chat_id,
-                part="snippet,id,status,snippet.type,status.activeLiveChatId,status.actualStartTime,status.scheduledStartTime,status.concurrentViewers,status.activeParticipants,snippet.liveChatId,snippet.liveChatType,snippet.title,snippet.description,snippet.isModerated,snippet.scheduledStartTime,snippet.actualStartTime"
-            )
-            response = request.execute()
-            chat = response["items"][0]["snippet"]
-            status = response["items"][0]["status"]
-            _active_chat_id = status['activeLiveChatId']
-            return _active_chat_id
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-    
-    def get_live_chat_concurrent_viewers(self, live_chat_id):
-        service = self.service
-        try:
-            request = service.liveChat().list(
-                id=live_chat_id,
-                part="snippet,id,status,snippet.type,status.activeLiveChatId,status.actualStartTime,status.scheduledStartTime,status.concurrentViewers,status.activeParticipants,snippet.liveChatId,snippet.liveChatType,snippet.title,snippet.description,snippet.isModerated,snippet.scheduledStartTime,snippet.actualStartTime"
-            )
-            response = request.execute()
-            chat = response["items"][0]["snippet"]
-            status = response["items"][0]["status"]
-            _concurrent_viewers = status['concurrentViewers']
-            return _concurrent_viewers
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
+        def get_active_live_chat_id(self, live_chat_id):
+            service = self.service
+            try:
+                request = service.liveChat().list(
+                    id=live_chat_id,
+                    part="snippet,id,status,snippet.type,status.activeLiveChatId,status.actualStartTime,status.scheduledStartTime,status.concurrentViewers,status.activeParticipants,snippet.liveChatId,snippet.liveChatType,snippet.title,snippet.description,snippet.isModerated,snippet.scheduledStartTime,snippet.actualStartTime"
+                )
+                response = request.execute()
+                chat = response["items"][0]["snippet"]
+                status = response["items"][0]["status"]
+                _active_chat_id = status['activeLiveChatId']
+                return _active_chat_id
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
+        def get_live_chat_concurrent_viewers(self, live_chat_id):
+            service = self.service
+            try:
+                request = service.liveChat().list(
+                    id=live_chat_id,
+                    part="snippet,id,status,snippet.type,status.activeLiveChatId,status.actualStartTime,status.scheduledStartTime,status.concurrentViewers,status.activeParticipants,snippet.liveChatId,snippet.liveChatType,snippet.title,snippet.description,snippet.isModerated,snippet.scheduledStartTime,snippet.actualStartTime"
+                )
+                response = request.execute()
+                chat = response["items"][0]["snippet"]
+                status = response["items"][0]["status"]
+                _concurrent_viewers = status['concurrentViewers']
+                return _concurrent_viewers
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
 
-    def get_live_chat_active_participants(self, live_chat_id):
-        service = self.service
-        try:
-            request = service.liveChat().list(
-                id=live_chat_id,
-                part="snippet,id,status,snippet.type,status.activeLiveChatId,status.actualStartTime,status.scheduledStartTime,status.concurrentViewers,status.activeParticipants,snippet.liveChatId,snippet.liveChatType,snippet.title,snippet.description,snippet.isModerated,snippet.scheduledStartTime,snippet.actualStartTime"
-            )
-            response = request.execute()
-            chat = response["items"][0]["snippet"]
-            status = response["items"][0]["status"]
-            _active_participants = status['activeParticipants']
-            return _active_participants
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
+        def get_live_chat_active_participants(self, live_chat_id):
+            service = self.service
+            try:
+                request = service.liveChat().list(
+                    id=live_chat_id,
+                    part="snippet,id,status,snippet.type,status.activeLiveChatId,status.actualStartTime,status.scheduledStartTime,status.concurrentViewers,status.activeParticipants,snippet.liveChatId,snippet.liveChatType,snippet.title,snippet.description,snippet.isModerated,snippet.scheduledStartTime,snippet.actualStartTime"
+                )
+                response = request.execute()
+                chat = response["items"][0]["snippet"]
+                status = response["items"][0]["status"]
+                _active_participants = status['activeParticipants']
+                return _active_participants
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
 
     #//////////// THUMBNAILS ////////////
     
@@ -3014,27 +3021,6 @@ class YouTubeDataAPIv3Tools:
         default thumbnail of a video given its video_id. 
         """
         return f"https://img.youtube.com/vi/{video_id}/default.jpg"
-
-    def get_playlist_thumbnail_url(self, playlist_id):
-        """
-        This function retrieves the medium-sized thumbnail URL 
-        for a specific playlist. You can modify the "medium" key 
-        to get thumbnails of different sizes.
-        """
-        service = self.service
-
-        try:
-            request = service.playlists().list(
-                part="snippet",
-                id=playlist_id
-            )
-            response = request.execute()
-
-            thumbnail_url = response["items"][0]["snippet"]["thumbnails"]["medium"]["url"]
-            print(f"Playlist Thumbnail URL: {thumbnail_url}")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
 
     def update_video_thumbnail_with_url(self, video_id, thumbnail_url):
         """
