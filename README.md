@@ -108,6 +108,9 @@ be done with every call to the YouTube Data API.
 
 ---
 
+For Information on common API errors check out [API_ERRORS.md](./docs/API_ERRORS.md) or 
+the official documentation here: [https://developers.google.com/youtube/v3/docs/errors](https://developers.google.com/youtube/v3/docs/errors)
+
 ### Get your channel ID:
 
 ```python
