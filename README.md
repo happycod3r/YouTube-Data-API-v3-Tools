@@ -104,6 +104,8 @@ longer work until this is done.
 Note: The `token.pickle` file is important because without it the reauthentication process has to 
 be done with every call to the YouTube Data API.
 
+---
+
 ### Get your channel ID:
 
 ```python
