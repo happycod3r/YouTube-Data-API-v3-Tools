@@ -24,7 +24,7 @@ obtain a ***client_secret.json*** file.
 *Please also note that the steps for setting up OAuth 2.0 authentication and using the 
 client_secret.json file might change over time. For the latest and most detailed 
 instructions, you should refer to the official Google API documentation for the YouTube 
-API and OAuth 2.0 authentication for Python.*
+API and OAuth 2.0 authentication for Python.* [https://developers.google.com/youtube/v3/quickstart/python](https://developers.google.com/youtube/v3/quickstart/python)
 
 1) [Google Cloud Console:](#google-cloud-console)
 
