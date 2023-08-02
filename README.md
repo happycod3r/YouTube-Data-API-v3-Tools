@@ -2,11 +2,14 @@
 
 ![YouTubeDataAPIv3Tools](./docs/youtube_data_api_tools.png)
 
-> YouTube Data API v3 Tools is a concise wrapper around the YouTube API. The `YouTubeDataAPIv3Tools` class contains over 150 methods to interact with YouTube. These methods cover all categories such as videos, playlists, channels, thumbnails, localization etc.
-I made sure to cover all the bases.
+> YouTube Data API v3 Tools is a concise wrapper around the YouTube API. The `YouTubeDataAPIv3Tools` class 
+> contains over 300 methods to interact with YouTube. These methods cover all categories such as videos, playlists, 
+> channels, thumbnails, localization etc. I made sure to cover all the bases.
 
 ## [Setup](#setup)
         
+### [OAuth 2.0 credentials](#oauth2credentials)
+
 A `client_secret.json` file is needed in order for this class to be functional.
 Or should I say ... classy ....
 
@@ -94,9 +97,9 @@ youtube = youtube_api_tools.YouTubeDataAPIv3Tools(
 
 The constructor will call the `get_authenticated_service()` method which will use your 
 ***client_secret.json*** file to authenticate the user and will store the authorization token in 
-a ***token.pickle*** file. Pretty much all of the YouTubeDataAPIv3Tools class methods rely on this 
-authentication and token so the service returned from `get_authenticated_service` will be 
-stored in a class variable called `self.service` This way we are using the same instance of
+a ***token.pickle*** file. Pretty much all of the YouTubeDataAPIv3Tools class methods and
+subclass methods rely on this authentication, so the service returned from `get_authenticated_service` 
+will be stored in a class variable called `self.service` This way we are using the same instance of
 the authentication service in subsequent method calls. 
 
 If no calls to the API are made after a few minutes the user will have to reauthenticate and
@@ -104,12 +107,9 @@ grant the app permissions again in the browser. The ***token.pickle*** file will
 longer work until this is done.
 
 Note: The `token.pickle` file is important because without it the reauthentication process has to 
-be done with every call to the YouTube Data API.
+be done with every individual call to the YouTube Data API.
 
 ---
-
-For Information on common API errors check out [API_ERRORS.md](./docs/API_ERRORS.md) or 
-the official documentation here: [https://developers.google.com/youtube/v3/docs/errors](https://developers.google.com/youtube/v3/docs/errors)
 
 ### Get your channel ID:
 
@@ -127,3 +127,11 @@ playlist_id = youtube.get_playlist_id()
 
 
 The rest of the documentation will be finished soon.
+
+## [Resources](#resources)
+
+For information on common API errors check out [API_ERRORS.md](./docs/API_ERRORS.md) or 
+the official documentation here: [https://developers.google.com/youtube/v3/docs/errors](https://developers.google.com/youtube/v3/docs/errors)
+
+For information on the resources that these class methods act on check
+out [API_RESOURCES.md](./docs/API_RESOURCES.md)
