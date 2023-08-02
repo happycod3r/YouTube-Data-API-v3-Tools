@@ -2,3 +2,5 @@ client_secret_671382908634-hudnrlsnhr3gqresomjga29a33s0chml.apps.googleuserconte
 *.json
 dev/
 token.pickle
+test.py
+test*.py

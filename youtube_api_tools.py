@@ -9,7 +9,7 @@ class YouTubeAPIException(Exception):
         self.message = message
         super().__init__(message)
 
-class YouTubeAPIv3:
+class YouTubeDataAPIv3Tools:
     """
         This is a wrapper around the YouTube v3 API.
         

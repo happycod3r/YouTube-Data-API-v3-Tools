@@ -2,7 +2,7 @@
 
 ![YouTubeDataAPIv3Tools](./docs/youtube_data_api_tools.png)
 
-> YouTube Data API v3 Tools is a concise wrapper around the YouTube API. The `YouTubeAPIv3` class contains over 150 methods to interact with YouTube. These methods cover all categories such as videos, playlists, channels, thumbnails, localization etc.
+> YouTube Data API v3 Tools is a concise wrapper around the YouTube API. The `YouTubeDataAPIv3Tools` class contains over 150 methods to interact with YouTube. These methods cover all categories such as videos, playlists, channels, thumbnails, localization etc.
 I made sure to cover all the bases.
 
 ## [Setup](#setup)
@@ -79,14 +79,14 @@ First import the `youtube_api_tools` module.
 import youtube_api_tools
 ```
 
-Next create a `YouTubeAPIv3` object and pass the path to your ***client_secret.json*** file
+Next create a `YouTubeDataAPIv3Tools` object and pass the path to your ***client_secret.json*** file
 as the first argument to the constructor and a list of scopes that you want to use as the 
 2nd argument. Then optionally pass the name for the token file that 
 will hold the authorization token as the 3rd argument to the constructor, and lastly your 
 channel ID as the last argument to the constructor.
 
 ```python
-youtube = youtube_api_tools.YouTubeAPIV3(
+youtube = youtube_api_tools.YouTubeDataAPIv3Tools(
     "client_secret_913312345634-hsdfrlsskr1gqsedjdimjga57j84s0chml.apps.googleusercontent.com.json",
     ["https://www.googleapis.com/auth/youtube.readonly"]
 )
@@ -94,7 +94,7 @@ youtube = youtube_api_tools.YouTubeAPIV3(
 
 The constructor will call the `get_authenticated_service()` method which will use your 
 ***client_secret.json*** file to authenticate the user and will store the authorization token in 
-a ***token.pickle*** file. Pretty much all of the YouTubeAPIv3 class methods rely on this 
+a ***token.pickle*** file. Pretty much all of the YouTubeDataAPIv3Tools class methods rely on this 
 authentication and token so the service returned from `get_authenticated_service` will be 
 stored in a class variable called `self.service` This way we are using the same instance of
 the authentication service in subsequent method calls. 
