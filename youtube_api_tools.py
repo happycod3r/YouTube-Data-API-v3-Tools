@@ -200,1779 +200,10 @@ class YouTubeDataAPIv3Tools:
             print(f"An API error occurred: {e}")
             return None
             
-    #//////////// PLAYLISTS ////////////
-    class Playlist:
-        def __init__(self) -> None:
-            pass
-
-        def save_playlist(self, source_playlist_id: str, destination_playlist_id: str) -> bool:
-            """
-            Save a playlist using the source and destination playlists IDs. 
-            """
-            try:
-                videos = self.get_videos_in_playlist(source_playlist_id)
-                for video in videos:
-                    self.save_video_to_playlist(destination_playlist_id, video["video_id"])
-                return True
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return False
-    
-        def create_playlist(self, title: str, description: str, privacy_status: str="public") -> (dict | None):
-            service = self.service
-            try:
-                request = service.playlists().insert(
-                    part="snippet,status",
-                    body={
-                        "snippet": {
-                            "title": title,
-                            "description": description
-                        },
-                        "status": {
-                            "privacyStatus": privacy_status
-                        }
-                    }
-                )
-                response = request.execute()
-                new_playlist = {
-                    "title": response['snippet']['title'],
-                    "id": response['id']
-                }
-                return new_playlist
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-
-        def delete_playlist(self, playlist_id: str) -> bool:
-            """
-            With this method, you can provide the playlist_id of the playlist 
-            you want to delete, and it will be removed from your YouTube account.
-            """
-            service = self.service
-
-            try:
-                service.playlists().delete(
-                    id=playlist_id
-                ).execute()
-
-                return True
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return False
-
-        def add_video_to_playlist(self, playlist_id: str, video_id: str) -> bool:
-            """
-            This method allows you to add a video with the specified video_id 
-            to a playlist with the specified playlist_id.
-            """
-            service = self.service
-            try:
-                request = service.playlistItems().insert(
-                    part="snippet",
-                    body={
-                        "snippet": {
-                            "playlistId": playlist_id,
-                            "resourceId": {
-                                "kind": "youtube#video",
-                                "videoId": video_id
-                            }
-                        }
-                    }
-                )
-                response = request.execute()
-                return True
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return False
-        
-        def remove_video_from_playlist(self, playlist_item_id: str) -> bool:
-            """
-            This method allows you to remove a video from a playlist using the 
-            playlist_item_id. Note that you need to retrieve the playlist_item_id 
-            of the specific video in the playlist before using this method.
-            """
-            service = self.service
-
-            try:
-                service.playlistItems().delete(
-                    id=playlist_item_id
-                ).execute()
-                return True
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return False
-        
-        def update_playlist(self, playlist_id: str, title: str, description: str) -> (dict | None):
-            """
-            Update the playlist title and description. Returns the updated
-            playlist snippet. 
-            """
-            service = self.service
-            try:
-                request = service.playlists().update(
-                    part="snippet",
-                    body={
-                        "id": playlist_id,
-                        "snippet": {
-                            "title": title,
-                            "description": description
-                        }
-                    }
-                )
-                response = request.execute()
-                return response['snippet']
-            except googleapiclient.errors.HttpError as e:
-                return None
-
-        def update_playlist_details(self, playlist_id, new_title: str=None, new_description: str=None) -> bool:
-            """
-            This method allows you to update the title and description of a 
-            playlist with the specified playlist_id.
-            """
-            service = self.service
-
-            try:
-                playlist = service.playlists().list(
-                    part="snippet",
-                    id=playlist_id
-                ).execute()
-
-                snippet = playlist["items"][0]["snippet"]
-                if new_title:
-                    snippet["title"] = new_title
-                if new_description:
-                    snippet["description"] = new_description
-
-                service.playlists().update(
-                    part="snippet",
-                    body={
-                        "id": playlist_id,
-                        "snippet": snippet
-                    }
-                ).execute()
-                return True
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return False
-
-        def update_playlist_title(self, playlist_id, new_title=None) -> bool:
-            """
-            This method allows you to update the title and description of a 
-            playlist with the specified playlist_id.
-            """
-            service = self.service
-
-            try:
-                playlist = service.playlists().list(
-                    part="snippet",
-                    id=playlist_id
-                ).execute()
-
-                snippet = playlist["items"][0]["snippet"]
-                if new_title:
-                    snippet["title"] = new_title
-
-                service.playlists().update(
-                    part="snippet",
-                    body={
-                        "id": playlist_id,
-                        "snippet": snippet
-                    }
-                ).execute()
-
-                return True
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return False
-        
-        def update_playlist_description(self, playlist_id, new_description: str=None) -> bool:
-            """
-            This method allows you to update the title and description of a 
-            playlist with the specified playlist_id.
-            """
-            service = self.service
-
-            try:
-                playlist = service.playlists().list(
-                    part="snippet",
-                    id=playlist_id
-                ).execute()
-
-                snippet = playlist["items"][0]["snippet"]
-                if new_description:
-                    snippet["description"] = new_description
-
-                service.playlists().update(
-                    part="snippet",
-                    body={
-                        "id": playlist_id,
-                        "snippet": snippet
-                    }
-                ).execute()
-                return True
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return False
-
-        def reorder_playlist_items(self, playlist_id: str, video_ids: list) -> bool:
-            """
-            This method allows you to reorder videos in a playlist by providing 
-            a list of video_ids. The videos in the playlist will be reordered based 
-            on the order of the provided video_ids
-            """
-            service = self.service
-            try:
-                playlist_items = service.playlistItems().list(
-                    part="snippet",
-                    playlistId=playlist_id,
-                    maxResults=len(video_ids)
-                ).execute()
-
-                video_positions = {}
-                for item in playlist_items["items"]:
-                    video_positions[item["snippet"]["resourceId"]["videoId"]] = item["snippet"]["position"]
-                for video_id in video_ids:
-                    position = video_positions.get(video_id, 0)
-                    request = service.playlistItems().update(
-                        part="snippet",
-                        body={
-                            "id": f"{playlist_id}_{video_id}",
-                            "snippet": {
-                                "playlistId": playlist_id,
-                                "resourceId": {
-                                    "kind": "youtube#video",
-                                    "videoId": video_id
-                                },
-                                "position": position
-                            }
-                        }
-                    )
-                    request.execute()
-                return True
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return False
-        
-        def iterate_videos_in_playlist(self, playlist_id: str, func=None) -> (bool | None):
-            if func is not None:
-                videos = self.get_videos_in_playlist(playlist_id)
-                if videos:
-                    for video in videos:
-                        func(video)
-                    return True
-                else:
-                    print(f"Unable to fetch videos in playlist with ID {playlist_id}.")
-                    return False
-            return None
-
-        def search_playlists(self, query: str, max_results: int=10) -> (list[dict] | None):
-            """
-            Returns a list of result snippets that matched the query.
-            """
-            service = self.service
-            try:
-                request = service.search().list(
-                    part="snippet",
-                    q=query,
-                    type="playlist",
-                    maxResults=max_results
-                )
-                response = request.execute()
-                result_snippets = []
-                for item in response["items"]:
-                    result_snippets.append(item["snippet"])
-                return result_snippets
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-        
-        def get_playlist_snippet(self, playlist_id: str) -> (str | None):
-            """
-            Get a playlists snippet using the playlist id.
-            """
-            service = self.service
-
-            try:
-                request = service.playlists().list(
-                    part="snippet",
-                    id=playlist_id
-                )
-                response = request.execute()
-
-                playlist_snippet_info = response["items"][0]["snippet"]
-                return playlist_snippet_info
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-
-        def get_all_playlist_snippets(self, max_results: int=10):
-            """
-            Get a list of the kind of playlists the authenticated user
-            has.
-            """ 
-            service = self.service
-
-            try:
-                request = service.playlists().list(
-                    part="snippet",
-                    mine=True,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                snippets = []
-                for playlist in response["items"]:
-                    snippets.append(playlist["snippet"])
-                return snippets
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-            
-        def get_playlist_kind(self, playlist_id: str) -> (str | None):
-            """
-            Get the kind of playlist that the playlist is tagged as.
-            """ 
-            service = self.service
-            try:
-                request = service.playlists().list(
-                    part="snippet",
-                    id=playlist_id
-                )
-                response = request.execute()
-                playlist_kind = response['kind']
-                return playlist_kind
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            
-        def get_all_playlist_kinds(self, max_results=10) -> (list | None):
-            """
-            Get a list of the kind of playlists the authenticated user has.
-            """ 
-            service = self.service
-
-            try:
-                request = service.playlists().list(
-                    part="snippet",
-                    mine=True,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                kinds = []
-                for playlist in response["items"]:
-                    kinds.append(playlist["kind"])
-                return kinds
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-            
-        def get_playlist_etag(self, playlist_id: str) -> (str | None):
-            """
-            Get the etag for the playlist specified by playlist_id.
-            """ 
-            service = self.service
-            try:
-                request = service.playlists().list(
-                    part="snippet",
-                    id=playlist_id
-                )
-                response = request.execute()
-                playlist_kind = response['kind']
-                return playlist_kind
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-
-        def get_all_playlist_etags(self, max_results=10) -> (list | None): 
-            service = self.service
-
-            try:
-                request = service.playlists().list(
-                    part="snippet",
-                    mine=True,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                etags = []
-                print(response['items'])
-                for playlist in response["items"]:
-                    etags.append(playlist["etag"])
-                return etags
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-        
-        def get_playlist_id(self, playlist_title: str, channel_id: str=None, max_results: int=1) -> (str | None):
-            service = self.service
-            try:
-                request = service.search().list(
-                    part="id",
-                    channelId=channel_id,
-                    maxResults=max_results,
-                    q=playlist_title,
-                    type="playlist"
-                )
-                response = request.execute()
-
-                if response.get("items"):
-                    playlist_id = response["items"][0]["id"]["playlistId"]
-                    return playlist_id
-
-                return None
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An HTTP error occurred: {e}")
-                return None
-
-            except IndexError:
-                print(f"No playlist found with title '{playlist_title}'.")
-                return None
-
-        def get_all_playlist_ids(self, max_results=10) -> (list | None):
-            service = self.service
-
-            try:
-                request = service.playlists().list(
-                    part="snippet",
-                    mine=True,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                ids = []
-                for playlist in response["items"]:
-                    ids.append(playlist["id"])
-                return ids
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-        
-        def get_playlists_channel_id(self, playlist_id: str):
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info is not None:
-                return playlist_info["channelId"]
-                
-        def get_playlist_title(self, playlist_id: str) -> (str | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["title"]
-            return None
-
-        def get_all_playlist_titles(self, max_results=10) -> (list | None):
-            service = self.service
-
-            try:
-                request = service.playlists().list(
-                    part="snippet",
-                    mine=True,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                titles = []
-                for playlist in response["items"]:
-                    titles.append(playlist["snippet"]["title"])
-                return titles
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-
-        def get_playlist_channel_title(self, playlist_id: str) -> (str | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["channelTitle"]
-            return None
-
-        def get_all_playlist_channel_titles(self, max_results=10) -> (list | None):
-            """
-            I don't know why you would need to do this since this method
-            will return a list of the same title due to all playlists being
-            in the same channel, but I figured what the hell. Why not?
-            Who knows what someone may be coding or need, so here it is 
-            anyway.
-            """
-            service = self.service
-
-            try:
-                request = service.playlists().list(
-                    part="snippet",
-                    mine=True,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                titles = []
-                for playlist in response["items"]:
-                    titles.append(playlist["snippet"]["title"])
-                return titles
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-        
-        def get_playlist_description(self, playlist_id: str) -> (str | None):
-            """
-            Get the description of a playlist using the playlist ID.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["description"]
-            return None
-
-        def get_all_playlist_descriptions(self, max_results=10) -> (list | None):
-            service = self.service
-
-            try:
-                request = service.playlists().list(
-                    part="snippet",
-                    mine=True,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                descriptions = []
-                for playlist in response["items"]:
-                    descriptions.append(playlist["snippet"]["description"])
-                return descriptions
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-
-        def get_date_playlist_published(self, playlist_id: str) -> (str | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["publishedAt"]
-            return None
-
-        def get_all_playlist_published_dates(self, max_results: int=20) -> (str | None):
-            service = self.service
-
-            try:
-                request = service.playlists().list(
-                    part="snippet",
-                    mine=True,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                published_dates = []
-                for playlist in response["items"]:
-                    published_dates.append(playlist["snippet"]["publishedAt"])
-                return published_dates
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-        
-        def get_playlist_localized_data(self, playlist_id: str) -> (str | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["localized"]
-            return None
-
-        def get_all_playlists_localized_data(self, max_results=10) -> (list | None):
-            """
-            I don't know why you would need to do this since this method
-            will return a list of the same title due to all playlists being
-            in the same channel, but I figured what the hell. Why not?
-            Who knows what someone may be coding or need, so here it is 
-            anyway.
-            """
-            service = self.service
-
-            try:
-                request = service.playlists().list(
-                    part="snippet",
-                    mine=True,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                titles = []
-                for playlist in response["items"]:
-                    titles.append(playlist["snippet"]["localized"])
-                return titles
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-        
-        def get_playlist_localized_title(self, playlist_id: str) -> (str | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["localized"]["title"]
-            return None
-
-        def get_all_playlists_localized_titles(self, max_results=10) -> (list | None):
-            """
-            I don't know why you would need to do this since this method
-            will return a list of the same title due to all playlists being
-            in the same channel, but I figured what the hell. Why not?
-            Who knows what someone may be coding or need, so here it is 
-            anyway.
-            """
-            service = self.service
-
-            try:
-                request = service.playlists().list(
-                    part="snippet",
-                    mine=True,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                titles = []
-                for playlist in response["items"]:
-                    titles.append(playlist["snippet"]["localized"]["title"])
-                return titles
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-        
-        def get_playlist_localized_description(self, playlist_id: str) -> (str | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["localized"]["description"]
-            return None
-
-        def get_all_playlists_localized_descriptions(self, max_results=10) -> (list | None):
-            """
-            I don't know why you would need to do this since this method
-            will return a list of the same title due to all playlists being
-            in the same channel, but I figured what the hell. Why not?
-            Who knows what someone may be coding or need, so here it is 
-            anyway.
-            """
-            service = self.service
-
-            try:
-                request = service.playlists().list(
-                    part="snippet",
-                    mine=True,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                descriptions = []
-                for playlist in response["items"]:
-                    descriptions.append(playlist["snippet"]["localized"]["description"])
-                return descriptions
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-        
-        def get_playlist_thumbnails(self, playlist_id: str) -> (str | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["thumbnails"]
-            return None
-
-        def get_all_playlist_thumbnails(self, max_results=10) -> (list | None):
-            service = self.service
-
-            try:
-                request = service.playlists().list(
-                    part="snippet",
-                    mine=True,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                thumbnails = []
-                for playlist in response["items"]:
-                    thumbnails.append(playlist["snippet"]["thumbnails"])
-                return thumbnails
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-
-        def get_playlist_default_res_thumbnail(self, playlist_id: str) -> (dict | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["thumbnails"]["default"]
-            return None
-
-        def get_all_playlist_default_res_thumbnails(self, max_results=10) -> (list | None):
-            service = self.service
-
-            try:
-                request = service.playlists().list(
-                    part="snippet",
-                    mine=True,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                thumbnails = []
-                for playlist in response["items"]:
-                    thumbnails.append(playlist["snippet"]["thumbnails"]["default"])
-                return thumbnails
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-        
-        def get_playlist_default_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["thumbnails"]["default"]["url"]
-            return None
-
-        def get_all_playlist_default_res_thumbnail_urls(self, max_results=10) -> (list | None):
-            service = self.service
-
-            try:
-                request = service.playlists().list(
-                    part="snippet",
-                    mine=True,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                thumbnails = []
-                for playlist in response["items"]:
-                    thumbnails.append(playlist["snippet"]["thumbnails"]["default"]["url"])
-                return thumbnails
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-        
-        def get_playlist_medium_res_thumbnail(self, playlist_id: str) -> (dict | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["thumbnails"]["medium"]
-            return None
-
-        def get_all_playlist_medium_res_thumbnails(self, max_results=10) -> (list | None):
-            service = self.service
-
-            try:
-                request = service.playlists().list(
-                    part="snippet",
-                    mine=True,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                thumbnails = []
-                for playlist in response["items"]:
-                    thumbnails.append(playlist["snippet"]["thumbnails"]["medium"])
-                return thumbnails
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-        
-        def get_playlist_medium_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["thumbnails"]["medium"]["url"]
-            return None
-
-        def get_all_playlist_medium_res_thumbnail_urls(self, max_results=10) -> (list | None):
-            service = self.service
-
-            try:
-                request = service.playlists().list(
-                    part="snippet",
-                    mine=True,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                thumbnails = []
-                for playlist in response["items"]:
-                    thumbnails.append(playlist["snippet"]["thumbnails"]["medium"]["url"])
-                return thumbnails
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-        
-        def get_playlist_high_res_thumbnail(self, playlist_id: str) -> (dict | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["thumbnails"]["high"]
-            return None
-
-        def get_all_playlist_high_res_thumbnails(self, max_results=10) -> (list | None):
-            service = self.service
-
-            try:
-                request = service.playlists().list(
-                    part="snippet",
-                    mine=True,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                thumbnails = []
-                for playlist in response["items"]:
-                    thumbnails.append(playlist["snippet"]["thumbnails"]["high"])
-                return thumbnails
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-        
-        def get_playlist_high_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["thumbnails"]["high"]["url"]
-            return None
-
-        def get_all_playlist_high_res_thumbnail_urls(self, max_results=10) -> (list | None):
-            service = self.service
-
-            try:
-                request = service.playlists().list(
-                    part="snippet",
-                    mine=True,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                thumbnails = []
-                for playlist in response["items"]:
-                    thumbnails.append(playlist["snippet"]["thumbnails"]["high"]["url"])
-                return thumbnails
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-        
-        def get_playlist_standard_res_thumbnail(self, playlist_id: str) -> (dict | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["thumbnails"]["standard"]
-            return None
-
-        def get_all_playlist_standard_res_thumbnails(self, max_results=10) -> (list | None):
-            service = self.service
-
-            try:
-                request = service.playlists().list(
-                    part="snippet",
-                    mine=True,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                thumbnails = []
-                for playlist in response["items"]:
-                    thumbnails.append(playlist["snippet"]["thumbnails"]["standard"])
-                return thumbnails
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-        
-        def get_playlist_standard_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["thumbnails"]["standard"]["url"]
-            return None
-
-        def get_all_playlist_standard_res_thumbnail_urls(self, max_results=10) -> (list | None):
-            service = self.service
-
-            try:
-                request = service.playlists().list(
-                    part="snippet",
-                    mine=True,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                thumbnails = []
-                for playlist in response["items"]:
-                    thumbnails.append(playlist["snippet"]["thumbnails"]["standard"]["url"])
-                return thumbnails
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-        
-        def get_playlist_max_res_thumbnail(self, playlist_id: str) -> (dict | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["thumbnails"]["maxres"]
-            return None
-
-        def get_all_playlist_max_res_thumbnails(self, max_results=10) -> (list | None):
-            service = self.service
-
-            try:
-                request = service.playlists().list(
-                    part="snippet",
-                    mine=True,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                thumbnails = []
-                for playlist in response["items"]:
-                    thumbnails.append(playlist["snippet"]["thumbnails"]["maxres"])
-                return thumbnails
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-        
-        def get_playlist_max_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["thumbnails"]["maxres"]["url"]
-            return None
-
-        def get_all_playlist_max_res_thumbnail_urls(self, max_results=10) -> (list | None):
-            service = self.service
-
-            try:
-                request = service.playlists().list(
-                    part="snippet",
-                    mine=True,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                thumbnails = []
-                for playlist in response["items"]:
-                    thumbnails.append(playlist["snippet"]["thumbnails"]["maxres"]["url"])
-                return thumbnails
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-        
-        def get_videos_in_playlist(self, playlist_id: str, max_results: int=50) -> (list | None):
-            """
-            Returns all videos in a playlist up to the number specified 
-            by max_results.
-            """
-            service = self.service
-            try:
-                videos = []
-                request = service.playlistItems().list(
-                    part="snippet",
-                    playlistId=playlist_id,
-                    maxResults=int(max_results)
-                )
-                while request is not None:
-                    response = request.execute()
-                    for item in response.get("items", []):
-                        video_id = item["snippet"]["resourceId"]["videoId"]
-                        video_title = item["snippet"]["title"]
-                        # videos.append({
-                        #     "video_id": video_id,
-                        #     "video_title": video_title
-                        # })
-                        videos.append(item["snippet"])
-                        
-
-                    request = service.playlistItems().list_next(request, response)
-                return videos
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-
-        def get_playlists(self, max_results: int=10) -> (list | None):
-            """
-                This method uses the playlists().list method to retrieve the user's playlists. 
-                Using the 'mine=True' parameter indicates that we want to retrieve playlists belonging 
-                to the authenticated user.
-            """
-            service = self.service
-            try:
-                request = service.playlists().list(
-                    part="snippet",
-                    mine=True,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                
-                playlists = []
-                for playlist in response["items"]:
-                    playlists.append(playlist["snippet"])
-                return playlists
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-        
-        def get_liked_playlist(self) -> (dict | None):
-            """
-            Retrieve the snippet for the "Liked videos" playlist.
-            """
-            service = self.service
-
-            try:
-                liked_playlist = None
-                request = service.playlists().list(
-                    part="snippet",
-                    mine=True
-                )
-                response = request.execute()
-                for item in response.get("items", []):
-                    if item["snippet"]["title"] == "Liked videos":
-                        liked_playlist = item
-                        return liked_playlist
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-            
-        def get_playlist_items(self, playlist_id, max_results=10) -> (list | None):
-            """
-            Returns a list of playlist item snippets for a given playlist. Returns None
-            if unsuccessful.
-            """
-            service = self.service
-            try:
-                request = service.playlistItems().list(
-                    part="snippet",
-                    playlistId=playlist_id,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                playlist_items = []
-                for item in response["items"]:
-                    playlist_items.append(item["snippet"])
-                return playlist_items
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-        
-        def set_playlist_privacy_status(self, playlist_id, privacy_status):
-            """
-            This method allows you to update the privacy status of a playlist 
-            with the specified playlist_id. The privacy_status can be set to 
-            "private" or "public."
-            """
-        
-            service = self.service
-
-            try:
-                playlist = service.playlists().list(
-                    part="status",
-                    id=playlist_id
-                ).execute()
-
-                status = playlist["items"][0]["status"]
-                status["privacyStatus"] = privacy_status
-
-                service.playlists().update(
-                    part="status",
-                    body={
-                        "id": playlist_id,
-                        "status": status
-                    }
-                ).execute()
-
-                return True
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return False
-
-    #//////////// VIDEOS ////////////
-    class Video:
-        def __init__(self) -> None:
-            pass
-        
-        def get_video_snippet(self, video_id):
-            """
-            This method, get_video_snippet(video_id), allows you to retrieve the 
-            snippet data of a video with the specified video_id. The snippet data 
-            includes information such as the video's title, description, tags, 
-            thumbnails, etc.
-            """
-            service = self.service
-
-            try:
-                video = service.videos().list(
-                    part="snippet",
-                    id=video_id
-                ).execute()
-
-                snippet = video["items"][0]["snippet"]
-                return snippet
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-
-        def upload_video(self, video_path, title, description, privacy_status="public"):
-            """
-            The upload_video(video_path, title, description, privacy_status), takes the 
-            following parameters:
-
-                video_path:     The local file path of the video you want to upload.
-                title:          The title of the video.
-                description:    The description of the video.
-                privacy_status: (Optional) The privacy status of the uploaded video. It can 
-                be set to "public," "private," or "unlisted." The default is "public."
-                
-            Before using this method or any method in this class, ensure you have the 
-            get_authenticated_service() method defined as shown in the previous responses 
-            to obtain an authenticated YouTube API service. This ensures that your 
-            application is authorized to make API requests and has the necessary permissions 
-            to upload videos on behalf of the user.
-
-            """
-            import requests
-            from googleapiclient.errors import HttpError
-
-            service = self.service
-
-            try:
-                request = service.videos().insert(
-                    part="snippet,status",
-                    body={
-                        "snippet": {
-                            "title": title,
-                            "description": description
-                        },
-                        "status": {
-                            "privacyStatus": privacy_status
-                        }
-                    }
-                )
-                response = request.execute()
-                upload_url = response.get("uploadURL")
-                if upload_url:
-                    headers = {
-                        "Authorization": f"Bearer {service.credentials.token}",
-                        "Content-Type": "video/*"
-                    }
-
-                    video_file = open(video_path, "rb")
-                    response = requests.put(upload_url, data=video_file, headers=headers)
-
-                    if response.status_code == 200:
-                        print("Video uploaded successfully!")
-                    else:
-                        print("Video upload failed.")
-
-                    video_file.close()
-
-                else:
-                    print("Upload URL not found. Unable to start video upload.")
-
-            except HttpError as e:
-                print(f"An HTTP error occurred: {e}")
-            except OSError as e:
-                print(f"An OS error occurred: {e}")
-
-        def delete_video(self, video_id):
-            service = self.service
-
-            try:
-                service.videos().delete(
-                    id=video_id
-                ).execute()
-
-                print(f"Video with ID {video_id} deleted successfully!")
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def like_video(self, video_id):
-            """
-            This method like_video(video_id) takes the video_id of the video 
-            you want to like and calls the videos.rate method with rating="like" 
-            to like the video.
-            """
-            service = self.service
-
-            try:
-                request = service.videos().rate(
-                    id=video_id,
-                    rating="like"
-                )
-                response = request.execute()
-
-                print(f"Video with ID {video_id} liked successfully!")
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def unlike_video(self, video_id):
-            service = self.service
-
-            try:
-                request = service.videos().rate(
-                    id=video_id,
-                    rating="none"
-                )
-                response = request.execute()
-
-                print(f"Video with ID {video_id} unliked successfully!")
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def get_related_videos(self, video_id, max_results=10):
-            """
-            This method retrieves related videos for a specific video. It prints 
-            information about videos related to the given video based on YouTube's 
-            recommendation algorithm.
-            """
-            service = self.service
-
-            try:
-                request = service.search().list(
-                    part="snippet",
-                    relatedToVideoId=video_id,
-                    type="video",
-                    maxResults=max_results
-                )
-                response = request.execute()
-
-                for video in response["items"]:
-                    title = video["snippet"]["title"]
-                    video_id = video["id"]["videoId"]
-                    print(f"Related Video: {title} (Video ID: {video_id})")
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def iterate_related_videos(self, video_id, max_results=10):
-            service = self.service
-
-            try:
-                request = service.search().list(
-                    part="snippet",
-                    relatedToVideoId=video_id,
-                    type="video",
-                    maxResults=max_results
-                )
-                response = request.execute()
-
-                related_videos = response.get("items", [])
-                for video in related_videos:
-                    video_id = video["id"]["videoId"]
-                    video_title = video["snippet"]["title"]
-                    channel_title = video["snippet"]["channelTitle"]
-                    print(f"Video ID: {video_id}, Title: {video_title}, Channel: {channel_title}")
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def save_video_to_playlist(self, playlist_id, video_id):
-            """
-            This method allows you to save a video specified by ID to a playlist
-            also specified by ID.
-            """
-            service = self.service
-
-            try:
-                service.playlistItems().insert(
-                    part="snippet",
-                    body={
-                        "snippet": {
-                            "playlistId": playlist_id,
-                            "resourceId": {
-                                "kind": "youtube#video",
-                                "videoId": video_id
-                            }
-                        }
-                    }
-                ).execute()
-
-                print(f"Video with ID {video_id} saved to the playlist with ID {playlist_id} successfully!")
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-        
-        def get_all_video_details(self, video_id):
-            service = self.service
-
-            try:
-                request = service.videos().list(
-                    part="snippet,contentDetails,statistics",
-                    id=video_id
-                )
-                response = request.execute()
-
-                video = response["items"][0]
-                print(f"Title: {video['snippet']['title']}")
-                print(f"Channel: {video['snippet']['channelTitle']}")
-                print(f"Published At: {video['snippet']['publishedAt']}")
-                print(f"Duration: {video['contentDetails']['duration']}")
-                print(f"Views: {video['statistics']['viewCount']}")
-                print(f"Likes: {video['statistics']['likeCount']}")
-                print(f"Dislikes: {video['statistics']['dislikeCount']}")
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def get_video_title(self, video_id):
-            service = self.service
-            try:
-                request = service.videos().list(
-                    part="snippet,contentDetails,statistics",
-                    id=video_id
-                )
-                response = request.execute()
-
-                video = response["items"][0]
-                return video['snippet']['title']
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                
-        def get_videos_channel_title(self, video_id):
-            service = self.service
-            try:
-                request = service.videos().list(
-                    part="snippet,contentDetails,statistics",
-                    id=video_id
-                )
-                response = request.execute()
-
-                video = response["items"][0]
-                return video['snippet']['channelTitle']
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                
-        def get_video_published_at(self, video_id):
-            service = self.service
-            try:
-                request = service.videos().list(
-                    part="snippet,contentDetails,statistics",
-                    id=video_id
-                )
-                response = request.execute()
-
-                video = response["items"][0]
-                return video['snippet']['publishedAt']
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                
-        def get_video_duration(self, video_id):
-            service = self.service
-            try:
-                request = service.videos().list(
-                    part="snippet,contentDetails,statistics",
-                    id=video_id
-                )
-                response = request.execute()
-
-                video = response["items"][0]
-                return video['contentDetails']['duration']
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-        
-        def get_video_view_count(self, video_id):
-            service = self.service
-            try:
-                request = service.videos().list(
-                    part="snippet,contentDetails,statistics",
-                    id=video_id
-                )
-                response = request.execute()
-
-                video = response["items"][0]
-                return video['statistics']['viewCount']
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-        
-        def get_video_like_count(self, video_id):
-            service = self.service
-            try:
-                request = service.videos().list(
-                    part="snippet,contentDetails,statistics",
-                    id=video_id
-                )
-                response = request.execute()
-
-                video = response["items"][0]
-                return video['statistics']['likeCount']
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-        
-        def get_video_dislike_count(self, video_id):
-            service = self.service
-            try:
-                request = service.videos().list(
-                    part="snippet,contentDetails,statistics",
-                    id=video_id
-                )
-                response = request.execute()
-
-                video = response["items"][0]
-                return video['statistics']['dislikeCount']
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-        
-        def get_video_categories(self, region_code="US"):
-            service = self.service
-
-            try:
-                request = service.videoCategories().list(
-                    part="snippet",
-                    regionCode=region_code
-                )
-                response = request.execute()
-
-                for item in response["items"]:
-                    print(f"{item['id']} - {item['snippet']['title']}")
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-        
-        def get_videos_by_category(self, category_id, region_code="US", max_results=10):
-            service = self.service
-
-            try:
-                request = service.search().list(
-                    part="snippet",
-                    videoCategoryId=category_id,
-                    regionCode=region_code,
-                    type="video",
-                    maxResults=max_results
-                )
-                response = request.execute()
-
-                for item in response["items"]:
-                    print(item["snippet"]["title"])
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-        
-        def get_trending_videos(self, region_code="US", max_results=10):
-            service = self.service
-            try:
-                request = service.videos().list(
-                    part="snippet",
-                    chart="mostPopular",
-                    regionCode=region_code,
-                    maxResults=max_results
-                )
-                response = request.execute()
-
-                for item in response["items"]:
-                    print(item["snippet"]["title"])
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def get_videos_by_tag(self, tag, region_code="US", max_results=10):
-            service = self.service
-            try:
-                request = service.search().list(
-                    part="snippet",
-                    q=tag,
-                    regionCode=region_code,
-                    type="video",
-                    maxResults=max_results
-                )
-                response = request.execute()
-
-                for item in response["items"]:
-                    print(item["snippet"]["title"])
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-        
-        def get_recommended_videos(self, video_id, max_results=10):
-            """
-            This method will get recommended videos based on a given video's ID.
-            """
-            service = self.service
-
-            try:
-                # Get recommended videos for the given video ID
-                request = service.search().list(
-                    part="snippet",
-                    relatedToVideoId=video_id,
-                    type="video",
-                    maxResults=max_results
-                )
-                response = request.execute()
-
-                recommended_videos = []
-                for item in response["items"]:
-                    video = item["snippet"]
-                    recommended_videos.append({
-                        "video_id": item["id"]["videoId"],
-                        "title": video["title"],
-                        "channel": video["channelTitle"]
-                    })
-
-                return recommended_videos
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-    
-        def set_video_tags(self, video_id, tags):
-            """
-            This method allows you to set the tags for a video with 
-            the specified video_id. Provide a list of tags to update the video's tags.
-            """
-            service = self.service
-
-            try:
-                video = service.videos().list(
-                    part="snippet",
-                    id=video_id
-                ).execute()
-
-                snippet = video["items"][0]["snippet"]
-                snippet["tags"] = tags
-
-                service.videos().update(
-                    part="snippet",
-                    body={
-                        "id": video_id,
-                        "snippet": snippet
-                    }
-                ).execute()
-
-                print(f"Tags for video with ID {video_id} updated successfully!")
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-    
-        def update_video_privacy_status(self, video_id, privacy_status):
-            """
-            This function allows you to update the privacy status of a video 
-            with the specified video_id. The privacy_status can be set to 
-            "private," "public," or "unlisted."
-            """
-            service = self.service
-
-            try:
-                video = service.videos().list(
-                    part="status",
-                    id=video_id
-                ).execute()
-
-                status = video["items"][0]["status"]
-                status["privacyStatus"] = privacy_status
-
-                service.videos().update(
-                    part="status",
-                    body={
-                        "id": video_id,
-                        "status": status
-                    }
-                ).execute()
-
-                print(f"Privacy status for video with ID {video_id} updated successfully!")
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def update_video_details(self, video_id, new_title=None, new_description=None, new_tags=None):
-            """
-            This method allows you to update the title, description, and tags of a 
-            video with the specified video_id. You can provide the new values for these 
-            parameters, and the snippet will be updated accordingly.
-            """
-            service = self.service
-
-            try:
-                video = service.videos().list(
-                    part="snippet",
-                    id=video_id
-                ).execute()
-
-                snippet = video["items"][0]["snippet"]
-                if new_title:
-                    snippet["title"] = new_title
-                if new_description:
-                    snippet["description"] = new_description
-                if new_tags:
-                    snippet["tags"] = new_tags
-
-                service.videos().update(
-                    part="snippet",
-                    body={
-                        "id": video_id,
-                        "snippet": snippet
-                    }
-                ).execute()
-
-                print(f"Video with ID {video_id} snippet updated successfully!")
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def search_videos(self, query, max_results=10):
-            service = self.service
-
-            try:
-                request = service.search().list(
-                    part="snippet",
-                    q=query,
-                    type="video",
-                    maxResults=max_results
-                )
-                response = request.execute()
-
-                for item in response["items"]:
-                    print(item["snippet"]["title"])
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")        
-
-        def search_videos_by_order(self, query, order="relevance", max_results=10):
-            service = self.service
-            try:
-                request = service.search().list(
-                    part="snippet",
-                    q=query,
-                    type="video",
-                    order=order,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                for item in response["items"]:
-                    print(item["snippet"]["title"])
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def search_videos_by_category(self, query, category_id, max_results=10):
-            service = self.service
-            try:
-                request = service.search().list(
-                    part="snippet",
-                    q=query,
-                    type="video",
-                    videoCategoryId=category_id,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                for item in response["items"]:
-                    print(item["snippet"]["title"])
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def search_videos_by_definition(self, query, definition="any", max_results=10):
-            service = self.service
-            try:
-                request = service.search().list(
-                    part="snippet",
-                    q=query,
-                    type="video",
-                    videoDefinition=definition,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                for item in response["items"]:
-                    print(item["snippet"]["title"])
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def search_videos_by_duration(self, query, duration="any", max_results=10):
-            service = self.service
-            try:
-                request = service.search().list(
-                    part="snippet",
-                    q=query,
-                    type="video",
-                    videoDuration=duration,
-                    maxResults=max_results
-                )
-                response = request.execute()
-
-                for item in response["items"]:
-                    print(item["snippet"]["title"])
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")    
-
-        def search_videos_by_license(self, query, license_type="any", max_results=10):
-            service = self.service
-            try:
-                request = service.search().list(
-                    part="snippet",
-                    q=query,
-                    type="video",
-                    videoLicense=license_type,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                for item in response["items"]:
-                    print(item["snippet"]["title"])
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-        
-        def search_videos_by_type(self, query, video_type="any", max_results=10):
-            service = self.service
-            try:
-                request = service.search().list(
-                    part="snippet",
-                    q=query,
-                    type=video_type,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                for item in response["items"]:
-                    print(item["snippet"]["title"])
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def search_embeddable_videos(self, query, embeddable="true", max_results=10):
-            service = self.service
-            try:
-                request = service.search().list(
-                    part="snippet",
-                    q=query,
-                    type="video",
-                    videoEmbeddable=embeddable,
-                    maxResults=max_results
-                )
-                response = request.execute()
-                for item in response["items"]:
-                    print(item["snippet"]["title"])
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def search_videos_by_published_date(self, query, published_after, published_before, max_results=10):
-            service = self.service
-            try:
-                request = service.search().list(
-                    part="snippet",
-                    q=query,
-                    type="video",
-                    publishedAfter=published_after,
-                    publishedBefore=published_before,
-                    maxResults=max_results
-                )
-                response = request.execute()
-
-                for item in response["items"]:
-                    print(item["snippet"]["title"])
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-        
-    #//////////// CHANNELS ////////////
+    #//////////// CHANNEL ////////////
     class Channel:
-        def __init__(self) -> None:
-            pass
+        def __init__(self, ytd_api_tools: object) -> None:
+            self.service = ytd_api_tools.service
         
         def get_channel_id(self, channel_identifier):
             service = self.service
@@ -2516,120 +747,6487 @@ class YouTubeDataAPIv3Tools:
                     print(item["snippet"]["title"])
 
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-            
-    #//////////// COMMENTS ////////////
+                print(f"An error occurred: {e}")        
     
-    def get_video_comments(self, video_id, max_results=10):
-        service = self.service
+    #//////////// CHANNEL BANNER ////////////
+    class ChannelBanner:
+        def __init__(self, ytd_api_tools: object) -> None:
+            self.service = ytd_api_tools.service
+        
+        def set_channel_banner(self, channel_id, banner_image_url):
+            service = self.service
 
-        try:
-            request = service.commentThreads().list(
-                part="snippet",
-                videoId=video_id,
-                maxResults=max_results
-            )
-            response = request.execute()
-
-            for item in response["items"]:
-                print(item["snippet"]["topLevelComment"]["snippet"]["textDisplay"])
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_comment_replies(self, comment_id, max_results=10):
-        service = self.service
-        try:
-            request = service.comments().list(
-                part="snippet",
-                parentId=comment_id,
-                maxResults=max_results
-            )
-            response = request.execute()
-
-            for item in response["items"]:
-                print(item["snippet"]["textDisplay"])
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def post_video_comment(self, video_id, comment_text):
-        service = self.service
-        try:
-            request = service.commentThreads().insert(
-                part="snippet",
-                body={
-                    "snippet": {
-                        "videoId": video_id,
-                        "topLevelComment": {
-                            "snippet": {
-                                "textOriginal": comment_text
+            try:
+                service.channels().update(
+                    part="brandingSettings",
+                    body={
+                        "id": channel_id,
+                        "brandingSettings": {
+                            "image": {
+                                "bannerExternalUrl": banner_image_url
                             }
                         }
                     }
-                }
-            )
-            response = request.execute()
+                ).execute()
 
-            print("Comment posted successfully!")
+                print("Channel banner has been set/updated successfully!")
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")    
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
 
-    def reply_to_comment(self, parent_comment_id, reply_text):
-        service = self.service
-        try:
-            request = service.comments().insert(
-                part="snippet",
-                body={
-                    "snippet": {
-                        "parentId": parent_comment_id,
-                        "textOriginal": reply_text
+        def get_channel_banner_url(self, channel_id):
+            """
+            Get the URL of a channel banner using the channel ID. 
+            """
+            service = self.service
+
+            try:
+                request = service.channels().list(
+                    part="brandingSettings",
+                    id=channel_id
+                )
+                response = request.execute()
+
+                branding_settings = response.get("items", [])[0]["brandingSettings"]
+                banner_url = branding_settings["image"]["bannerImageUrl"]
+                return banner_url
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        def get_channel_banner_default_url(self):
+            """
+            Get the default URL of a channel banner.
+            """
+            service = self.service
+
+            try:
+                request = service.channelBanners().insert(
+                    part="brandingSettings"
+                )
+                response = request.execute()
+
+                banner_url = response.get("brandingSettings", {}).get("image", {}).get("bannerImageUrl")
+                return banner_url
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+
+        def delete_channel_banner(self, channel_id):
+            service = self.service
+
+            try:
+                service.channels().update(
+                    part="brandingSettings",
+                    body={
+                        "id": channel_id,
+                        "brandingSettings": {
+                            "image": {
+                                "bannerExternalUrl": ""
+                            }
+                        }
                     }
+                ).execute()
+
+                print("Channel banner has been deleted successfully!")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+    #//////////// CHANNEL SECTION ////////////
+    class ChannelSection:
+        def __init__(self, ytd_api_tools: object) -> None:
+            self.service = ytd_api_tools.service
+    
+    #//////////// PLAYLIST ////////////
+    class Playlist: 
+        def __init__(self, ytd_api_tools: object) -> None:
+            self.service = ytd_api_tools.service
+
+        #////// PLAYLIST UTILITIES //////
+        def create_playlist(self, title: str, description: str, privacy_status: str="public") -> (dict | None):
+            service = self.service
+            try:
+                request = service.playlists().insert(
+                    part="snippet,status",
+                    body={
+                        "snippet": {
+                            "title": title,
+                            "description": description
+                        },
+                        "status": {
+                            "privacyStatus": privacy_status
+                        }
+                    }
+                )
+                response = request.execute()
+                new_playlist = {
+                    "title": response['snippet']['title'],
+                    "id": response['id']
                 }
-            )
-            response = request.execute()
+                return new_playlist
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+                
+        def delete_playlist(self, playlist_id: str) -> bool:
+            """
+            With this method, you can provide the playlist_id of the playlist 
+            you want to delete, and it will be removed from your YouTube account.
+            """
+            service = self.service
+            try:
+                service.playlists().delete(
+                    id=playlist_id
+                ).execute()
+                return True
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return False
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return False
 
-            print("Reply posted successfully!")
+        def save_playlist(self, source_playlist_id: str, destination_playlist_id: str) -> bool:
+            """
+            Save a playlist using the source and destination playlists IDs. 
+            """
+            try:
+                videos = self.get_videos_in_playlist(source_playlist_id)
+                for video in videos:
+                    self.save_video_to_playlist(destination_playlist_id, video["video_id"])
+                return True
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return False
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return False
+    
+        def update_playlist_details(self, playlist_id, new_title: str=None, new_description: str=None) -> bool:
+            """
+            This method allows you to update the title and description of a 
+            playlist with the specified playlist_id.
+            """
+            service = self.service
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
+            try:
+                playlist = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                ).execute()
+
+                snippet = playlist["items"][0]["snippet"]
+                if new_title:
+                    snippet["title"] = new_title
+                if new_description:
+                    snippet["description"] = new_description
+
+                service.playlists().update(
+                    part="snippet",
+                    body={
+                        "id": playlist_id,
+                        "snippet": snippet
+                    }
+                ).execute()
+                return True
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return False
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return False
+
+        def reorder_videos(self, playlist_id: str, video_ids: list) -> bool:
+            """
+            This method allows you to reorder videos in a playlist by providing 
+            a list of video_ids. The videos in the playlist will be reordered based 
+            on the order of the provided video_ids
+            """
+            service = self.service
+            try:
+                playlist_items = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id,
+                    maxResults=len(video_ids)
+                ).execute()
+
+                video_positions = {}
+                for item in playlist_items["items"]:
+                    video_positions[item["snippet"]["resourceId"]["videoId"]] = item["snippet"]["position"]
+                for video_id in video_ids:
+                    position = video_positions.get(video_id, 0)
+                    request = service.playlistItems().update(
+                        part="snippet",
+                        body={
+                            "id": f"{playlist_id}_{video_id}",
+                            "snippet": {
+                                "playlistId": playlist_id,
+                                "resourceId": {
+                                    "kind": "youtube#video",
+                                    "videoId": video_id
+                                },
+                                "position": position
+                            }
+                        }
+                    )
+                    request.execute()
+                return True
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return False
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return False
+        
+        def search_playlists(self, query: str, max_results: int=10) -> (list[dict] | None):
+            """
+            Returns a list of result snippets that matched the query.
+            """
+            service = self.service
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    q=query,
+                    type="playlist",
+                    maxResults=max_results
+                )
+                response = request.execute()
+                result_snippets = []
+                for item in response["items"]:
+                    result_snippets.append(item["snippet"])
+                return result_snippets
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+        
+        def get_playlist_videos(self, playlist_id, max_results=10) -> (list | None):
+            """
+            This method differs from the get_videos_in_playlist method because it
+            returns a list of playlist video resources for a given playlist rather than
+            just the IDs and titles or just the snippet section. 
+            Returns None if unsuccessful.
+            """
+            service = self.service
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                videos = []
+                for video in response["items"]:
+                    videos.append(video)
+                return videos
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
             
-    def update_comment(self, comment_id, updated_text):
-        service = self.service
-        try:
-            request = service.comments().update(
-                part="snippet",
-                body={
-                    "id": comment_id,
-                    "snippet": {
-                        "textOriginal": updated_text
+        def get_playlist_video_identities(self, playlist_id: str, max_results: int=50) -> (list | None):
+            """
+            The get_videos_in_playlist method returns a list of dictionaries
+            containing both the video title and the video ID.
+            """
+            service = self.service
+            try:
+                videos = []
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id,
+                    maxResults=int(max_results)
+                )
+                while request is not None:
+                    response = request.execute()
+                    for item in response.get("items", []):
+                        video_id = item["snippet"]["resourceId"]["videoId"]
+                        video_title = item["snippet"]["title"]
+                        videos.append({
+                            "video_id": video_id,
+                            "video_title": video_title
+                        })
+                        
+
+                    request = service.playlistItems().list_next(request, response)
+                return videos
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+        
+        def add_video_to_playlist(self, playlist_id: str, video_id: str) -> bool:
+            """
+            This method allows you to add a video with the specified video_id 
+            to a playlist with the specified playlist_id.
+            """
+            service = self.service
+            try:
+                request = service.playlistItems().insert(
+                    part="snippet",
+                    body={
+                        "snippet": {
+                            "playlistId": playlist_id,
+                            "resourceId": {
+                                "kind": "youtube#video",
+                                "videoId": video_id
+                            }
+                        }
                     }
-                }
-            )
-            response = request.execute()
+                )
+                response = request.execute()
+                return True
 
-            print("Comment updated successfully!")
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return False
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return False
+        
+        def remove_video_from_playlist(self, playlist_item_id: str) -> bool:
+            """
+            This method allows you to remove a video from a playlist using the 
+            playlist_item_id. Note that you need to retrieve the playlist_item_id 
+            of the specific video in the playlist before using this method.
+            """
+            service = self.service
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
+            try:
+                service.playlistItems().delete(
+                    id=playlist_item_id
+                ).execute()
+                return True
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return False
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return False
+        
+        def iterate_videos_in_playlist(self, playlist_id: str, func=None) -> (bool | None):
+            if func is not None:
+                videos = self.get_playlist_videos(playlist_id)
+                if videos:
+                    for video in videos:
+                        func(video)
+                    return True
+                else:
+                    print(f"Unable to fetch videos in playlist with ID {playlist_id}.")
+                    return False
+            return None
+             
+        #////// ENTIRE PLAYLIST RESOURCE //////
+        def get_playlist(self, playlist_id: str) -> (str | None):
+            """
+            Get a playlists snippet using the playlist id.
+            """
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+
+                playlist_snippet_info = response["items"][0]
+                return playlist_snippet_info
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+
+        def get_playlists(self, max_results: int=10) -> (list | None):
+            """
+            Unlike the get_playlist_snippet method this method returns the 
+            entire playlist resource dict.
+            """
+            service = self.service
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                
+                playlists = []
+                for playlist in response["items"]:
+                    playlists.append(playlist)
+                return playlists
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        def get_liked_videos_playlist(self) -> (dict | None):
+            """
+            Retrieve the snippet for the "Liked videos" playlist.
+            """
+            service = self.service
+
+            try:
+                liked_playlist = None
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True
+                )
+                response = request.execute()
+                for item in response.get("items", []):
+                    if item["snippet"]["title"] == "Liked videos":
+                        liked_playlist = item
+                        return liked_playlist
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        #////// PLAYLIST KIND //////
+        def get_playlist_kind(self, playlist_id: str) -> (str | None):
+            """
+            Get the kind of playlist that the playlist is tagged as.
+            """ 
+            service = self.service
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                playlist_kind = response['kind']
+                return playlist_kind
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            
+        def get_all_playlist_kinds(self, max_results=10) -> (list | None):
+            """
+            Get a list of the kind of playlists the authenticated user has.
+            """ 
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                kinds = []
+                for playlist in response["items"]:
+                    kinds.append(playlist["kind"])
+                return kinds
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+            
+        #////// PLAYLIST ETAG //////
+        def get_playlist_etag(self, playlist_id: str) -> (str | None):
+            """
+            Get the etag for the playlist specified by playlist_id.
+            """ 
+            service = self.service
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                playlist_kind = response['kind']
+                return playlist_kind
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+
+        def get_all_playlist_etags(self, max_results=10) -> (list | None): 
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                etags = []
+                print(response['items'])
+                for playlist in response["items"]:
+                    etags.append(playlist["etag"])
+                return etags
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        #////// PLAYLIST ID //////    
+        def get_playlist_id(self, playlist_title: str, channel_id: str=None, max_results: int=1) -> (str | None):
+            service = self.service
+            try:
+                request = service.search().list(
+                    part="id",
+                    channelId=channel_id,
+                    maxResults=max_results,
+                    q=playlist_title,
+                    type="playlist"
+                )
+                response = request.execute()
+
+                if response.get("items"):
+                    playlist_id = response["items"][0]["id"]["playlistId"]
+                    return playlist_id
+
+                return None
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An HTTP error occurred: {e}")
+                return None
+
+            except IndexError:
+                print(f"No playlist found with title '{playlist_title}'.")
+                return None
+
+        def get_all_playlist_ids(self, max_results=10) -> (list | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                ids = []
+                for playlist in response["items"]:
+                    ids.append(playlist["id"])
+                return ids
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        #////// PLAYLIST SNIPPET //////
+        def get_playlist_snippet(self, playlist_id: str) -> (str | None):
+            """
+            Get a playlists snippet using the playlist id.
+            """
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+
+                playlist_snippet_info = response["items"][0]["snippet"]
+                return playlist_snippet_info
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+
+        def get_all_playlist_snippets(self, max_results: int=10):
+            """
+            Get a list of the kind of playlists the authenticated user
+            has.
+            """ 
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                snippets = []
+                for playlist in response["items"]:
+                    snippets.append(playlist["snippet"])
+                return snippets
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+            
+        #////// PLAYLIST PUBLISHED DATETIME //////
+        def get_date_playlist_published(self, playlist_id: str) -> (str | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["publishedAt"]
+            return None
+
+        def get_all_playlist_published_dates(self, max_results: int=20) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                published_dates = []
+                for playlist in response["items"]:
+                    published_dates.append(playlist["snippet"]["publishedAt"])
+                return published_dates
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+
+        #////// PLAYLIST CHANNEL ID //////
+        def get_playlists_channel_id(self, playlist_id: str):
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info is not None:
+                return playlist_info["channelId"]
+        
+        #////// PLAYLIST TITLE //////                
+        def get_playlist_title(self, playlist_id: str) -> (str | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["title"]
+            return None
+
+        def get_all_playlist_titles(self, max_results=10) -> (list | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                titles = []
+                for playlist in response["items"]:
+                    titles.append(playlist["snippet"]["title"])
+                return titles
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+
+        def set_playlist_title(self, playlist_id, new_title=None) -> bool:
+            """
+            This method allows you to update the title and description of a 
+            playlist with the specified playlist_id.
+            """
+            service = self.service
+
+            try:
+                playlist = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                ).execute()
+
+                snippet = playlist["items"][0]["snippet"]
+                if new_title:
+                    snippet["title"] = new_title
+
+                service.playlists().update(
+                    part="snippet",
+                    body={
+                        "id": playlist_id,
+                        "snippet": snippet
+                    }
+                ).execute()
+
+                return True
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return False
+
+        #////// PLAYLIST DESCRIPTION //////
+        def get_playlist_description(self, playlist_id: str) -> (str | None):
+            """
+            Get the description of a playlist using the playlist ID.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["description"]
+            return None
+
+        def get_all_playlist_descriptions(self, max_results=10) -> (list | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                descriptions = []
+                for playlist in response["items"]:
+                    descriptions.append(playlist["snippet"]["description"])
+                return descriptions
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        def set_playlist_description(self, playlist_id, new_description: str=None) -> bool:
+            """
+            This method allows you to update the title and description of a 
+            playlist with the specified playlist_id.
+            """
+            service = self.service
+
+            try:
+                playlist = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                ).execute()
+
+                snippet = playlist["items"][0]["snippet"]
+                if new_description:
+                    snippet["description"] = new_description
+
+                service.playlists().update(
+                    part="snippet",
+                    body={
+                        "id": playlist_id,
+                        "snippet": snippet
+                    }
+                ).execute()
+                return True
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return False
+        
+        #////// PLAYLIST THUMBNAIL //////
+        def get_playlist_thumbnails(self, playlist_id: str) -> (str | None):
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["thumbnails"]
+            return None
+
+        def get_all_playlist_thumbnails(self, max_results=10) -> (list | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                thumbnails = []
+                for playlist in response["items"]:
+                    thumbnails.append(playlist["snippet"]["thumbnails"])
+                return thumbnails
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+
+        #////// PLAYLIST DEFAULT RES THUMBNAIL //////
+        def get_playlist_default_res_thumbnail(self, playlist_id: str) -> (dict | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["thumbnails"]["default"]
+            return None
+
+        def get_all_playlist_default_res_thumbnails(self, max_results=10) -> (list | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                thumbnails = []
+                for playlist in response["items"]:
+                    thumbnails.append(playlist["snippet"]["thumbnails"]["default"])
+                return thumbnails
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        #////// PLAYLIST DEFAULT RES THUMBNAIL URL //////
+        def get_playlist_default_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["thumbnails"]["default"]["url"]
+            return None
+
+        def get_all_playlist_default_res_thumbnail_urls(self, max_results=10) -> (list | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                thumbnails = []
+                for playlist in response["items"]:
+                    thumbnails.append(playlist["snippet"]["thumbnails"]["default"]["url"])
+                return thumbnails
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        #////// PLAYLIST MEDIUM RES THUMBNAIL //////
+        def get_playlist_medium_res_thumbnail(self, playlist_id: str) -> (dict | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["thumbnails"]["medium"]
+            return None
+
+        def get_all_playlist_medium_res_thumbnails(self, max_results=10) -> (list | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                thumbnails = []
+                for playlist in response["items"]:
+                    thumbnails.append(playlist["snippet"]["thumbnails"]["medium"])
+                return thumbnails
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        #////// PLAYLIST MEDIUM RES THUMBNAIL URL //////
+        def get_playlist_medium_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["thumbnails"]["medium"]["url"]
+            return None
+
+        def get_all_playlist_medium_res_thumbnail_urls(self, max_results=10) -> (list | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                thumbnails = []
+                for playlist in response["items"]:
+                    thumbnails.append(playlist["snippet"]["thumbnails"]["medium"]["url"])
+                return thumbnails
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        #////// PLAYLIST HIGH RES THUMBNAIL //////
+        def get_playlist_high_res_thumbnail(self, playlist_id: str) -> (dict | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["thumbnails"]["high"]
+            return None
+
+        def get_all_playlist_high_res_thumbnails(self, max_results=10) -> (list | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                thumbnails = []
+                for playlist in response["items"]:
+                    thumbnails.append(playlist["snippet"]["thumbnails"]["high"])
+                return thumbnails
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        #////// PLAYLIST HIGH RES THUMBNAIL URL //////
+        def get_playlist_high_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["thumbnails"]["high"]["url"]
+            return None
+
+        def get_all_playlist_high_res_thumbnail_urls(self, max_results=10) -> (list | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                thumbnails = []
+                for playlist in response["items"]:
+                    thumbnails.append(playlist["snippet"]["thumbnails"]["high"]["url"])
+                return thumbnails
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        #////// PLAYLIST STANDARD THUMBNAIL //////
+        def get_playlist_standard_res_thumbnail(self, playlist_id: str) -> (dict | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["thumbnails"]["standard"]
+            return None
+
+        def get_all_playlist_standard_res_thumbnails(self, max_results=10) -> (list | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                thumbnails = []
+                for playlist in response["items"]:
+                    thumbnails.append(playlist["snippet"]["thumbnails"]["standard"])
+                return thumbnails
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        #////// PLAYLIST STANDARD THUMBNAIL URL //////
+        def get_playlist_standard_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["thumbnails"]["standard"]["url"]
+            return None
+
+        def get_all_playlist_standard_res_thumbnail_urls(self, max_results=10) -> (list | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                thumbnails = []
+                for playlist in response["items"]:
+                    thumbnails.append(playlist["snippet"]["thumbnails"]["standard"]["url"])
+                return thumbnails
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        #////// PLAYLIST MAX RES THUMBNAIL //////
+        def get_playlist_max_res_thumbnail(self, playlist_id: str) -> (dict | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["thumbnails"]["maxres"]
+            return None
+
+        def get_all_playlist_max_res_thumbnails(self, max_results=10) -> (list | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                thumbnails = []
+                for playlist in response["items"]:
+                    thumbnails.append(playlist["snippet"]["thumbnails"]["maxres"])
+                return thumbnails
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        #////// PLAYLIST MAX RES THUMBNAIL URL //////
+        def get_playlist_max_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["thumbnails"]["maxres"]["url"]
+            return None
+
+        def get_all_playlist_max_res_thumbnail_urls(self, max_results=10) -> (list | None):
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                thumbnails = []
+                for playlist in response["items"]:
+                    thumbnails.append(playlist["snippet"]["thumbnails"]["maxres"]["url"])
+                return thumbnails
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        #////// PLAYLIST CHANNEL TITLE //////
+        def get_playlist_channel_title(self, playlist_id: str) -> (str | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["channelTitle"]
+            return None
+
+        def get_all_playlist_channel_titles(self, max_results=10) -> (list | None):
+            """
+            I don't know why you would need to do this since this method
+            will return a list of the same title due to all playlists being
+            in the same channel, but I figured what the hell. Why not?
+            Who knows what someone may be coding or need, so here it is 
+            anyway.
+            """
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                titles = []
+                for playlist in response["items"]:
+                    titles.append(playlist["snippet"]["title"])
+                return titles
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        #////// PLAYLIST DEFAULT LANGUAGE //////
+        def get_playlist_default_language(self, playlist_id: str) -> (str | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                try:
+                    return playlist_info['defaultLanguage']
+                except KeyError as ke:
+                    print(f"Key error: No default language field available.\n {ke}")
+                    return None
+            return None
+
+        def get_all_playlist_default_languages(self, max_results=10) -> (list | None):
+            """
+            I don't know why you would need to do this since this method
+            will return a list of the same title due to all playlists being
+            in the same channel, but I figured what the hell. Why not?
+            Who knows what someone may be coding or need, so here it is 
+            anyway.
+            """
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                langs = []
+                for playlist in response["items"]:
+                    langs.append(playlist["snippet"]["defaultLanguage"])
+                return langs
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: No default language field available.\n {ke}")
+                return None
+        
+        #////// PLAYLIST LOCALIZED DATA //////
+        def get_playlist_localized_data(self, playlist_id: str) -> (str | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["localized"]
+            return None
+
+        def get_all_playlists_localized_data(self, max_results=10) -> (list | None):
+            """
+            I don't know why you would need to do this since this method
+            will return a list of the same title due to all playlists being
+            in the same channel, but I figured what the hell. Why not?
+            Who knows what someone may be coding or need, so here it is 
+            anyway.
+            """
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                titles = []
+                for playlist in response["items"]:
+                    titles.append(playlist["snippet"]["localized"])
+                return titles
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        #////// PLAYLIST LOCALIZED TITLE //////
+        def get_playlist_localized_title(self, playlist_id: str) -> (str | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["localized"]["title"]
+            return None
+
+        def get_all_playlists_localized_titles(self, max_results=10) -> (list | None):
+            """
+            I don't know why you would need to do this since this method
+            will return a list of the same title due to all playlists being
+            in the same channel, but I figured what the hell. Why not?
+            Who knows what someone may be coding or need, so here it is 
+            anyway.
+            """
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                titles = []
+                for playlist in response["items"]:
+                    titles.append(playlist["snippet"]["localized"]["title"])
+                return titles
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        #////// PLAYLIST LOCALIZED DESCRIPTION //////
+        def get_playlist_localized_description(self, playlist_id: str) -> (str | None):
+            """
+            Get the name of a playlist using the playlst id.
+            """
+            playlist_info = self.get_playlist_snippet(playlist_id)
+            if playlist_info:
+                return playlist_info["localized"]["description"]
+            return None
+
+        def get_all_playlists_localized_descriptions(self, max_results=10) -> (list | None):
+            """
+            I don't know why you would need to do this since this method
+            will return a list of the same title due to all playlists being
+            in the same channel, but I figured what the hell. Why not?
+            Who knows what someone may be coding or need, so here it is 
+            anyway.
+            """
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                descriptions = []
+                for playlist in response["items"]:
+                    descriptions.append(playlist["snippet"]["localized"]["description"])
+                return descriptions
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+        
+        #////// PLAYLIST STATUS //////
+        def get_playlist_status(self, playlist_id: str) -> (str | None):
+            """
+            Get a playlists snippet using the playlist id.
+            """
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="status",
+                    id=playlist_id
+                )
+                response = request.execute()
+
+                playlist_snippet_info = response["items"][0]["status"]
+                return playlist_snippet_info
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: No status field available.\n {ke}")
+                return None
+
+        def get_all_playlist_status(self, max_results: int=10):
+            """
+            Get a list of the kind of playlists the authenticated user
+            has.
+            """ 
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="status",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                snippets = []
+                for playlist in response["items"]:
+                    snippets.append(playlist["status"])
+                return snippets
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: No status field available.\n {ke}")
+                return None
+       
+        #////// PLAYLIST PRIVACY STATUS //////
+        def get_playlist_privacy_status(self, playlist_id: str) -> (str | None):
+            """
+            Get a playlists snippet using the playlist id.
+            """
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="status",
+                    id=playlist_id
+                )
+                response = request.execute()
+
+                playlist_snippet_info = response["items"][0]["status"]["privacyStatus"]
+                return playlist_snippet_info
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: No privacy status field available.\n {ke}")
+                return None
+
+        def get_all_playlist_priacy_status(self, max_results: int=10):
+            """
+            Get a list of the kind of playlists the authenticated user
+            has.
+            """ 
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="status",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                snippets = []
+                for playlist in response["items"]:
+                    snippets.append(playlist["status"]["privacyStatus"])
+                return snippets
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: No privacy status field available.\n {ke}")
+                return None
+        
+        def set_playlist_privacy_status(self, playlist_id, privacy_status):
+            """
+            This method allows you to update the privacy status of a playlist 
+            with the specified playlist_id. The privacy_status can be set to 
+            "private" or "public."
+            """
+        
+            service = self.service
+
+            try:
+                playlist = service.playlists().list(
+                    part="status",
+                    id=playlist_id
+                ).execute()
+
+                status = playlist["items"][0]["status"]
+                status["privacyStatus"] = privacy_status
+
+                service.playlists().update(
+                    part="status",
+                    body={
+                        "id": playlist_id,
+                        "status": status
+                    }
+                ).execute()
+
+                return True
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return False
+        
+        #////// PLAYLIST CONTENT DETAILS //////
+        def get_playlist_content_details(self, playlist_id: str) -> (str | None):
+            """
+            Get a playlists snippet using the playlist id.
+            """
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="contentDetails",
+                    id=playlist_id
+                )
+                response = request.execute()
+
+                playlist_snippet_info = response["items"][0]["contentDetails"]
+                return playlist_snippet_info
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: No content details field available.\n {ke}")
+                return None
+
+        def get_all_playlist_content_details(self, max_results: int=10):
+            """
+            Get a list of the kind of playlists the authenticated user
+            has.
+            """ 
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="contentDetails",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                details = []
+                for playlist in response["items"]:
+                    details.append(playlist["contentDetails"])
+                return details
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: No status field available.\n {ke}")
+                return None
+       
+        #////// PLAYLIST ITEM COUNT //////
+        def get_playlist_item_count(self, playlist_id: str) -> (int | None):
+            """
+            Get a playlists snippet using the playlist id.
+            """
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="contentDetails",
+                    id=playlist_id
+                )
+                response = request.execute()
+
+                playlist_snippet_info = response["items"][0]["contentDetails"]["itemCount"]
+                return playlist_snippet_info
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: No content details field available.\n {ke}")
+                return None
+
+        def get_all_playlist_item_counts(self, max_results: int=10) -> (list[int] | None):
+            """
+            Get a list of the kind of playlists the authenticated user
+            has.
+            """ 
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="contentDetails",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                counts = []
+                for playlist in response["items"]:
+                    counts.append(playlist["contentDetails"]["itemCount"])
+                return counts
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: No item count field available.\n {ke}")
+                return None
+        
+        #////// PLAYLIST PLAYER //////
+        def get_playlist_player(self, playlist_id: str) -> (str | None):
+            """
+            Get a playlists snippet using the playlist id.
+            """
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="player",
+                    id=playlist_id
+                )
+                response = request.execute()
+
+                playlist_snippet_info = response["items"][0]["player"]
+                return playlist_snippet_info
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: No player field available.\n {ke}")
+                return None
+
+        def get_all_playlist_players(self, max_results: int=10):
+            """
+            Get a list of the kind of playlists the authenticated user
+            has.
+            """ 
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                details = []
+                for playlist in response["items"]:
+                    details.append(playlist["contentDetails"])
+                return details
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: No status field available.\n {ke}")
+                return None
+       
+        #////// PLAYLIST EMBED HTML //////
+        def get_playlist_embed_html(self, playlist_id: str) -> (int | None):
+            """
+            Get a playlists snippet using the playlist id.
+            """
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="player",
+                    id=playlist_id
+                )
+                response = request.execute()
+
+                playlist_snippet_info = response["items"][0]["player"]["embedHtml"]
+                return playlist_snippet_info
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: No item count field available.\n {ke}")
+                return None
+
+        def get_all_playlist_embed_htmls(self, max_results: int=10) -> (list[int] | None):
+            """
+            Get a list of the kind of playlists the authenticated user
+            has.
+            """ 
+            service = self.service
+
+            try:
+                request = service.playlists().list(
+                    part="player",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                counts = []
+                for playlist in response["items"]:
+                    counts.append(playlist["player"]["embedHtml"])
+                return counts
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: No item count field available.\n {ke}")
+                return None
+        
+    #//////////// PLAYLIST ITEM ////////////
+    class PlaylistItem:
+        def __init__(self, ytd_api_tools: object) -> None:
+            self.service = ytd_api_tools.service
+        
+    #//////////// VIDEO ////////////
+    class Video:
+        def __init__(self, ytd_api_tools: object) -> None:
+            self.service = ytd_api_tools.service
+                    
+        def upload_video(self, video_path, title, description, privacy_status="public"):
+            """
+            The upload_video(video_path, title, description, privacy_status), takes the 
+            following parameters:
+
+                video_path:     The local file path of the video you want to upload.
+                title:          The title of the video.
+                description:    The description of the video.
+                privacy_status: (Optional) The privacy status of the uploaded video. It can 
+                be set to "public," "private," or "unlisted." The default is "public."
+                
+            Before using this method or any method in this class, ensure you have the 
+            get_authenticated_service() method defined as shown in the previous responses 
+            to obtain an authenticated YouTube API service. This ensures that your 
+            application is authorized to make API requests and has the necessary permissions 
+            to upload videos on behalf of the user.
+
+            """
+            import requests
+            from googleapiclient.errors import HttpError
+
+            service = self.service
+
+            try:
+                request = service.videos().insert(
+                    part="snippet,status",
+                    body={
+                        "snippet": {
+                            "title": title,
+                            "description": description
+                        },
+                        "status": {
+                            "privacyStatus": privacy_status
+                        }
+                    }
+                )
+                response = request.execute()
+                upload_url = response.get("uploadURL")
+                if upload_url:
+                    headers = {
+                        "Authorization": f"Bearer {service.credentials.token}",
+                        "Content-Type": "video/*"
+                    }
+
+                    video_file = open(video_path, "rb")
+                    response = requests.put(upload_url, data=video_file, headers=headers)
+
+                    if response.status_code == 200:
+                        print("Video uploaded successfully!")
+                    else:
+                        print("Video upload failed.")
+
+                    video_file.close()
+
+                else:
+                    print("Upload URL not found. Unable to start video upload.")
+
+            except HttpError as e:
+                print(f"An HTTP error occurred: {e}")
+            except OSError as e:
+                print(f"An OS error occurred: {e}")
+
+        def delete_video(self, video_id):
+            service = self.service
+
+            try:
+                service.videos().delete(
+                    id=video_id
+                ).execute()
+
+                print(f"Video with ID {video_id} deleted successfully!")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def like_video(self, video_id):
+            """
+            This method like_video(video_id) takes the video_id of the video 
+            you want to like and calls the videos.rate method with rating="like" 
+            to like the video.
+            """
+            service = self.service
+
+            try:
+                request = service.videos().rate(
+                    id=video_id,
+                    rating="like"
+                )
+                response = request.execute()
+
+                print(f"Video with ID {video_id} liked successfully!")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def unlike_video(self, video_id):
+            service = self.service
+
+            try:
+                request = service.videos().rate(
+                    id=video_id,
+                    rating="none"
+                )
+                response = request.execute()
+
+                print(f"Video with ID {video_id} unliked successfully!")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def save_video_to_playlist(self, playlist_id, video_id):
+            """
+            This method allows you to save a video specified by ID to a playlist
+            also specified by ID.
+            """
+            service = self.service
+
+            try:
+                service.playlistItems().insert(
+                    part="snippet",
+                    body={
+                        "snippet": {
+                            "playlistId": playlist_id,
+                            "resourceId": {
+                                "kind": "youtube#video",
+                                "videoId": video_id
+                            }
+                        }
+                    }
+                ).execute()
+
+                print(f"Video with ID {video_id} saved to the playlist with ID {playlist_id} successfully!")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def set_video_tags(self, video_id, tags):
+            """
+            This method allows you to set the tags for a video with 
+            the specified video_id. Provide a list of tags to update the video's tags.
+            """
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                snippet = video["items"][0]["snippet"]
+                snippet["tags"] = tags
+
+                service.videos().update(
+                    part="snippet",
+                    body={
+                        "id": video_id,
+                        "snippet": snippet
+                    }
+                ).execute()
+
+                print(f"Tags for video with ID {video_id} updated successfully!")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
     
-    def delete_comment(self, comment_id):
-        service = self.service
-        try:
-            service.comments().delete(
-                id=comment_id
-            ).execute()
+        def update_video_privacy_status(self, video_id, privacy_status):
+            """
+            This function allows you to update the privacy status of a video 
+            with the specified video_id. The privacy_status can be set to 
+            "private," "public," or "unlisted."
+            """
+            service = self.service
 
-            print("Comment deleted successfully!")
+            try:
+                video = service.videos().list(
+                    part="status",
+                    id=video_id
+                ).execute()
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
+                status = video["items"][0]["status"]
+                status["privacyStatus"] = privacy_status
+
+                service.videos().update(
+                    part="status",
+                    body={
+                        "id": video_id,
+                        "status": status
+                    }
+                ).execute()
+
+                print(f"Privacy status for video with ID {video_id} updated successfully!")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def update_video_details(self, video_id, new_title=None, new_description=None, new_tags=None):
+            """
+            This method allows you to update the title, description, and tags of a 
+            video with the specified video_id. You can provide the new values for these 
+            parameters, and the snippet will be updated accordingly.
+            """
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                snippet = video["items"][0]["snippet"]
+                if new_title:
+                    snippet["title"] = new_title
+                if new_description:
+                    snippet["description"] = new_description
+                if new_tags:
+                    snippet["tags"] = new_tags
+
+                service.videos().update(
+                    part="snippet",
+                    body={
+                        "id": video_id,
+                        "snippet": snippet
+                    }
+                ).execute()
+
+                print(f"Video with ID {video_id} snippet updated successfully!")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def iterate_related_videos(self, video_id, max_results=10):
+            service = self.service
+
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    relatedToVideoId=video_id,
+                    type="video",
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                related_videos = response.get("items", [])
+                for video in related_videos:
+                    video_id = video["id"]["videoId"]
+                    video_title = video["snippet"]["title"]
+                    channel_title = video["snippet"]["channelTitle"]
+                    print(f"Video ID: {video_id}, Title: {video_title}, Channel: {channel_title}")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_related_videos(self, video_id, max_results=10):
+            """
+            This method retrieves related videos for a specific video. It prints 
+            information about videos related to the given video based on YouTube's 
+            recommendation algorithm.
+            """
+            service = self.service
+
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    relatedToVideoId=video_id,
+                    type="video",
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                for video in response["items"]:
+                    title = video["snippet"]["title"]
+                    video_id = video["id"]["videoId"]
+                    print(f"Related Video: {title} (Video ID: {video_id})")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_videos_by_category(self, category_id, region_code="US", max_results=10):
+            service = self.service
+
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    videoCategoryId=category_id,
+                    regionCode=region_code,
+                    type="video",
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
+        def get_trending_videos(self, region_code="US", max_results=10):
+            service = self.service
+            try:
+                request = service.videos().list(
+                    part="snippet",
+                    chart="mostPopular",
+                    regionCode=region_code,
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_videos_by_tag(self, tag, region_code="US", max_results=10):
+            service = self.service
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    q=tag,
+                    regionCode=region_code,
+                    type="video",
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
+        def get_recommended_videos(self, video_id, max_results=10):
+            """
+            This method will get recommended videos based on a given video's ID.
+            """
+            service = self.service
+
+            try:
+                # Get recommended videos for the given video ID
+                request = service.search().list(
+                    part="snippet",
+                    relatedToVideoId=video_id,
+                    type="video",
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                recommended_videos = []
+                for item in response["items"]:
+                    video = item["snippet"]
+                    recommended_videos.append({
+                        "video_id": item["id"]["videoId"],
+                        "title": video["title"],
+                        "channel": video["channelTitle"]
+                    })
+
+                return recommended_videos
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+
+        def get_all_video_details(self, video_id):
+            service = self.service
+
+            try:
+                request = service.videos().list(
+                    part="snippet,contentDetails,statistics",
+                    id=video_id
+                )
+                response = request.execute()
+
+                video = response["items"][0]
+                print(f"Title: {video['snippet']['title']}")
+                print(f"Channel: {video['snippet']['channelTitle']}")
+                print(f"Published At: {video['snippet']['publishedAt']}")
+                print(f"Duration: {video['contentDetails']['duration']}")
+                print(f"Views: {video['statistics']['viewCount']}")
+                print(f"Likes: {video['statistics']['likeCount']}")
+                print(f"Dislikes: {video['statistics']['dislikeCount']}")
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
+#/////////////////////////////
+
+        #////// ENTIRE VIDEO RESOURCE //////
+        def get_video(self, video_id) -> (dict | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                video_resource = video["items"][0]
+                return video_resource
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+            
+        def get_videos_by_id(self, video_ids: list) -> (list[dict] | None):
+            service = self.service
+            videos = []
+            try:
+                for id in video_ids:
+                    video = service.videos().list(
+                        part="snippet",
+                        id=id
+                    ).execute()
+
+                    video_resource = video["items"][0]
+                    videos.append(video_resource)
+                return videos
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+            
+        def get_videos(self, max_results: int=10) -> (list[dict] | None):
+            service = self.service
+            try:
+                request = service.videos().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                
+                videos = []
+                for video in response["items"]:
+                    videos.append(video)
+                return videos
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO KIND //////
+        def get_video_kind(self, video_id) -> (str | None):
+            service = self.service
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                kind = video["items"][0]["kind"]
+                return kind
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        #////// VIDEO ETAG //////
+        def get_video_etag(self, video_id) -> (str | None):
+            service = self.service
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                etag = video["items"][0]["etag"]
+                return etag
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO ID //////
+        def get_video_id(self, video_id) -> (str | None):
+            service = self.service
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                id = video["items"][0]["id"]
+                return id
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO SNIPPET PART //////
+        def get_video_snippet(self, video_id) -> (dict | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                snippet = video["items"][0]["snippet"]
+                return snippet
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        #////// VIDEO PUBLISHED DATETIME //////
+        def get_video_publish_date(self, video_id) -> (str | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                snippet = video["items"][0]["snippet"]["publishedAt"]
+                return snippet
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        #////// VIDEO CHANNEL ID //////
+        def get_video_channel_id(self, video_id) -> (str | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                id = video["items"][0]["snippet"]["channelId"]
+                return id
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        #////// VIDEO TITLE //////
+        def get_video_title(self, video_id) -> (str | None):
+            service = self.service
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                title = video["items"][0]["snippet"]["title"]
+                return title
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        #////// VIDEO DESCRIPTION //////
+        def get_video_description(self, video_id) -> (str | None):
+            service = self.service
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                description = video["items"][0]["snippet"]["description"]
+                return description
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+            
+        #////// VIDEO THUMBNAILS //////
+        def get_video_thumbnails(self, video_id) -> (dict | None):
+            service = self.service
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                thumbnails = video["items"][0]["snippet"]["thumbnails"]
+                return thumbnails
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+           
+        #////// VIDEO DEFAULT RES THUMBNAIL //////
+        def get_video_default_res_thumbnail(self, video_id) -> (dict | None):
+            service = self.service
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                thumbnail = video["items"][0]["snippet"]["thumbnails"]["default"]
+                return thumbnail
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+         
+        def get_video_default_res_thumbnail_url(self, video_id) -> (str | None):
+            service = self.service
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                url = video["items"][0]["snippet"]["thumbnails"]["default"]["url"]
+                return url
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+         
+        def get_video_default_res_thumbnail_width(self, video_id) -> (int | None):
+            service = self.service
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                width = video["items"][0]["snippet"]["thumbnails"]["default"]["width"]
+                return int(width)
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+          
+        def get_video_default_res_thumbnail_height(self, video_id) -> (int | None):
+            service = self.service
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                height = video["items"][0]["snippet"]["thumbnails"]["default"]["height"]
+                return int(height)
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+          
+        #////// VIDEO MEDIUM RES THUMBNAIL //////
+        def get_video_medium_res_thumbnail(self, video_id) -> (dict | None):
+            service = self.service
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                thumbnail = video["items"][0]["snippet"]["thumbnails"]["medium"]
+                return thumbnail
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_video_medium_res_thumbnail_url(self, video_id) -> (str | None):
+            service = self.service
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                url = video["items"][0]["snippet"]["thumbnails"]["medium"]["url"]
+                return url
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+         
+        def get_video_medium_res_thumbnail_width(self, video_id) -> (int | None):
+            service = self.service
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                width = video["items"][0]["snippet"]["thumbnails"]["medium"]["width"]
+                return int(width)
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+          
+        def get_video_medium_res_thumbnail_height(self, video_id) -> (int | None):
+            service = self.service
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                height = video["items"][0]["snippet"]["thumbnails"]["medium"]["height"]
+                return int(height)
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+          
+        #////// VIDEO HIGH RES THUMBNAIL //////
+        def get_video_high_res_thumbnail(self, video_id) -> (dict | None):
+            service = self.service
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                thumbnail = video["items"][0]["snippet"]["thumbnails"]["high"]
+                return thumbnail
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_video_high_res_thumbnail_url(self, video_id) -> (str | None):
+            service = self.service
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                url = video["items"][0]["snippet"]["thumbnails"]["high"]["url"]
+                return url
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+         
+        def get_video_high_res_thumbnail_width(self, video_id) -> (int | None):
+            service = self.service
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                width = video["items"][0]["snippet"]["thumbnails"]["high"]["width"]
+                return int(width)
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+          
+        def get_video_high_res_thumbnail_height(self, video_id) -> (int | None):
+            service = self.service
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                height = video["items"][0]["snippet"]["thumbnails"]["high"]["height"]
+                return int(height)
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+          
+        #////// VIDEO STANDARD RES THUMBNAIL //////
+        def get_video_standard_res_thumbnail(self, video_id) -> (dict | None):
+            service = self.service
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                thumbnail = video["items"][0]["snippet"]["thumbnails"]["standard"]
+                return thumbnail
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_video_standard_res_thumbnail_url(self, video_id) -> (str | None):
+            service = self.service
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                thumbnail = video["items"][0]["snippet"]["thumbnails"]["standard"]["url"]
+                return thumbnail
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+         
+        def get_video_standard_res_thumbnail_width(self, video_id) -> (int | None):
+            service = self.service
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                width = video["items"][0]["snippet"]["thumbnails"]["standard"]["width"]
+                return int(width)
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+          
+        def get_video_standard_res_thumbnail_height(self, video_id) -> (int | None):
+            service = self.service
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                height = video["items"][0]["snippet"]["thumbnails"]["standard"]["height"]
+                return int(height)
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+         
+        #////// VIDEO MAX RES THUMBNAIL //////
+        def get_video_max_res_thumbnail(self, video_id) -> (dict | None):
+            service = self.service
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                thumbnail = video["items"][0]["snippet"]["thumbnails"]["maxres"]
+                return thumbnail
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_video_max_res_thumbnail_url(self, video_id) -> (str | None):
+            service = self.service
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                thumbnail = video["items"][0]["snippet"]["thumbnails"]["maxres"]["url"]
+                return thumbnail
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+         
+        def get_video_max_res_thumbnail_width(self, video_id) -> (int | None):
+            service = self.service
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                width = video["items"][0]["snippet"]["thumbnails"]["maxres"]["width"]
+                return int(width)
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+          
+        def get_video_max_res_thumbnail_height(self, video_id) -> (int | None):
+            service = self.service
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                height = video["items"][0]["snippet"]["thumbnails"]["maxres"]["height"]
+                return int(height)
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+         
+        #////// VIDEO CHANNEL TITLE //////
+        def get_video_channel_title(self, video_id) -> (list[str] | None):
+            service = self.service
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                id = video["items"][0]["snippet"]["channelTitle"]
+                return id
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        #////// VIDEO TAGS //////
+        def get_video_tags(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                tags = video["items"][0]["snippet"]["tags"]
+                return tags
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        def video_has_tag(self, video_id: str, tag: str) -> bool:
+            service = self.service
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+                tags = video["items"][0]["snippet"]["tags"]
+
+                for item in range(len(tags)):
+                    if tags[item] == tag:
+                        return True
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO CATEGORY ID //////
+        def get_video_category_id(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                category_id = video["items"][0]["snippet"]["categoryId"]
+                return category_id
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO LIVE BROADCASTING CONTENT //////
+        def get_video_live_broadcast_content(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                content = video["items"][0]["snippet"]["liveBroadcastContent"]
+                return content
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+          
+        #////// VIDEO DEFAULT LANGUAGE //////
+        def get_video_default_language(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                lang = video["items"][0]["snippet"]["defaultLanguage"]
+                return lang
+                
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None   
+        
+        #////// VIDEO LOCALIZED DATA //////
+        def get_video_localized_data(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                data = video["items"][0]["snippet"]["localized"]
+                return data
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO LOCALIZED TITLE //////
+        def get_video_localized_title(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                title = video["items"][0]["snippet"]["localized"]["title"]
+                return title
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO LOCALIZED DESCRIPTION //////
+        def get_video_localized_description(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                desc = video["items"][0]["snippet"]["localized"]["description"]
+                return desc
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO DEFAULT AUDIO LANGUAGE //////
+        def get_video_default_audio_language(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                ).execute()
+
+                lang = video["items"][0]["snippet"]["defaultAudioLanguage"]
+                return lang
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO CONTENT DETAILS PART //////
+        def get_video_content_details(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="contentDetails",
+                    id=video_id
+                ).execute()
+
+                details = video["items"][0]["contentDetails"]
+                return details
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO DURATION //////
+        def get_video_duration(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="contentDetails",
+                    id=video_id
+                ).execute()
+
+                duration = video["items"][0]["contentDetails"]["duration"]
+                return duration
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO DIMENSION //////
+        def get_video_dimension(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="contentDetails",
+                    id=video_id
+                ).execute()
+
+                dimension = video["items"][0]["contentDetails"]["dimension"]
+                return dimension
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO DEFINITION //////
+        def get_video_definition(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="contentDetails",
+                    id=video_id
+                ).execute()
+
+                definition = video["items"][0]["contentDetails"]["definition"]
+                return definition
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO CAPTION //////
+        def get_video_caption(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="contentDetails",
+                    id=video_id
+                ).execute()
+
+                caption = video["items"][0]["contentDetails"]["caption"]
+                return caption
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO LICENSED CONTENT //////
+        def get_video_licensed_content(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="contentDetails",
+                    id=video_id
+                ).execute()
+
+                content = video["items"][0]["contentDetails"]["licensedContent"]
+                return content
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO REGION RESTRICTION //////
+        def get_video_region_restriction(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="contentDetails",
+                    id=video_id
+                ).execute()
+
+                restriction = video["items"][0]["contentDetails"]["regionRestriction"]
+                return restriction
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO REGION RESTRICTION ALLOWED //////
+        def get_video_region_restriction_allowed(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="contentDetails",
+                    id=video_id
+                ).execute()
+
+                allowed = video["items"][0]["contentDetails"]["regionRestriction"]["allowed"]
+                return allowed
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO REGION RESTRICTION BLOCKED //////
+        def get_video_region_restriction_blocked(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="contentDetails",
+                    id=video_id
+                ).execute()
+
+                blocked = video["items"][0]["contentDetails"]["regionRestriction"]["blocked"]
+                return blocked
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO CONTENT RATING //////
+        def get_video_content_rating(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="contentDetails",
+                    id=video_id
+                ).execute()
+
+                rating = video["items"][0]["contentDetails"]["contentRating"]
+                return rating
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO PROJECTION //////
+        def get_video_projection(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="contentDetails",
+                    id=video_id
+                ).execute()
+
+                projection = video["items"][0]["contentDetails"]["projection"]
+                return projection
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO HAS CUSTOM THUMBNAIL //////
+        def video_has_custom_thumbnail(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="contentDetails",
+                    id=video_id
+                ).execute()
+
+                custom = video["items"][0]["contentDetails"]["hasCustomThumbnail"]
+                return bool(custom)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO STATUS PART //////
+        def get_video_status(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="status",
+                    id=video_id
+                ).execute()
+
+                status = video["items"][0]["status"]
+                return status
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO UPLOAD STATUS //////
+        def get_video_upload_status(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="status",
+                    id=video_id
+                ).execute()
+
+                status = video["items"][0]["status"]["uploadStatus"]
+                return status
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO FAILURE REASON //////
+        def get_video_failure_reason(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="status",
+                    id=video_id
+                ).execute()
+
+                reason = video["items"][0]["status"]["failureReason"]
+                return reason
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO REJECTION REASON //////
+        def get_video_rejection_reason(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="status",
+                    id=video_id
+                ).execute()
+
+                reason = video["items"][0]["status"]["rejectionReason"]
+                return reason
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO PRIVACY STATUS //////
+        def get_video_privacy_status(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="status",
+                    id=video_id
+                ).execute()
+
+                status = video["items"][0]["status"]["privacyStatus"]
+                return status
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO PUBLISHED DATE //////
+        def get_video_published_date(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="status",
+                    id=video_id
+                ).execute()
+
+                published = video["items"][0]["status"]["publishAt"]
+                return published
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO LICENSE //////
+        def get_video_license(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="status",
+                    id=video_id
+                ).execute()
+
+                license = video["items"][0]["status"]["license"]
+                return license
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+            
+        #////// VIDEO EMBEDDABLE //////
+        def video_is_embeddable(self, video_id) -> (bool | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="status",
+                    id=video_id
+                ).execute()
+
+                embeddable = video["items"][0]["status"]["embeddable"]
+                return bool(embeddable)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+            
+        #////// VIDEO PUBLIC STATS VIEWABLE //////
+        def video_public_stats_viewable(self, video_id) -> (bool | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="status",
+                    id=video_id
+                ).execute()
+
+                viewable = video["items"][0]["status"]["publicStatsViewable"]
+                return bool(viewable)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+            
+        #////// VIDEO MADE FOR KIDS //////
+        def video_is_made_for_kids(self, video_id) -> (bool | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="status",
+                    id=video_id
+                ).execute()
+
+                for_kids = video["items"][0]["status"]["license"]
+                return bool(for_kids)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+            
+        #////// VIDEO SELF DECLARED MADE FOR KIDS //////
+        def video_self_declared_for_kids(self, video_id) -> (bool | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="status",
+                    id=video_id
+                ).execute()
+
+                for_kids = video["items"][0]["status"]["license"]
+                return bool(for_kids)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+            
+        #////// VIDEO STATISTICS PART //////
+        def get_video_statistics(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="statistics",
+                    id=video_id
+                ).execute()
+
+                rating = video["items"][0]["statistics"]
+                return rating
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO VIEW COUNT //////
+        def get_video_view_count(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="statistics",
+                    id=video_id
+                ).execute()
+
+                count = video["items"][0]["statistics"]["viewCount"]
+                return int(count)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO LIKE COUNT //////
+        def get_video_like_count(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="statistics",
+                    id=video_id
+                ).execute()
+
+                count = video["items"][0]["statistics"]["likeCount"]
+                return int(count)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO DISLIKE COUNT //////
+        def get_video_dislike_count(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="statistics",
+                    id=video_id
+                ).execute()
+
+                count = video["items"][0]["statistics"]["dislikeCount"]
+                return int(count)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO FAVORITE COUNT //////
+        def get_video_favorite_count(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="statistics",
+                    id=video_id
+                ).execute()
+
+                count = video["items"][0]["statistics"]["favoriteCount"]
+                return int(count)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO COMMENT COUNT //////
+        def get_video_comment_count(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="statistics",
+                    id=video_id
+                ).execute()
+
+                count = video["items"][0]["statistics"]["commentCount"]
+                return int(count)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO PLAYER PART //////
+        def get_video_player(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="player",
+                    id=video_id
+                ).execute()
+
+                player = video["items"][0]["player"]
+                return player
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO PLAYER EMBED HTML //////
+        def get_video_embed_html(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="player",
+                    id=video_id
+                ).execute()
+
+                html = video["items"][0]["player"]["embedHtml"]
+                return html
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO PLAYER EMBED HEIGHT //////
+        def get_video_embed_height(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="player",
+                    id=video_id
+                ).execute()
+
+                height = video["items"][0]["player"]["embedHeight"]
+                return height
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO PLAYER EMBED WIDTH //////
+        def get_video_embed_width(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="player",
+                    id=video_id
+                ).execute()
+
+                width = video["items"][0]["player"]["embedWidth"]
+                return width
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO TOPIC DETAILS PART //////
+        def get_video_topic_details(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="topicDetails",
+                    id=video_id
+                ).execute()
+
+                details = video["items"][0]["topicDetails"]
+                return details
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO TOPIC IDS //////
+        def get_video_topic_ids(self, video_id) -> (list[str] | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="topicDetails",
+                    id=video_id
+                ).execute()
+
+                ids = video["items"][0]["topicDetails"]["topicIds"]
+                return ids
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO RELEVANT TOPIC IDS //////
+        def get_video_relevant_topic_ids(self, video_id) -> (list[str] | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="topicDetails",
+                    id=video_id
+                ).execute()
+
+                ids = video["items"][0]["topicDetails"]["relevantTopicIds"]
+                return ids
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+          
+        #////// VIDEO TOPIC CATEGORIES //////
+        def get_video_topic_categories(self, video_id) -> (list[str] | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="topicDetails",
+                    id=video_id
+                ).execute()
+
+                cats = video["items"][0]["topicDetails"]["topicCategories"]
+                return cats
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO RECORDING DETAILS PART //////
+        def get_video_recording_details(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="recordingDetails",
+                    id=video_id
+                ).execute()
+
+                details = video["items"][0]["recordingDetails"]
+                return details
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO RECORDING DATE //////
+        def get_video_recording_date(self, video_id):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="recordingDetails",
+                    id=video_id
+                ).execute()
+
+                date = video["items"][0]["recordingDetails"]["recordingDate"]
+                return date
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO FILE DETAILS PART //////
+        def get_video_file_details(self, video_id) -> (dict | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="fileDetails",
+                    id=video_id
+                ).execute()
+
+                details = video["items"][0]["fileDetails"]
+                return details
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO FILE NAME //////
+        def get_video_file_name(self, video_id) -> (str | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="fileDetails",
+                    id=video_id
+                ).execute()
+
+                name = video["items"][0]["fileDetails"]["fileName"]
+                return name
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO FILE SIZE //////
+        def get_video_file_size(self, video_id) -> (int | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="fileDetails",
+                    id=video_id
+                ).execute()
+
+                size = video["items"][0]["fileDetails"]["fileSize"]
+                return size
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO FILE TYPE //////
+        def get_video_file_type(self, video_id) -> (str | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="fileDetails",
+                    id=video_id
+                ).execute()
+
+                type = video["items"][0]["fileDetails"]["fileType"]
+                return type
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO CONTAINER //////
+        def get_video_container(self, video_id) -> (str | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="fileDetails",
+                    id=video_id
+                ).execute()
+
+                container = video["items"][0]["fileDetails"]["container"]
+                return container
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO STREAMS //////
+        def get_video_streams(self, video_id) -> (list[dict] | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="fileDetails",
+                    id=video_id
+                ).execute()
+
+                stream = video["items"][0]["fileDetails"]["videoStreams"]
+                return stream
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO STREAMS PIXEL WIDTH //////
+        def get_video_streams_pixel_width(self, video_id) -> (int | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="fileDetails",
+                    id=video_id
+                ).execute()
+
+                width = video["items"][0]["fileDetails"]["videoStreams"][0]["widthPixels"]
+                return width
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO STREAMS PIXEL HEIGHT //////
+        def get_video_streams_pixel_height(self, video_id) -> (int | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="fileDetails",
+                    id=video_id
+                ).execute()
+
+                height = video["items"][0]["fileDetails"]["videoStreams"][0]["heightPixels"]
+                return height
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO STREAMS FRAMERATE FPS //////
+        def get_video_streams_framerate_fps(self, video_id) -> (int | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="fileDetails",
+                    id=video_id
+                ).execute()
+
+                fps = video["items"][0]["fileDetails"]["videoStreams"][0]["frameRateFps"]
+                return fps
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO STREAMS ASPECT RATIO //////
+        def get_video_streams_aspect_ratio(self, video_id) -> (int | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="fileDetails",
+                    id=video_id
+                ).execute()
+
+                ratio = video["items"][0]["fileDetails"]["videoStreams"][0]["aspectRatio"]
+                return ratio
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO STREAMS CODEC //////
+        def get_video_streams_codec(self, video_id) -> (str | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="fileDetails",
+                    id=video_id
+                ).execute()
+
+                codec = video["items"][0]["fileDetails"]["videoStreams"][0]["codec"]
+                return codec
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO STREAMS BITRATE BPS //////
+        def get_video_streams_bitrate_bps(self, video_id) -> (float | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="fileDetails",
+                    id=video_id
+                ).execute()
+
+                bps = video["items"][0]["fileDetails"]["videoStreams"][0]["bitrateBps"]
+                return float(bps)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO STREAMS ROTATION //////
+        def get_video_streams_rotation(self, video_id) -> (str | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="fileDetails",
+                    id=video_id
+                ).execute()
+
+                rotation = video["items"][0]["fileDetails"]["videoStreams"][0]["rotation"]
+                return rotation
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO STREAMS VENDOR //////
+        def get_video_streams_vendor(self, video_id) -> (str | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="fileDetails",
+                    id=video_id
+                ).execute()
+
+                vendor = video["items"][0]["fileDetails"]["videoStreams"][0]["vendor"]
+                return vendor
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// AUDIO STREAMS //////
+        def get_audio_streams(self, video_id) -> (list[dict] | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="fileDetails",
+                    id=video_id
+                ).execute()
+
+                stream = video["items"][0]["fileDetails"]["audioStreams"]
+                return stream
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// AUDIO STREAMS CHANNEL COUNT //////
+        def get_audio_streams_channel_count(self, video_id) -> (int | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="fileDetails",
+                    id=video_id
+                ).execute()
+
+                count = video["items"][0]["fileDetails"]["audioStreams"][0]["channelCount"]
+                return int(count)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// AUDIO STREAMS CODEC //////
+        def get_audio_streams_codec(self, video_id) -> (str | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="fileDetails",
+                    id=video_id
+                ).execute()
+
+                codec = video["items"][0]["fileDetails"]["audioStreams"][0]["codec"]
+                return codec
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// AUDIO STREAMS BITRATE BPS //////
+        def get_audio_streams_bitrate_bps(self, video_id) -> (float | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="fileDetails",
+                    id=video_id
+                ).execute()
+
+                bps = video["items"][0]["fileDetails"]["audioStreams"][0]["bitrateBps"]
+                return float(bps)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// AUDIO STREAMS VENDOR //////
+        def get_audio_streams_vendor(self, video_id) -> (str | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="fileDetails",
+                    id=video_id
+                ).execute()
+
+                vendor = video["items"][0]["fileDetails"]["audioStreams"][0]["vendor"]
+                return vendor
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO DURATION MS //////
+        def get_video_duration_ms(self, video_id) -> (int | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="fileDetails",
+                    id=video_id
+                ).execute()
+
+                count = video["items"][0]["fileDetails"]["durationMs"]
+                return int(count)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO BITRATE BPS //////
+        def get_video_bitrate_bps(self, video_id) -> (int | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="fileDetails",
+                    id=video_id
+                ).execute()
+
+                bps = video["items"][0]["fileDetails"]["bitrateBps"]
+                return int(bps)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO CREATION TIME //////
+        def get_video_creation_time(self, video_id) -> (str | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="fileDetails",
+                    id=video_id
+                ).execute()
+
+                time = video["items"][0]["fileDetails"]["creationTime"]
+                return time
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO PROCESSING DETAILS PART //////
+        def get_video_processing_deatils(self, video_id) -> (dict | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="processingDetails",
+                    id=video_id
+                ).execute()
+
+                details = video["items"][0]["processingDetails"]
+                return details
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO PROCESSING STATUS //////
+        def get_video_processing_status(self, video_id) -> (str | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="processingDetails",
+                    id=video_id
+                ).execute()
+
+                status = video["items"][0]["processingDetails"]["processingStatus"]
+                return status
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO PROCESSING PROGRESS //////
+        def get_video_processing_progress(self, video_id) -> (dict | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="processingDetails",
+                    id=video_id
+                ).execute()
+
+                progress = video["items"][0]["processingDetails"]["processingProgress"]
+                return progress
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO PROCESSING PROGRESS PARTS TOTAL //////
+        def get_video_processing_progress_parts_total(self, video_id) -> (float | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="processingDetails",
+                    id=video_id
+                ).execute()
+
+                parts_total = video["items"][0]["processingDetails"]["processingProgress"]["partsTotal"]
+                return parts_total
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO PROCESSING PROGRESS PARTS PROCESSED //////
+        def get_video_processing_progress_parts_processed(self, video_id) -> (float | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="processingDetails",
+                    id=video_id
+                ).execute()
+
+                parts_processed = video["items"][0]["processingDetails"]["processingProgress"]["partsProcessed"]
+                return parts_processed
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO PROCESSING PROGRESS TIME LEFT MS //////
+        def get_video_processing_progress_time_left_ms(self, video_id) -> (float | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="processingDetails",
+                    id=video_id
+                ).execute()
+
+                time = video["items"][0]["processingDetails"]["processingProgress"]["timeLeftMs"]
+                return time
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO PROCESSING PROCESSING FAILURE REASON //////
+        def get_video_processing_failure_reason(self, video_id) -> (str | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="processingDetails",
+                    id=video_id
+                ).execute()
+
+                reason = video["items"][0]["processingDetails"]["processingFailureReason"]
+                return reason
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO PROCESSING PROCESSING FILE DETAILS AVAILABILITY //////
+        def get_video_processing_file_details_availability(self, video_id) -> (str | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="processingDetails",
+                    id=video_id
+                ).execute()
+
+                availability = video["items"][0]["processingDetails"]["fileDetailsAvailability"]
+                return availability
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO PROCESSING ISSUES AVAILABILITY //////
+        def get_video_processing_issues_availability(self, video_id) -> (str | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="processingDetails",
+                    id=video_id
+                ).execute()
+
+                availability = video["items"][0]["processingDetails"]["processingIssuesAvailability"]
+                return availability
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO PROCESSING TAG SUGGESTIONS AVAILABILITY //////
+        def get_video_processing_tag_suggestions_availability(self, video_id) -> (str | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="processingDetails",
+                    id=video_id
+                ).execute()
+
+                availability = video["items"][0]["processingDetails"]["tagSuggestionsAvailability"]
+                return availability
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO PROCESSING EDITOR SUGGESTIONS AVAILABILITY //////
+        def get_video_processing_editor_suggestions_availability(self, video_id) -> (str | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="processingDetails",
+                    id=video_id
+                ).execute()
+
+                availability = video["items"][0]["processingDetails"]["editorSuggestionsAvailability"]
+                return availability
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO PROCESSING THUMBNAILS AVAILABILITY //////
+        def get_video_processing_thumbnails_availability(self, video_id) -> (str | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="processingDetails",
+                    id=video_id
+                ).execute()
+
+                availability = video["items"][0]["processingDetails"]["thumbnailsAvailability"]
+                return availability
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO SUGGESTIONS PART //////
+        def get_video_suggestions(self, video_id) -> (dict | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="suggestions",
+                    id=video_id
+                ).execute()
+
+                suggestions_part = video["items"][0]["suggestions"]
+                return suggestions_part
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO SUGGESTIONS PROCESSING ERRORS //////
+        def get_video_suggestions_processing_errors(self, video_id) -> (list[str] | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="suggestions",
+                    id=video_id
+                ).execute()
+
+                errors = video["items"][0]["suggestions"]["processingErrors"]
+                return errors
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO SUGGESTIONS PROCESSING WARNINGS //////
+        def get_video_suggestions_processing_warnings(self, video_id) -> (list[str] | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="suggestions",
+                    id=video_id
+                ).execute()
+
+                warns = video["items"][0]["suggestions"]["processingWarnings"]
+                return warns
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO SUGGESTIONS PROCESSING HINTS //////
+        def get_video_suggestions_processing_hints(self, video_id) -> (list[str] | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="suggestions",
+                    id=video_id
+                ).execute()
+
+                hints = video["items"][0]["suggestions"]["processingHints"]
+                return hints
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO TAG SUGGESTIONS //////
+        def get_video_tag_suggestions(self, video_id) -> (list[dict] | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="suggestions",
+                    id=video_id
+                ).execute()
+
+                suggestions = video["items"][0]["suggestions"]["tagSuggestions"]
+                return suggestions
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO EDITOR SUGGESTIONS //////
+        def get_video_editor_suggestions(self, video_id) -> (list[str] | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="suggestions",
+                    id=video_id
+                ).execute()
+
+                suggestions = video["items"][0]["suggestions"]["editorSuggestions"]
+                return suggestions
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO LIVE STREAMING DETAILS PART //////
+        def get_video_live_streaming_details(self, video_id) -> (dict | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="liveStreamingDetails",
+                    id=video_id
+                ).execute()
+
+                details = video["items"][0]["liveStreamingDetails"]
+                return details
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO LIVE STREAMING ACTUAL START TIME //////
+        def get_video_live_streaming_actual_start_time(self, video_id) -> (str | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="liveStreamingDetails",
+                    id=video_id
+                ).execute()
+
+                time = video["items"][0]["liveStreamingDetails"]["actualStartTime"]
+                return time 
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO LIVE STREAMING ACTUAL END TIME //////
+        def get_video_live_streaming_actual_end_time(self, video_id) -> (str | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="liveStreamingDetails",
+                    id=video_id
+                ).execute()
+
+                time = video["items"][0]["liveStreamingDetails"]["actualEndTime"]
+                return time 
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO LIVE STREAMING SCHEDULED START TIME //////
+        def get_video_live_streaming_scheduled_start_time(self, video_id) -> (str | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="liveStreamingDetails",
+                    id=video_id
+                ).execute()
+
+                time = video["items"][0]["liveStreamingDetails"]["scheduledStartTime"]
+                return time 
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO LIVE STREAMING CONCURRENT VIEWERS //////
+        def get_video_live_streaming_concurrent_viewers(self, video_id) -> (int | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="liveStreamingDetails",
+                    id=video_id
+                ).execute()
+
+                viewers = video["items"][0]["liveStreamingDetails"]["concurrentViewers"]
+                return viewers
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO LIVE STREAMING ACTIVE LIVE CHAT ID //////
+        def get_video_live_streaming_active_live_chat_id(self, video_id) -> (str | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="liveStreamingDetails",
+                    id=video_id
+                ).execute()
+
+                id = video["items"][0]["liveStreamingDetails"]["activeLiveChatId"]
+                return id 
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// VIDEO LOCALIZATIONS PART //////
+        def get_video_localizations(self, video_id) -> (dict | None):
+            service = self.service
+
+            try:
+                video = service.videos().list(
+                    part="liveStreamingDetails",
+                    id=video_id
+                ).execute()
+
+                local = video["items"][0]["localizations"]
+                return local 
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no videos with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+    #//////////// VIDEO CATEGORIES ////////////
+    class VideoCategories:
+        def __init__(self, ytd_api_tools: object) -> None:
+            self.service = ytd_api_tools.service   
+        
+        def get_all_video_categories(self, country_code):
+            """
+            This method retrieves all video categories available in a specific 
+            region (identified by the regionCode). It prints information about 
+            each category, including its ID and title.
+            """
+            service = self.service
+
+            try:
+                request = service.videoCategories().list(
+                    part="snippet",
+                    regionCode=f"{country_code}"
+                )
+                response = request.execute()
+
+                for category in response["items"]:
+                    category_id = category["id"]
+                    category_title = category["snippet"]["title"]
+                    print(f"Category ID: {category_id}, Title: {category_title}")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_video_category_by_id(self, category_id):
+            """
+            This method allows you to retrieve details about a specific 
+            video category identified by its category_id. It prints information 
+            about the category, including its title.
+            """
+            service = self.service
+
+            try:
+                request = service.videoCategories().list(
+                    part="snippet",
+                    id=category_id
+                )
+                response = request.execute()
+
+                if "items" in response:
+                    category = response["items"][0]
+                    category_title = category["snippet"]["title"]
+                    print(f"Category ID: {category_id}, Title: {category_title}")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_videos_in_category(self, category_id, max_results=10):
+            """
+            This method retrieves videos that belong to a specific video category, 
+            identified by category_id. It prints information about each video, including 
+            its title and video ID.
+            """
+            service = self.service
+
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    type="video",
+                    maxResults=max_results,
+                    videoCategoryId=category_id
+                )
+                response = request.execute()
+
+                for video in response["items"]:
+                    video_title = video["snippet"]["title"]
+                    video_id = video["id"]["videoId"]
+                    print(f"Video Title: {video_title} (Video ID: {video_id})")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_most_popular_videos_in_category(self, category_id, max_results=10):
+            """
+            This method retrieves the most popular videos in a specific video category, 
+            ordered by the number of views.
+            """
+            service = self.service
+
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    type="video",
+                    maxResults=max_results,
+                    videoCategoryId=category_id,
+                    order="viewCount"
+                )
+                response = request.execute()
+
+                for video in response["items"]:
+                    video_title = video["snippet"]["title"]
+                    video_id = video["id"]["videoId"]
+                    print(f"Video Title: {video_title} (Video ID: {video_id})")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_videos_by_categories(self, category_ids, max_results=10):
+            """
+            This method allows you to retrieve videos that belong to multiple video categories. 
+            Provide a list of category_ids, and it will return videos that are associated with 
+            any of the specified categories.
+            """
+            service = self.service
+
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    type="video",
+                    maxResults=max_results,
+                    videoCategoryId=",".join(category_ids)
+                )
+                response = request.execute()
+
+                for video in response["items"]:
+                    video_title = video["snippet"]["title"]
+                    video_id = video["id"]["videoId"]
+                    print(f"Video Title: {video_title} (Video ID: {video_id})")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def search_video_categories(self, query, max_results=10):
+            """
+            This method allows you to search for video categories using a query. 
+            It prints information about each category that matches the search query.
+            """
+            service = self.service
+
+            try:
+                request = service.videoCategories().list(
+                    part="snippet",
+                    maxResults=max_results,
+                    q=query
+                )
+                response = request.execute()
+
+                for category in response["items"]:
+                    category_id = category["id"]
+                    category_title = category["snippet"]["title"]
+                    print(f"Category ID: {category_id}, Title: {category_title}")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_video_category_details(self, category_id):
+            """
+            This method retrieves details about a specific video category identified by 
+            its category_id, including its title and whether it's assignable to videos.
+            """
+            service = self.service
+
+            try:
+                request = service.videoCategories().list(
+                    part="snippet",
+                    id=category_id
+                )
+                response = request.execute()
+
+                if "items" in response:
+                    category = response["items"][0]
+                    category_title = category["snippet"]["title"]
+                    category_assignable = category["snippet"]["assignable"]
+                    print(f"Category ID: {category_id}, Title: {category_title}, Assignable: {category_assignable}")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+ 
+            
+        #////// UTILITY METHODS //////
+        def get_video_categories(self, region_code="US"):
+            service = self.service
+
+            try:
+                request = service.videoCategories().list(
+                    part="snippet",
+                    regionCode=region_code
+                )
+                response = request.execute()
+
+                for item in response["items"]:
+                    print(f"{item['id']} - {item['snippet']['title']}")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
+        #////// CATEGORY RESOURCE //////
+        def get_video_categories_resource(self, category_id) -> (dict | None):
+            service = self.service
+
+            try:
+                video = service.videoCategories().list(
+                    part="snippet",
+                    id=category_id
+                ).execute()
+
+                resource = video["items"][0]
+                return resource
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no video categories with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CATEGORY KIND //////
+        def get_video_category_kind(self, category_id) -> (str | None):
+            service = self.service
+
+            try:
+                video = service.videoCategories().list(
+                    part="snippet",
+                    id=category_id
+                ).execute()
+
+                kind = video["items"][0]["kind"]
+                return kind 
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no video categories with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CATEGORY KIND //////
+        def get_video_category_etag(self, category_id) -> (str | None):
+            service = self.service
+
+            try:
+                video = service.videoCategories().list(
+                    part="snippet",
+                    id=category_id
+                ).execute()
+
+                etag = video["items"][0]["etag"]
+                return etag 
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no video categories with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CATEGORY ID //////
+        def get_video_category_id(self, category_id) -> (str | None):
+            service = self.service
+
+            try:
+                video = service.videoCategories().list(
+                    part="snippet",
+                    id=category_id
+                ).execute()
+
+                id = video["items"][0]["id"]
+                return id 
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no video categories with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CATEGORY SNIPPET //////
+        def get_video_category_snippet(self, category_id) -> (str | None):
+            service = self.service
+
+            try:
+                video = service.videoCategories().list(
+                    part="snippet",
+                    id=category_id
+                ).execute()
+
+                snip = video["items"][0]["snippet"]
+                return snip
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no video categories with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CATEGORY CHANNEL ID //////
+        def get_video_category_channel_id(self, category_id) -> (str | None):
+            service = self.service
+
+            try:
+                video = service.videoCategories().list(
+                    part="snippet",
+                    id=category_id
+                ).execute()
+
+                id = video["items"][0]["snippet"]["channelId"]
+                return id
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no video categories with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CATEGORY CHANNEL TITLE //////
+        def get_video_category_title(self, category_id) -> (str | None):
+            service = self.service
+
+            try:
+                video = service.videoCategories().list(
+                    part="snippet",
+                    id=category_id
+                ).execute()
+
+                title = video["items"][0]["snippet"]["title"]
+                return title
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no video categories with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CATEGORY ASSIGNABLE //////
+        def video_category_is_assignable(self, category_id) -> (bool | None):
+            service = self.service
+
+            try:
+                video = service.videoCategories().list(
+                    part="snippet",
+                    id=category_id
+                ).execute()
+
+                assignable = video["items"][0]["snippet"]["assignable"]
+                return bool(assignable)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no video categories with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+          
+    #//////////// VIDEO ABUSE REPORT REASON ////////////
+    class VideoAbuseReportReason:
+        def __init__(self, ytd_api_tools: object) -> None:
+            self.service = ytd_api_tools.service
     
+    #//////////// CAPTION ////////////
+    class Captions:
+        def __init__(self, ytd_api_tools: object) -> None:
+            self.service = ytd_api_tools.service
+            
+        def get_caption_tracks(self, video_id):
+            """
+            This method retrieves the caption tracks (subtitles) available for 
+            a specific video identified by video_id. It prints information about 
+            each caption track, including its ID, language, and whether it is 
+            auto-generated.
+            """
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    videoId=video_id
+                )
+                response = request.execute()
+
+                for caption_track in response["items"]:
+                    track_id = caption_track["id"]
+                    language = caption_track["snippet"]["language"]
+                    is_auto_generated = caption_track["snippet"]["isAutoSynced"]
+                    print(f"Caption Track ID: {track_id}, Language: {language}, Auto-generated: {is_auto_generated}")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def download_caption_track(self, track_id, output_file):
+            """
+            This function allows you to download a specific caption track 
+            identified by track_id and save it to a local file specified by 
+            output_file.
+            """
+            service = self.service
+
+            try:
+                request = service.captions().download(
+                    id=track_id
+                )
+                with open(output_file, "wb") as file:
+                    file.write(request.execute())
+
+                print(f"Caption track downloaded and saved to {output_file}")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def upload_caption_track(self, video_id, language, caption_file):
+            """
+            This method allows you to upload a new caption track (subtitle) for 
+            a specific video identified by video_id. Provide the language of the 
+            subtitle and the path to the caption file (caption_file).
+            """
+            service = self.service
+
+            try:
+                request = service.captions().insert(
+                    part="snippet",
+                    body={
+                        "snippet": {
+                            "videoId": video_id,
+                            "language": language,
+                            "name": "Caption Track",
+                            "isDraft": False
+                        }
+                    },
+                    media_body=googleapiclient.http.MediaFileUpload(caption_file, mimetype="text/vtt", resumable=True)
+                )
+                response = request.execute()
+
+                print(f"Caption track uploaded with track ID: {response['id']}")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def delete_caption_track(self, track_id):
+            """
+            This function allows you to delete a specific caption track 
+            identified by track_id.
+            """
+            service = self.service
+
+            try:
+                request = service.captions().delete(
+                    id=track_id
+                )
+                response = request.execute()
+
+                print(f"Caption track with ID {track_id} deleted successfully.")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def update_caption_track(self, track_id, language, new_name):
+            """
+            This function allows you to update the language and name of 
+            an existing caption track identified by track_id.
+            """
+            service = self.service
+
+            try:
+                request = service.captions().update(
+                    part="snippet",
+                    body={
+                        "id": track_id,
+                        "snippet": {
+                            "language": language,
+                            "name": new_name
+                        }
+                    }
+                )
+                response = request.execute()
+
+                print(f"Caption track with ID {track_id} updated successfully.")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_caption_track_by_id(self, track_id):
+            """
+            This method will directly retrieve the details of a specific caption 
+            track by its ID. This can be useful if you already know the caption track 
+            ID and want to access its metadata.
+            """
+            service = self.service
+
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    id=track_id
+                )
+                response = request.execute()
+
+                if "items" in response:
+                    caption_track = response["items"][0]
+                    language = caption_track["snippet"]["language"]
+                    is_auto_generated = caption_track["snippet"]["isAutoSynced"]
+                    print(f"Caption Track ID: {track_id}, Language: {language}, Auto-generated: {is_auto_generated}")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_caption_upload_status(self, track_id):
+            """
+            When you upload a new caption track, you can check the upload 
+            status to see if it is still being processed. This can be helpful 
+            if you want to wait until the caption track is fully available 
+            before performing further operations.
+            """
+            service = self.service
+
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    id=track_id
+                )
+                response = request.execute()
+
+                if "items" in response:
+                    caption_track = response["items"][0]
+                    status = caption_track["snippet"]["status"]["uploadStatus"]
+                    if status == "succeeded":
+                        print(f"Caption track with ID {track_id} upload succeeded.")
+                    elif status == "failed":
+                        print(f"Caption track with ID {track_id} upload failed.")
+                    else:
+                        print(f"Caption track with ID {track_id} is still being processed.")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+    #//////////// SUBSSCRIPTIONS ////////////
+    class Subscriptions:
+        def __init__(self, ytd_api_tools: object) -> None:
+            self.service = ytd_api_tools.service
+    
+    #//////////// MEMBERS ////////////
+    class Members:
+        def __init__(self, ytd_api_tools: object) -> None:
+            self.service = ytd_api_tools.service
+    
+    #//////////// MEMBERSHIP LEVEL ////////////
+    class MembershipLevel:
+        def __init__(self, ytd_api_tools: object) -> None:
+            self.service = ytd_api_tools.service
+    
+    #//////////// COMMENT ////////////
+    class Comment:
+        def __init__(self, ytd_api_tools: object) -> None:
+            self.service = ytd_api_tools.service
+    
+    #//////////// COMMENT THREAD ////////////
+    class CommentThread:
+        def __init__(self, ytd_api_tools: object) -> None:
+            self.service = ytd_api_tools.service
+    
+        def get_video_comments(self, video_id, max_results=10):
+            service = self.service
+
+            try:
+                request = service.commentThreads().list(
+                    part="snippet",
+                    videoId=video_id,
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                for item in response["items"]:
+                    print(item["snippet"]["topLevelComment"]["snippet"]["textDisplay"])
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_comment_replies(self, comment_id, max_results=10):
+            service = self.service
+            try:
+                request = service.comments().list(
+                    part="snippet",
+                    parentId=comment_id,
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                for item in response["items"]:
+                    print(item["snippet"]["textDisplay"])
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def post_video_comment(self, video_id, comment_text):
+            service = self.service
+            try:
+                request = service.commentThreads().insert(
+                    part="snippet",
+                    body={
+                        "snippet": {
+                            "videoId": video_id,
+                            "topLevelComment": {
+                                "snippet": {
+                                    "textOriginal": comment_text
+                                }
+                            }
+                        }
+                    }
+                )
+                response = request.execute()
+
+                print("Comment posted successfully!")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")    
+
+        def reply_to_comment(self, parent_comment_id, reply_text):
+            service = self.service
+            try:
+                request = service.comments().insert(
+                    part="snippet",
+                    body={
+                        "snippet": {
+                            "parentId": parent_comment_id,
+                            "textOriginal": reply_text
+                        }
+                    }
+                )
+                response = request.execute()
+
+                print("Reply posted successfully!")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                
+        def update_comment(self, comment_id, updated_text):
+            service = self.service
+            try:
+                request = service.comments().update(
+                    part="snippet",
+                    body={
+                        "id": comment_id,
+                        "snippet": {
+                            "textOriginal": updated_text
+                        }
+                    }
+                )
+                response = request.execute()
+
+                print("Comment updated successfully!")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
+        def delete_comment(self, comment_id):
+            service = self.service
+            try:
+                service.comments().delete(
+                    id=comment_id
+                ).execute()
+
+                print("Comment deleted successfully!")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
+    #//////////// THUMBNAIL ////////////
+    class Thumbnail:
+        def __init__(self, ytd_api_tools: object) -> None:
+            self.service = ytd_api_tools.service
+            
+        def get_video_thumbnail_urls(self, video_id):
+            """
+            This method retrieves the available thumbnail URLs for a given video. 
+            It returns the URLs for various thumbnail sizes, such as "default", "medium", 
+            "high", "standard", and "maxres".
+            """
+            service = self.service
+            try:
+                request = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                )
+                response = request.execute()
+                thumbnails = response["items"][0]["snippet"]["thumbnails"]
+                for thumbnail_type, thumbnail_info in thumbnails.items():
+                    print(f"{thumbnail_type}: {thumbnail_info['url']}")
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_channel_thumbnail_url(self, channel_id):
+            """
+            This method retrieves the default thumbnail URL for a specific 
+            channel. You can modify the "default" key to get thumbnails of 
+            different sizes.
+            """
+            service = self.service
+            try:
+                request = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                )
+                response = request.execute()
+                thumbnail_url = response["items"][0]["snippet"]["thumbnails"]["default"]["url"]
+                print(f"Channel Thumbnail URL: {thumbnail_url}")
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def upload_video_thumbnail(self, video_id, image_path):
+            """
+            This method allows you to upload a custom thumbnail image for a video. 
+            Provide the video_id of the video you want to set the thumbnail for, and 
+            the image_path which points to the local image file (in JPEG format) to 
+            be uploaded.
+            """
+            service = self.service
+
+            try:
+                with open(image_path, "rb") as image_file:
+                    thumbnail_data = image_file.read()
+
+                request = service.thumbnails().set(
+                    videoId=video_id,
+                    media_body=googleapiclient.http.MediaIoBaseUpload(
+                        io.BytesIO(thumbnail_data),
+                        mimetype="image/jpeg",
+                        chunksize=-1,
+                        resumable=True
+                    )
+                )
+                response = None
+                while response is None:
+                    status, response = request.next_chunk()
+                    if status:
+                        print(f"Uploaded {int(status.progress() * 100)}%.")
+
+                print("Thumbnail uploaded successfully!")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_video_default_thumbnail_url(self, video_id):
+            """
+            This is a simple one-liner that constructs and returns the URL for the 
+            default thumbnail of a video given its video_id. 
+            """
+            return f"https://img.youtube.com/vi/{video_id}/default.jpg"
+
+        def update_video_thumbnail_with_url(self, video_id, thumbnail_url):
+            """
+            This function allows you to update the thumbnail of a video using 
+            a custom image URL. Provide the video_id of the video you want to update, 
+            and the thumbnail_url that points to the new thumbnail image.
+            """
+            service = self.service
+            try:
+                request = service.videos().update(
+                    part="snippet",
+                    body={
+                        "id": video_id,
+                        "snippet": {
+                            "thumbnails": {
+                                "default": {
+                                    "url": thumbnail_url
+                                }
+                            }
+                        }
+                    }
+                )
+                response = request.execute()
+
+                print("Video thumbnail updated successfully!")
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_video_thumbnail_info(self, video_id):
+            """
+            This function retrieves detailed information about the available 
+            thumbnail sizes for a given video, including their URLs, width, and height.
+            """
+            service = self.service
+            try:
+                request = service.videos().list(
+                    part="snippet",
+                    id=video_id
+                )
+                response = request.execute()
+                thumbnails = response["items"][0]["snippet"]["thumbnails"]
+                for thumbnail_type, thumbnail_info in thumbnails.items():
+                    url = thumbnail_info["url"]
+                    width = thumbnail_info["width"]
+                    height = thumbnail_info["height"]
+                    print(f"{thumbnail_type}: URL: {url}, Width: {width}, Height: {height}")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
+        def get_popular_video_thumbnails(self, channel_id, max_results=10):
+            """
+            This function retrieves the most popular video thumbnails for 
+            a specific channel, ordered by the number of views. It provides 
+            the video titles, IDs, and medium-sized thumbnail URLs.
+            """
+            service = self.service
+
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    channelId=channel_id,
+                    maxResults=max_results,
+                    order="viewCount",
+                    type="video"
+                )
+                response = request.execute()
+                for video in response["items"]:
+                    title = video["snippet"]["title"]
+                    video_id = video["id"]["videoId"]
+                    thumbnail_url = video["snippet"]["thumbnails"]["medium"]["url"]
+                    print(f"{title} - Video ID: {video_id}, Thumbnail URL: {thumbnail_url}")
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+    
+    #//////////// WATERMARKS ////////////
+    class WaterMark:
+        def __init__(self, ytd_api_tools: object) -> None:
+            self.service = ytd_api_tools.service
+    
+    #//////////// ACTIVITY ////////////
+    class Activity:
+        def __init__(self, ytd_api_tools: object) -> None:
+            self.service = ytd_api_tools.service
+            
+        def get_my_recent_activities(self, max_results=10):
+            """
+            This function retrieves recent activities for the authenticated user. 
+            It prints information about uploaded videos, liked videos, and comments 
+            made by the user.
+            """
+            service = self.service
+            try:
+                request = service.activities().list(
+                    part="snippet,contentDetails",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                for activity in response["items"]:
+                    activity_type = activity["snippet"]["type"]
+                    if activity_type == "upload":
+                        video_title = activity["snippet"]["title"]
+                        video_id = activity["contentDetails"]["upload"]["videoId"]
+                        print(f"Uploaded Video: {video_title} (Video ID: {video_id})")
+                    elif activity_type == "like":
+                        video_title = activity["snippet"]["title"]
+                        video_id = activity["contentDetails"]["like"]["resourceId"]["videoId"]
+                        print(f"Liked Video: {video_title} (Video ID: {video_id})")
+                    elif activity_type == "comment":
+                        comment_text = activity["snippet"]["displayMessage"]
+                        video_title = activity["snippet"]["title"]
+                        video_id = activity["contentDetails"]["comment"]["videoId"]
+                        print(f"Commented on Video: {video_title} (Video ID: {video_id}) - Comment: {comment_text}")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_activities_by_type(self, activity_type, max_results=10):
+            """
+            This method will retrieve activities of a specific type for the authenticated user. 
+            (e.g., "upload", "like", or "comment") 
+            """
+            service = self.service
+
+            try:
+                request = service.activities().list(
+                    part="snippet,contentDetails",
+                    mine=True,
+                    maxResults=max_results,
+                    type=activity_type
+                )
+                response = request.execute()
+
+                for activity in response["items"]:
+                    if activity_type == "upload":
+                        video_title = activity["snippet"]["title"]
+                        video_id = activity["contentDetails"]["upload"]["videoId"]
+                        print(f"Uploaded Video: {video_title} (Video ID: {video_id})")
+                    elif activity_type == "like":
+                        video_title = activity["snippet"]["title"]
+                        video_id = activity["contentDetails"]["like"]["resourceId"]["videoId"]
+                        print(f"Liked Video: {video_title} (Video ID: {video_id})")
+                    elif activity_type == "comment":
+                        comment_text = activity["snippet"]["displayMessage"]
+                        video_title = activity["snippet"]["title"]
+                        video_id = activity["contentDetails"]["comment"]["videoId"]
+                        print(f"Commented on Video: {video_title} (Video ID: {video_id}) - Comment: {comment_text}")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_activities_since_date(self, start_date, max_results=10):
+            """
+            This method retrieves activities for the authenticated user since a 
+            specific date (provided as start_date).
+            """
+            service = self.service
+
+            try:
+                request = service.activities().list(
+                    part="snippet,contentDetails",
+                    mine=True,
+                    maxResults=max_results,
+                    publishedAfter=start_date
+                )
+                response = request.execute()
+
+                for activity in response["items"]:
+                    activity_type = activity["snippet"]["type"]
+                    if activity_type == "upload":
+                        video_title = activity["snippet"]["title"]
+                        video_id = activity["contentDetails"]["upload"]["videoId"]
+                        print(f"Uploaded Video: {video_title} (Video ID: {video_id})")
+                    elif activity_type == "like":
+                        video_title = activity["snippet"]["title"]
+                        video_id = activity["contentDetails"]["like"]["resourceId"]["videoId"]
+                        print(f"Liked Video: {video_title} (Video ID: {video_id})")
+                    elif activity_type == "comment":
+                        comment_text = activity["snippet"]["displayMessage"]
+                        video_title = activity["snippet"]["title"]
+                        video_id = activity["contentDetails"]["comment"]["videoId"]
+                        print(f"Commented on Video: {video_title} (Video ID: {video_id}) - Comment: {comment_text}")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_video_activities_by_channel(self, channel_id, max_results=10):
+            """
+            This method retrieves video upload activities for a specific 
+            channel (identified by channel_id).
+            """
+            service = self.service
+
+            try:
+                request = service.activities().list(
+                    part="snippet,contentDetails",
+                    channelId=channel_id,
+                    maxResults=max_results,
+                    type="upload"
+                )
+                response = request.execute()
+
+                for activity in response["items"]:
+                    video_title = activity["snippet"]["title"]
+                    video_id = activity["contentDetails"]["upload"]["videoId"]
+                    print(f"Uploaded Video: {video_title} (Video ID: {video_id})")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_channel_activity(self, channel_id, max_results=10):
+            service = self.service
+
+            try:
+                request = service.activities().list(
+                    part="snippet",
+                    channelId=channel_id,
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                for activity in response["items"]:
+                    print(activity["snippet"]["title"])
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_channel_activities(self, channel_id, max_results=10):
+            """
+            This method retrieves recent activities on a specific channel. 
+            It prints information about uploaded videos, liked videos, and 
+            comments made on the channel.
+            """
+            service = self.service
+
+            try:
+                request = service.activities().list(
+                    part="snippet,contentDetails",
+                    channelId=channel_id,
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                for activity in response["items"]:
+                    activity_type = activity["snippet"]["type"]
+                    if activity_type == "upload":
+                        video_title = activity["snippet"]["title"]
+                        video_id = activity["contentDetails"]["upload"]["videoId"]
+                        print(f"Uploaded Video: {video_title} (Video ID: {video_id})")
+                    elif activity_type == "like":
+                        video_title = activity["snippet"]["title"]
+                        video_id = activity["contentDetails"]["like"]["resourceId"]["videoId"]
+                        print(f"Liked Video: {video_title} (Video ID: {video_id})")
+                    elif activity_type == "comment":
+                        comment_text = activity["snippet"]["displayMessage"]
+                        video_title = activity["snippet"]["title"]
+                        video_id = activity["contentDetails"]["comment"]["videoId"]
+                        print(f"Commented on Video: {video_title} (Video ID: {video_id}) - Comment: {comment_text}")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_subscription_activity(self, max_results=10):
+            service = self.service
+
+            try:
+                request = service.activities().list(
+                    part="snippet,contentDetails",
+                    home=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                for activity in response["items"]:
+                    channel_title = activity["snippet"]["title"]
+                    video_id = activity["contentDetails"]["upload"]["videoId"]
+                    print(f"New Upload from {channel_title}: https://www.youtube.com/watch?v={video_id}")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_activities_from_playlist(self, playlist_id, max_results=10):
+            """
+            This method retrieves activities (videos) from a specific playlist. 
+            It prints information about videos contained within the playlist.
+            """
+            service = self.service
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                for item in response["items"]:
+                    video_title = item["snippet"]["title"]
+                    video_id = item["snippet"]["resourceId"]["videoId"]
+                    print(f"Video in Playlist: {video_title} (Video ID: {video_id})")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+    
+    #//////////// SEARCH ////////////
+    class Search:
+        def __init__(self, ytd_api_tools: object) -> None:
+            self.service = ytd_api_tools.service
+            
+        def search_videos(self, query, max_results=10):
+            service = self.service
+
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    q=query,
+                    type="video",
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")        
+
+        def search_videos_by_order(self, query, order="relevance", max_results=10):
+            service = self.service
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    q=query,
+                    type="video",
+                    order=order,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def search_videos_by_category(self, query, category_id, max_results=10):
+            service = self.service
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    q=query,
+                    type="video",
+                    videoCategoryId=category_id,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def search_videos_by_definition(self, query, definition="any", max_results=10):
+            service = self.service
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    q=query,
+                    type="video",
+                    videoDefinition=definition,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def search_videos_by_duration(self, query, duration="any", max_results=10):
+            service = self.service
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    q=query,
+                    type="video",
+                    videoDuration=duration,
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")    
+
+        def search_videos_by_license(self, query, license_type="any", max_results=10):
+            service = self.service
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    q=query,
+                    type="video",
+                    videoLicense=license_type,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
+        def search_videos_by_type(self, query, video_type="any", max_results=10):
+            service = self.service
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    q=query,
+                    type=video_type,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def search_embeddable_videos(self, query, embeddable="true", max_results=10):
+            service = self.service
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    q=query,
+                    type="video",
+                    videoEmbeddable=embeddable,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def search_videos_by_published_date(self, query, published_after, published_before, max_results=10):
+            service = self.service
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    q=query,
+                    type="video",
+                    publishedAfter=published_after,
+                    publishedBefore=published_before,
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
     #//////////// LIVE BROADCASTS ///////////
     class LiveBroadcast:
-        def __init__(self):
-            pass
+        def __init__(self, ytd_api_tools: object) -> None:
+            self.service = ytd_api_tools.service
         
         def get_live_streams(self, max_results=10):
             service = self.service
@@ -2942,1275 +7540,484 @@ class YouTubeDataAPIv3Tools:
                 return _active_participants
             except googleapiclient.errors.HttpError as e:
                 print(f"An error occurred: {e}")
-
-    #//////////// THUMBNAILS ////////////
     
-    def get_video_thumbnail_urls(self, video_id):
-        """
-        This method retrieves the available thumbnail URLs for a given video. 
-        It returns the URLs for various thumbnail sizes, such as "default", "medium", 
-        "high", "standard", and "maxres".
-        """
-        service = self.service
-        try:
-            request = service.videos().list(
-                part="snippet",
-                id=video_id
-            )
-            response = request.execute()
-            thumbnails = response["items"][0]["snippet"]["thumbnails"]
-            for thumbnail_type, thumbnail_info in thumbnails.items():
-                print(f"{thumbnail_type}: {thumbnail_info['url']}")
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_channel_thumbnail_url(self, channel_id):
-        """
-        This method retrieves the default thumbnail URL for a specific 
-        channel. You can modify the "default" key to get thumbnails of 
-        different sizes.
-        """
-        service = self.service
-        try:
-            request = service.channels().list(
-                part="snippet",
-                id=channel_id
-            )
-            response = request.execute()
-            thumbnail_url = response["items"][0]["snippet"]["thumbnails"]["default"]["url"]
-            print(f"Channel Thumbnail URL: {thumbnail_url}")
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def upload_video_thumbnail(self, video_id, image_path):
-        """
-        This method allows you to upload a custom thumbnail image for a video. 
-        Provide the video_id of the video you want to set the thumbnail for, and 
-        the image_path which points to the local image file (in JPEG format) to 
-        be uploaded.
-        """
-        service = self.service
-
-        try:
-            with open(image_path, "rb") as image_file:
-                thumbnail_data = image_file.read()
-
-            request = service.thumbnails().set(
-                videoId=video_id,
-                media_body=googleapiclient.http.MediaIoBaseUpload(
-                    io.BytesIO(thumbnail_data),
-                    mimetype="image/jpeg",
-                    chunksize=-1,
-                    resumable=True
-                )
-            )
-            response = None
-            while response is None:
-                status, response = request.next_chunk()
-                if status:
-                    print(f"Uploaded {int(status.progress() * 100)}%.")
-
-            print("Thumbnail uploaded successfully!")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_video_default_thumbnail_url(self, video_id):
-        """
-        This is a simple one-liner that constructs and returns the URL for the 
-        default thumbnail of a video given its video_id. 
-        """
-        return f"https://img.youtube.com/vi/{video_id}/default.jpg"
-
-    def update_video_thumbnail_with_url(self, video_id, thumbnail_url):
-        """
-        This function allows you to update the thumbnail of a video using 
-        a custom image URL. Provide the video_id of the video you want to update, 
-        and the thumbnail_url that points to the new thumbnail image.
-        """
-        service = self.service
-        try:
-            request = service.videos().update(
-                part="snippet",
-                body={
-                    "id": video_id,
-                    "snippet": {
-                        "thumbnails": {
-                            "default": {
-                                "url": thumbnail_url
-                            }
-                        }
-                    }
-                }
-            )
-            response = request.execute()
-
-            print("Video thumbnail updated successfully!")
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_video_thumbnail_info(self, video_id):
-        """
-        This function retrieves detailed information about the available 
-        thumbnail sizes for a given video, including their URLs, width, and height.
-        """
-        service = self.service
-        try:
-            request = service.videos().list(
-                part="snippet",
-                id=video_id
-            )
-            response = request.execute()
-            thumbnails = response["items"][0]["snippet"]["thumbnails"]
-            for thumbnail_type, thumbnail_info in thumbnails.items():
-                url = thumbnail_info["url"]
-                width = thumbnail_info["width"]
-                height = thumbnail_info["height"]
-                print(f"{thumbnail_type}: URL: {url}, Width: {width}, Height: {height}")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-    
-    def get_popular_video_thumbnails(self, channel_id, max_results=10):
-        """
-        This function retrieves the most popular video thumbnails for 
-        a specific channel, ordered by the number of views. It provides 
-        the video titles, IDs, and medium-sized thumbnail URLs.
-        """
-        service = self.service
-
-        try:
-            request = service.search().list(
-                part="snippet",
-                channelId=channel_id,
-                maxResults=max_results,
-                order="viewCount",
-                type="video"
-            )
-            response = request.execute()
-            for video in response["items"]:
-                title = video["snippet"]["title"]
-                video_id = video["id"]["videoId"]
-                thumbnail_url = video["snippet"]["thumbnails"]["medium"]["url"]
-                print(f"{title} - Video ID: {video_id}, Thumbnail URL: {thumbnail_url}")
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-    
-    #//////////// CHANNEL BANNER ////////////
-    
-    def set_channel_banner(self, channel_id, banner_image_url):
-        service = self.service
-
-        try:
-            service.channels().update(
-                part="brandingSettings",
-                body={
-                    "id": channel_id,
-                    "brandingSettings": {
-                        "image": {
-                            "bannerExternalUrl": banner_image_url
-                        }
-                    }
-                }
-            ).execute()
-
-            print("Channel banner has been set/updated successfully!")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_channel_banner_url(self, channel_id):
-        """
-        Get the URL of a channel banner using the channel ID. 
-        """
-        service = self.service
-
-        try:
-            request = service.channels().list(
-                part="brandingSettings",
-                id=channel_id
-            )
-            response = request.execute()
-
-            branding_settings = response.get("items", [])[0]["brandingSettings"]
-            banner_url = branding_settings["image"]["bannerImageUrl"]
-            return banner_url
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-    
-    def get_channel_banner_default_url(self):
-        """
-        Get the default URL of a channel banner.
-        """
-        service = self.service
-
-        try:
-            request = service.channelBanners().insert(
-                part="brandingSettings"
-            )
-            response = request.execute()
-
-            banner_url = response.get("brandingSettings", {}).get("image", {}).get("bannerImageUrl")
-            return banner_url
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-
-    def delete_channel_banner(self, channel_id):
-        service = self.service
-
-        try:
-            service.channels().update(
-                part="brandingSettings",
-                body={
-                    "id": channel_id,
-                    "brandingSettings": {
-                        "image": {
-                            "bannerExternalUrl": ""
-                        }
-                    }
-                }
-            ).execute()
-
-            print("Channel banner has been deleted successfully!")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    
-    #//////////// ACTIVITIES ////////////
-    
-    def get_my_recent_activities(self, max_results=10):
-        """
-        This function retrieves recent activities for the authenticated user. 
-        It prints information about uploaded videos, liked videos, and comments 
-        made by the user.
-        """
-        service = self.service
-        try:
-            request = service.activities().list(
-                part="snippet,contentDetails",
-                mine=True,
-                maxResults=max_results
-            )
-            response = request.execute()
-            for activity in response["items"]:
-                activity_type = activity["snippet"]["type"]
-                if activity_type == "upload":
-                    video_title = activity["snippet"]["title"]
-                    video_id = activity["contentDetails"]["upload"]["videoId"]
-                    print(f"Uploaded Video: {video_title} (Video ID: {video_id})")
-                elif activity_type == "like":
-                    video_title = activity["snippet"]["title"]
-                    video_id = activity["contentDetails"]["like"]["resourceId"]["videoId"]
-                    print(f"Liked Video: {video_title} (Video ID: {video_id})")
-                elif activity_type == "comment":
-                    comment_text = activity["snippet"]["displayMessage"]
-                    video_title = activity["snippet"]["title"]
-                    video_id = activity["contentDetails"]["comment"]["videoId"]
-                    print(f"Commented on Video: {video_title} (Video ID: {video_id}) - Comment: {comment_text}")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_activities_by_type(self, activity_type, max_results=10):
-        """
-        This method will retrieve activities of a specific type for the authenticated user. 
-        (e.g., "upload", "like", or "comment") 
-        """
-        service = self.service
-
-        try:
-            request = service.activities().list(
-                part="snippet,contentDetails",
-                mine=True,
-                maxResults=max_results,
-                type=activity_type
-            )
-            response = request.execute()
-
-            for activity in response["items"]:
-                if activity_type == "upload":
-                    video_title = activity["snippet"]["title"]
-                    video_id = activity["contentDetails"]["upload"]["videoId"]
-                    print(f"Uploaded Video: {video_title} (Video ID: {video_id})")
-                elif activity_type == "like":
-                    video_title = activity["snippet"]["title"]
-                    video_id = activity["contentDetails"]["like"]["resourceId"]["videoId"]
-                    print(f"Liked Video: {video_title} (Video ID: {video_id})")
-                elif activity_type == "comment":
-                    comment_text = activity["snippet"]["displayMessage"]
-                    video_title = activity["snippet"]["title"]
-                    video_id = activity["contentDetails"]["comment"]["videoId"]
-                    print(f"Commented on Video: {video_title} (Video ID: {video_id}) - Comment: {comment_text}")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_activities_since_date(self, start_date, max_results=10):
-        """
-        This method retrieves activities for the authenticated user since a 
-        specific date (provided as start_date).
-        """
-        service = self.service
-
-        try:
-            request = service.activities().list(
-                part="snippet,contentDetails",
-                mine=True,
-                maxResults=max_results,
-                publishedAfter=start_date
-            )
-            response = request.execute()
-
-            for activity in response["items"]:
-                activity_type = activity["snippet"]["type"]
-                if activity_type == "upload":
-                    video_title = activity["snippet"]["title"]
-                    video_id = activity["contentDetails"]["upload"]["videoId"]
-                    print(f"Uploaded Video: {video_title} (Video ID: {video_id})")
-                elif activity_type == "like":
-                    video_title = activity["snippet"]["title"]
-                    video_id = activity["contentDetails"]["like"]["resourceId"]["videoId"]
-                    print(f"Liked Video: {video_title} (Video ID: {video_id})")
-                elif activity_type == "comment":
-                    comment_text = activity["snippet"]["displayMessage"]
-                    video_title = activity["snippet"]["title"]
-                    video_id = activity["contentDetails"]["comment"]["videoId"]
-                    print(f"Commented on Video: {video_title} (Video ID: {video_id}) - Comment: {comment_text}")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_video_activities_by_channel(self, channel_id, max_results=10):
-        """
-        This method retrieves video upload activities for a specific 
-        channel (identified by channel_id).
-        """
-        service = self.service
-
-        try:
-            request = service.activities().list(
-                part="snippet,contentDetails",
-                channelId=channel_id,
-                maxResults=max_results,
-                type="upload"
-            )
-            response = request.execute()
-
-            for activity in response["items"]:
-                video_title = activity["snippet"]["title"]
-                video_id = activity["contentDetails"]["upload"]["videoId"]
-                print(f"Uploaded Video: {video_title} (Video ID: {video_id})")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_channel_activity(self, channel_id, max_results=10):
-        service = self.service
-
-        try:
-            request = service.activities().list(
-                part="snippet",
-                channelId=channel_id,
-                maxResults=max_results
-            )
-            response = request.execute()
-
-            for activity in response["items"]:
-                print(activity["snippet"]["title"])
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_channel_activities(self, channel_id, max_results=10):
-        """
-        This method retrieves recent activities on a specific channel. 
-        It prints information about uploaded videos, liked videos, and 
-        comments made on the channel.
-        """
-        service = self.service
-
-        try:
-            request = service.activities().list(
-                part="snippet,contentDetails",
-                channelId=channel_id,
-                maxResults=max_results
-            )
-            response = request.execute()
-
-            for activity in response["items"]:
-                activity_type = activity["snippet"]["type"]
-                if activity_type == "upload":
-                    video_title = activity["snippet"]["title"]
-                    video_id = activity["contentDetails"]["upload"]["videoId"]
-                    print(f"Uploaded Video: {video_title} (Video ID: {video_id})")
-                elif activity_type == "like":
-                    video_title = activity["snippet"]["title"]
-                    video_id = activity["contentDetails"]["like"]["resourceId"]["videoId"]
-                    print(f"Liked Video: {video_title} (Video ID: {video_id})")
-                elif activity_type == "comment":
-                    comment_text = activity["snippet"]["displayMessage"]
-                    video_title = activity["snippet"]["title"]
-                    video_id = activity["contentDetails"]["comment"]["videoId"]
-                    print(f"Commented on Video: {video_title} (Video ID: {video_id}) - Comment: {comment_text}")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_subscription_activity(self, max_results=10):
-        service = self.service
-
-        try:
-            request = service.activities().list(
-                part="snippet,contentDetails",
-                home=True,
-                maxResults=max_results
-            )
-            response = request.execute()
-
-            for activity in response["items"]:
-                channel_title = activity["snippet"]["title"]
-                video_id = activity["contentDetails"]["upload"]["videoId"]
-                print(f"New Upload from {channel_title}: https://www.youtube.com/watch?v={video_id}")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_activities_from_playlist(self, playlist_id, max_results=10):
-        """
-        This method retrieves activities (videos) from a specific playlist. 
-        It prints information about videos contained within the playlist.
-        """
-        service = self.service
-        try:
-            request = service.playlistItems().list(
-                part="snippet",
-                playlistId=playlist_id,
-                maxResults=max_results
-            )
-            response = request.execute()
-            for item in response["items"]:
-                video_title = item["snippet"]["title"]
-                video_id = item["snippet"]["resourceId"]["videoId"]
-                print(f"Video in Playlist: {video_title} (Video ID: {video_id})")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-    
-    #//////////// VIDEO CATEGORIES ////////////
-    
-    def get_all_video_categories(self, country_code):
-        """
-        This method retrieves all video categories available in a specific 
-        region (identified by the regionCode). It prints information about 
-        each category, including its ID and title.
-        """
-        service = self.service
-
-        try:
-            request = service.videoCategories().list(
-                part="snippet",
-                regionCode=f"{country_code}"
-            )
-            response = request.execute()
-
-            for category in response["items"]:
-                category_id = category["id"]
-                category_title = category["snippet"]["title"]
-                print(f"Category ID: {category_id}, Title: {category_title}")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_video_category_by_id(self, category_id):
-        """
-        This method allows you to retrieve details about a specific 
-        video category identified by its category_id. It prints information 
-        about the category, including its title.
-        """
-        service = self.service
-
-        try:
-            request = service.videoCategories().list(
-                part="snippet",
-                id=category_id
-            )
-            response = request.execute()
-
-            if "items" in response:
-                category = response["items"][0]
-                category_title = category["snippet"]["title"]
-                print(f"Category ID: {category_id}, Title: {category_title}")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_videos_in_category(self, category_id, max_results=10):
-        """
-        This method retrieves videos that belong to a specific video category, 
-        identified by category_id. It prints information about each video, including 
-        its title and video ID.
-        """
-        service = self.service
-
-        try:
-            request = service.search().list(
-                part="snippet",
-                type="video",
-                maxResults=max_results,
-                videoCategoryId=category_id
-            )
-            response = request.execute()
-
-            for video in response["items"]:
-                video_title = video["snippet"]["title"]
-                video_id = video["id"]["videoId"]
-                print(f"Video Title: {video_title} (Video ID: {video_id})")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_most_popular_videos_in_category(self, category_id, max_results=10):
-        """
-        This method retrieves the most popular videos in a specific video category, 
-        ordered by the number of views.
-        """
-        service = self.service
-
-        try:
-            request = service.search().list(
-                part="snippet",
-                type="video",
-                maxResults=max_results,
-                videoCategoryId=category_id,
-                order="viewCount"
-            )
-            response = request.execute()
-
-            for video in response["items"]:
-                video_title = video["snippet"]["title"]
-                video_id = video["id"]["videoId"]
-                print(f"Video Title: {video_title} (Video ID: {video_id})")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_videos_by_categories(self, category_ids, max_results=10):
-        """
-        This method allows you to retrieve videos that belong to multiple video categories. 
-        Provide a list of category_ids, and it will return videos that are associated with 
-        any of the specified categories.
-        """
-        service = self.service
-
-        try:
-            request = service.search().list(
-                part="snippet",
-                type="video",
-                maxResults=max_results,
-                videoCategoryId=",".join(category_ids)
-            )
-            response = request.execute()
-
-            for video in response["items"]:
-                video_title = video["snippet"]["title"]
-                video_id = video["id"]["videoId"]
-                print(f"Video Title: {video_title} (Video ID: {video_id})")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def search_video_categories(self, query, max_results=10):
-        """
-        This method allows you to search for video categories using a query. 
-        It prints information about each category that matches the search query.
-        """
-        service = self.service
-
-        try:
-            request = service.videoCategories().list(
-                part="snippet",
-                maxResults=max_results,
-                q=query
-            )
-            response = request.execute()
-
-            for category in response["items"]:
-                category_id = category["id"]
-                category_title = category["snippet"]["title"]
-                print(f"Category ID: {category_id}, Title: {category_title}")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_video_category_details(self, category_id):
-        """
-        This method retrieves details about a specific video category identified by 
-        its category_id, including its title and whether it's assignable to videos.
-        """
-        service = self.service
-
-        try:
-            request = service.videoCategories().list(
-                part="snippet",
-                id=category_id
-            )
-            response = request.execute()
-
-            if "items" in response:
-                category = response["items"][0]
-                category_title = category["snippet"]["title"]
-                category_assignable = category["snippet"]["assignable"]
-                print(f"Category ID: {category_id}, Title: {category_title}, Assignable: {category_assignable}")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    #//////////// CAPTIONS ////////////
-
-    def get_caption_tracks(self, video_id):
-        """
-        This method retrieves the caption tracks (subtitles) available for 
-        a specific video identified by video_id. It prints information about 
-        each caption track, including its ID, language, and whether it is 
-        auto-generated.
-        """
-        service = self.service
-        try:
-            request = service.captions().list(
-                part="snippet",
-                videoId=video_id
-            )
-            response = request.execute()
-
-            for caption_track in response["items"]:
-                track_id = caption_track["id"]
-                language = caption_track["snippet"]["language"]
-                is_auto_generated = caption_track["snippet"]["isAutoSynced"]
-                print(f"Caption Track ID: {track_id}, Language: {language}, Auto-generated: {is_auto_generated}")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def download_caption_track(self, track_id, output_file):
-        """
-        This function allows you to download a specific caption track 
-        identified by track_id and save it to a local file specified by 
-        output_file.
-        """
-        service = self.service
-
-        try:
-            request = service.captions().download(
-                id=track_id
-            )
-            with open(output_file, "wb") as file:
-                file.write(request.execute())
-
-            print(f"Caption track downloaded and saved to {output_file}")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def upload_caption_track(self, video_id, language, caption_file):
-        """
-        This method allows you to upload a new caption track (subtitle) for 
-        a specific video identified by video_id. Provide the language of the 
-        subtitle and the path to the caption file (caption_file).
-        """
-        service = self.service
-
-        try:
-            request = service.captions().insert(
-                part="snippet",
-                body={
-                    "snippet": {
-                        "videoId": video_id,
-                        "language": language,
-                        "name": "Caption Track",
-                        "isDraft": False
-                    }
-                },
-                media_body=googleapiclient.http.MediaFileUpload(caption_file, mimetype="text/vtt", resumable=True)
-            )
-            response = request.execute()
-
-            print(f"Caption track uploaded with track ID: {response['id']}")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def delete_caption_track(self, track_id):
-        """
-        This function allows you to delete a specific caption track 
-        identified by track_id.
-        """
-        service = self.service
-
-        try:
-            request = service.captions().delete(
-                id=track_id
-            )
-            response = request.execute()
-
-            print(f"Caption track with ID {track_id} deleted successfully.")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def update_caption_track(self, track_id, language, new_name):
-        """
-        This function allows you to update the language and name of 
-        an existing caption track identified by track_id.
-        """
-        service = self.service
-
-        try:
-            request = service.captions().update(
-                part="snippet",
-                body={
-                    "id": track_id,
-                    "snippet": {
-                        "language": language,
-                        "name": new_name
-                    }
-                }
-            )
-            response = request.execute()
-
-            print(f"Caption track with ID {track_id} updated successfully.")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_caption_track_by_id(self, track_id):
-        """
-        This method will directly retrieve the details of a specific caption 
-        track by its ID. This can be useful if you already know the caption track 
-        ID and want to access its metadata.
-        """
-        service = self.service
-
-        try:
-            request = service.captions().list(
-                part="snippet",
-                id=track_id
-            )
-            response = request.execute()
-
-            if "items" in response:
-                caption_track = response["items"][0]
-                language = caption_track["snippet"]["language"]
-                is_auto_generated = caption_track["snippet"]["isAutoSynced"]
-                print(f"Caption Track ID: {track_id}, Language: {language}, Auto-generated: {is_auto_generated}")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_caption_upload_status(self, track_id):
-        """
-        When you upload a new caption track, you can check the upload 
-        status to see if it is still being processed. This can be helpful 
-        if you want to wait until the caption track is fully available 
-        before performing further operations.
-        """
-        service = self.service
-
-        try:
-            request = service.captions().list(
-                part="snippet",
-                id=track_id
-            )
-            response = request.execute()
-
-            if "items" in response:
-                caption_track = response["items"][0]
-                status = caption_track["snippet"]["status"]["uploadStatus"]
-                if status == "succeeded":
-                    print(f"Caption track with ID {track_id} upload succeeded.")
-                elif status == "failed":
-                    print(f"Caption track with ID {track_id} upload failed.")
-                else:
-                    print(f"Caption track with ID {track_id} is still being processed.")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
     #//////////// LOCALIZATION /////////////
-    
-    def get_channel_default_language(self, channel_id):
-        service = self.service
-
-        try:
-            request = service.channels().list(
-                part="snippet",
-                id=channel_id
-            )
-            response = request.execute()
-
-            default_language = response.get("items", [])[0]["snippet"]["defaultLanguage"]
-            return default_language
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
+    class Localization:
+        def __init__(self, ytd_api_tools: object) -> None:
+            self.service = ytd_api_tools.service
         
-    def verify_video(self, video_id, country_code):
-        """
-        Verify if a video is available in a specific country using its ID.
-        """
-        service = self.service
+        def get_channel_default_language(self, channel_id):
+            service = self.service
 
-        try:
-            # Get video details for the specified video ID and country code
-            request = service.videos().list(
-                part="status",
-                id=video_id,
-                regionCode=country_code
-            )
-            response = request.execute()
-
-            video_status = response.get("items", [])[0]["status"]
-            is_available = video_status["uploadStatus"] == "processed" and video_status["privacyStatus"] == "public"
-
-            return is_available
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-            return None
-
-    def search_videos_by_location(self, query, location, location_radius, max_results=10):
-        service = self.service
-        try:
-            request = service.search().list(
-                part="snippet",
-                q=query,
-                type="video",
-                location=location,
-                locationRadius=location_radius,
-                maxResults=max_results
-            )
-            response = request.execute()
-            for item in response["items"]:
-                print(item["snippet"]["title"])
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def search_videos_by_language(self, query, language_code, max_results=10):
-        service = self.service
-        try:
-            request = service.search().list(
-                part="snippet",
-                q=query,
-                type="video",
-                relevanceLanguage=language_code,
-                maxResults=max_results
-            )
-            response = request.execute()
-            for item in response["items"]:
-                print(item["snippet"]["title"])
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_video_details_in_languages(self, video_id, languages):
-        """
-        This method allows you to retrieve video details (title and description) in 
-        different languages for a specific video identified by its video_id.
-        """
-        service = self.service
-
-        try:
-            for language in languages:
-                request = service.videos().list(
-                    part="snippet",
-                    id=video_id,
-                    hl=language
-                )
-                response = request.execute()
-
-                if "items" in response:
-                    video = response["items"][0]
-                    video_title = video["snippet"]["title"]
-                    video_description = video["snippet"]["description"]
-                    print(f"Language: {language}, Title: {video_title}, Description: {video_description}")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_videos_by_language(self, language_code, region_code="US", max_results=10):
-        service = self.service
-        try:
-            request = service.search().list(
-                part="snippet",
-                regionCode=region_code,
-                relevanceLanguage=language_code,
-                type="video",
-                maxResults=max_results
-            )
-            response = request.execute()
-            for item in response["items"]:
-                print(item["snippet"]["title"])
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-     
-    def get_video_category_by_region_and_language(self, region_code, language_code):
-        """
-        This method retrieves video categories available in a specific region_code and 
-        language_code. It prints information about each category, including its ID and title.
-        """
-        service = self.service
-
-        try:
-            request = service.videoCategories().list(
-                part="snippet",
-                regionCode=region_code,
-                hl=language_code
-            )
-            response = request.execute()
-
-            for category in response["items"]:
-                category_id = category["id"]
-                category_title = category["snippet"]["title"]
-                print(f"Category ID: {category_id}, Title: {category_title}")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def set_video_localizations(self, video_id, localizations):
-        """
-        This method allows you to set the title and description of a video 
-        in different languages. Provide a dictionary localizations where the 
-        keys are language codes, and the values are dictionaries containing 
-        the localized title and description for each language.
-        """
-        service = self.service
-
-        try:
-            for language, localization_data in localizations.items():
-                title = localization_data.get("title", "")
-                description = localization_data.get("description", "")
-
-                request = service.videos().update(
-                    part="snippet",
-                    body={
-                        "id": video_id,
-                        "snippet": {
-                            "title": title,
-                            "description": description,
-                            "defaultLanguage": language
-                        }
-                    }
-                )
-                response = request.execute()
-
-                print(f"Video details for language {language} updated successfully!")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_channel_details_in_languages(self, channel_id, languages):
-        """
-        This method allows you to retrieve channel details (title and description) in 
-        different languages for a specific channel identified by its channel_id.
-        """
-        service = self.service
-
-        try:
-            for language in languages:
+            try:
                 request = service.channels().list(
                     part="snippet",
-                    id=channel_id,
-                    hl=language
+                    id=channel_id
                 )
                 response = request.execute()
 
-                if "items" in response:
-                    channel = response["items"][0]
-                    channel_title = channel["snippet"]["title"]
-                    channel_description = channel["snippet"]["description"]
-                    print(f"Language: {language}, Channel Title: {channel_title}, Description: {channel_description}")
+                default_language = response.get("items", [])[0]["snippet"]["defaultLanguage"]
+                return default_language
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+            
+        def verify_video(self, video_id, country_code):
+            """
+            Verify if a video is available in a specific country using its ID.
+            """
+            service = self.service
 
-    def set_channel_localizations(self, channel_id, localizations):
-        """
-        This method allows you to set the title and description of a channel in 
-        different languages. Provide a dictionary localizations where the keys are 
-        language codes, and the values are dictionaries containing the localized 
-        title and description for each language
-        """
-        service = self.service
+            try:
+                # Get video details for the specified video ID and country code
+                request = service.videos().list(
+                    part="status",
+                    id=video_id,
+                    regionCode=country_code
+                )
+                response = request.execute()
 
-        try:
-            for language, localization_data in localizations.items():
-                title = localization_data.get("title", "")
-                description = localization_data.get("description", "")
+                video_status = response.get("items", [])[0]["status"]
+                is_available = video_status["uploadStatus"] == "processed" and video_status["privacyStatus"] == "public"
 
-                request = service.channels().update(
+                return is_available
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+
+        def search_videos_by_location(self, query, location, location_radius, max_results=10):
+            service = self.service
+            try:
+                request = service.search().list(
                     part="snippet",
-                    body={
-                        "id": channel_id,
-                        "snippet": {
-                            "title": title,
-                            "description": description,
-                            "defaultLanguage": language
-                        }
-                    }
+                    q=query,
+                    type="video",
+                    location=location,
+                    locationRadius=location_radius,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def search_videos_by_language(self, query, language_code, max_results=10):
+            service = self.service
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    q=query,
+                    type="video",
+                    relevanceLanguage=language_code,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_video_details_in_languages(self, video_id, languages):
+            """
+            This method allows you to retrieve video details (title and description) in 
+            different languages for a specific video identified by its video_id.
+            """
+            service = self.service
+
+            try:
+                for language in languages:
+                    request = service.videos().list(
+                        part="snippet",
+                        id=video_id,
+                        hl=language
+                    )
+                    response = request.execute()
+
+                    if "items" in response:
+                        video = response["items"][0]
+                        video_title = video["snippet"]["title"]
+                        video_description = video["snippet"]["description"]
+                        print(f"Language: {language}, Title: {video_title}, Description: {video_description}")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_videos_by_language(self, language_code, region_code="US", max_results=10):
+            service = self.service
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    regionCode=region_code,
+                    relevanceLanguage=language_code,
+                    type="video",
+                    maxResults=max_results
+                )
+                response = request.execute()
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
+        def get_video_category_by_region_and_language(self, region_code, language_code):
+            """
+            This method retrieves video categories available in a specific region_code and 
+            language_code. It prints information about each category, including its ID and title.
+            """
+            service = self.service
+
+            try:
+                request = service.videoCategories().list(
+                    part="snippet",
+                    regionCode=region_code,
+                    hl=language_code
                 )
                 response = request.execute()
 
-                print(f"Channel details for language {language} updated successfully!")
+                for category in response["items"]:
+                    category_id = category["id"]
+                    category_title = category["snippet"]["title"]
+                    print(f"Category ID: {category_id}, Title: {category_title}")
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
 
-    def list_available_caption_languages(self, video_id):
-        """
-        This method will retrieve a list of the available languages 
-        for caption tracks on YouTube.
-        """
-        service = self.service
+        def set_video_localizations(self, video_id, localizations):
+            """
+            This method allows you to set the title and description of a video 
+            in different languages. Provide a dictionary localizations where the 
+            keys are language codes, and the values are dictionaries containing 
+            the localized title and description for each language.
+            """
+            service = self.service
 
-        try:
-            request = service.captions().list(
-                part="snippet",
-                videoId=f"{video_id}"
-            )
-            response = request.execute()
+            try:
+                for language, localization_data in localizations.items():
+                    title = localization_data.get("title", "")
+                    description = localization_data.get("description", "")
 
-            languages = set()
-            for caption_track in response["items"]:
-                language = caption_track["snippet"]["language"]
-                languages.add(language)
+                    request = service.videos().update(
+                        part="snippet",
+                        body={
+                            "id": video_id,
+                            "snippet": {
+                                "title": title,
+                                "description": description,
+                                "defaultLanguage": language
+                            }
+                        }
+                    )
+                    response = request.execute()
 
-            print("Available caption languages:")
-            for language in languages:
-                print(language)
+                    print(f"Video details for language {language} updated successfully!")
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
 
-    def get_captions_in_languages(self, video_id, languages):
-        """
-        This method allows you to retrieve captions (subtitles) for a \
-        video in different languages. Provide a list of language codes, and 
-        it will return information about each caption in the specified languages.
-        """
-        service = self.service
+        def get_channel_details_in_languages(self, channel_id, languages):
+            """
+            This method allows you to retrieve channel details (title and description) in 
+            different languages for a specific channel identified by its channel_id.
+            """
+            service = self.service
 
-        try:
-            for language in languages:
+            try:
+                for language in languages:
+                    request = service.channels().list(
+                        part="snippet",
+                        id=channel_id,
+                        hl=language
+                    )
+                    response = request.execute()
+
+                    if "items" in response:
+                        channel = response["items"][0]
+                        channel_title = channel["snippet"]["title"]
+                        channel_description = channel["snippet"]["description"]
+                        print(f"Language: {language}, Channel Title: {channel_title}, Description: {channel_description}")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def set_channel_localizations(self, channel_id, localizations):
+            """
+            This method allows you to set the title and description of a channel in 
+            different languages. Provide a dictionary localizations where the keys are 
+            language codes, and the values are dictionaries containing the localized 
+            title and description for each language
+            """
+            service = self.service
+
+            try:
+                for language, localization_data in localizations.items():
+                    title = localization_data.get("title", "")
+                    description = localization_data.get("description", "")
+
+                    request = service.channels().update(
+                        part="snippet",
+                        body={
+                            "id": channel_id,
+                            "snippet": {
+                                "title": title,
+                                "description": description,
+                                "defaultLanguage": language
+                            }
+                        }
+                    )
+                    response = request.execute()
+
+                    print(f"Channel details for language {language} updated successfully!")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def list_available_caption_languages(self, video_id):
+            """
+            This method will retrieve a list of the available languages 
+            for caption tracks on YouTube.
+            """
+            service = self.service
+
+            try:
                 request = service.captions().list(
                     part="snippet",
-                    videoId=video_id,
-                    hl=language
+                    videoId=f"{video_id}"
                 )
                 response = request.execute()
 
-                if "items" in response:
-                    caption = response["items"][0]
-                    caption_language = caption["snippet"]["language"]
-                    caption_name = caption["snippet"]["name"]
-                    print(f"Language: {caption_language}, Caption Name: {caption_name}")
+                languages = set()
+                for caption_track in response["items"]:
+                    language = caption_track["snippet"]["language"]
+                    languages.add(language)
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
+                print("Available caption languages:")
+                for language in languages:
+                    print(language)
 
-    def set_captions_localizations(self, caption_track_id, localizations):
-        """
-        This method allows you to set the name and language of a caption track 
-        in different languages. Provide a dictionary localizations where the keys 
-        are language codes, and the values are dictionaries containing the localized 
-        caption name and language for each language.
-        """
-        service = self.service
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
 
-        try:
-            for language, localization_data in localizations.items():
-                caption_name = localization_data.get("caption_name", "")
-                caption_language = localization_data.get("caption_language", "")
+        def get_captions_in_languages(self, video_id, languages):
+            """
+            This method allows you to retrieve captions (subtitles) for a \
+            video in different languages. Provide a list of language codes, and 
+            it will return information about each caption in the specified languages.
+            """
+            service = self.service
 
-                request = service.captions().update(
-                    part="snippet",
-                    body={
-                        "id": caption_track_id,
-                        "snippet": {
-                            "name": caption_name,
-                            "language": caption_language
+            try:
+                for language in languages:
+                    request = service.captions().list(
+                        part="snippet",
+                        videoId=video_id,
+                        hl=language
+                    )
+                    response = request.execute()
+
+                    if "items" in response:
+                        caption = response["items"][0]
+                        caption_language = caption["snippet"]["language"]
+                        caption_name = caption["snippet"]["name"]
+                        print(f"Language: {caption_language}, Caption Name: {caption_name}")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def set_captions_localizations(self, caption_track_id, localizations):
+            """
+            This method allows you to set the name and language of a caption track 
+            in different languages. Provide a dictionary localizations where the keys 
+            are language codes, and the values are dictionaries containing the localized 
+            caption name and language for each language.
+            """
+            service = self.service
+
+            try:
+                for language, localization_data in localizations.items():
+                    caption_name = localization_data.get("caption_name", "")
+                    caption_language = localization_data.get("caption_language", "")
+
+                    request = service.captions().update(
+                        part="snippet",
+                        body={
+                            "id": caption_track_id,
+                            "snippet": {
+                                "name": caption_name,
+                                "language": caption_language
+                            }
                         }
-                    }
-                )
-                response = request.execute()
+                    )
+                    response = request.execute()
 
-                print(f"Caption details for language {caption_language} updated successfully!")
+                    print(f"Caption details for language {caption_language} updated successfully!")
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
 
-    def get_thumbnails_in_languages(self, video_id, languages):
-        """
-        This method allows you to retrieve video thumbnails in different languages. 
-        Provide a list of language codes, and it will return the URL of the default 
-        thumbnail in each specified language
-        """
-        service = self.service
+        def get_thumbnails_in_languages(self, video_id, languages):
+            """
+            This method allows you to retrieve video thumbnails in different languages. 
+            Provide a list of language codes, and it will return the URL of the default 
+            thumbnail in each specified language
+            """
+            service = self.service
 
-        try:
-            for language in languages:
-                request = service.thumbnails().set(
+            try:
+                for language in languages:
+                    request = service.thumbnails().set(
+                        videoId=video_id,
+                        language=language
+                    )
+                    response = request.execute()
+
+                    if "items" in response:
+                        thumbnails = response["items"]
+                        thumbnail_default = thumbnails[0]["default"]["url"]
+                        print(f"Language: {language}, Default Thumbnail URL: {thumbnail_default}")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def set_thumbnail_localizations(self, video_id, localizations):
+            """
+            This method allows you to set the thumbnail URL for a video in 
+            different languages. Provide a dictionary localizations where the 
+            keys are language codes, and the values are dictionaries containing 
+            the localized thumbnail URL for each language.
+            """
+            service = self.service
+
+            try:
+                for language, localization_data in localizations.items():
+                    thumbnail_url = localization_data.get("thumbnail_url", "")
+
+                    request = service.thumbnails().set(
+                        videoId=video_id,
+                        language=language,
+                        media_body=thumbnail_url
+                    )
+                    response = request.execute()
+
+                    print(f"Thumbnail URL for language {language} set successfully!")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+    #//////////// ABUSE REPORT ///////////
+    class AbuseReport:
+        def __init__(self, ytd_api_tools: object) -> None:
+            self.service = ytd_api_tools.service
+        
+        def report_video(self, video_id, reason, additional_comments=None):
+            """
+            This method allows users to report a video for abuse. The reason parameter 
+            specifies the reason for reporting, and additional_comments can be used to 
+            provide additional context.
+            """
+            service = self.service
+
+            try:
+                request = service.videos().reportAbuse(
+                    part="snippet",
                     videoId=video_id,
-                    language=language
+                    reasonId=reason,
+                    comments=additional_comments
                 )
                 response = request.execute()
 
-                if "items" in response:
-                    thumbnails = response["items"]
-                    thumbnail_default = thumbnails[0]["default"]["url"]
-                    print(f"Language: {language}, Default Thumbnail URL: {thumbnail_default}")
+                print(f"Video with ID {video_id} reported for abuse successfully!")
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
 
-    def set_thumbnail_localizations(self, video_id, localizations):
-        """
-        This method allows you to set the thumbnail URL for a video in 
-        different languages. Provide a dictionary localizations where the 
-        keys are language codes, and the values are dictionaries containing 
-        the localized thumbnail URL for each language.
-        """
-        service = self.service
+        def report_channel(self, channel_id, reason, additional_comments=None):
+            """
+            This method allows users to report a channel for abuse. The reason parameter 
+            specifies the reason for reporting, and additional_comments can be used to 
+            provide additional context.
+            """
+            service = self.service
 
-        try:
-            for language, localization_data in localizations.items():
-                thumbnail_url = localization_data.get("thumbnail_url", "")
-
-                request = service.thumbnails().set(
-                    videoId=video_id,
-                    language=language,
-                    media_body=thumbnail_url
+            try:
+                request = service.channels().reportAbuse(
+                    part="snippet",
+                    channelId=channel_id,
+                    reasonId=reason,
+                    comments=additional_comments
                 )
                 response = request.execute()
 
-                print(f"Thumbnail URL for language {language} set successfully!")
+                print(f"Channel with ID {channel_id} reported for abuse successfully!")
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
 
-    #//////////// REPORTING ABUSE ////////////
-    
-    def report_video(self, video_id, reason, additional_comments=None):
-        """
-        This method allows users to report a video for abuse. The reason parameter 
-        specifies the reason for reporting, and additional_comments can be used to 
-        provide additional context.
-        """
-        service = self.service
+        def report_playlist(self, playlist_id, reason, additional_comments=None):
+            """
+            This method allows users to report a playlist for abuse. The reason 
+            parameter specifies the reason for reporting, and additional_comments 
+            can be used to provide additional context
+            """
+            service = self.service
+            try:
+                request = service.playlists().reportAbuse(
+                    part="snippet",
+                    playlistId=playlist_id,
+                    reasonId=reason,
+                    comments=additional_comments
+                )
+                response = request.execute()
 
-        try:
-            request = service.videos().reportAbuse(
-                part="snippet",
-                videoId=video_id,
-                reasonId=reason,
-                comments=additional_comments
-            )
-            response = request.execute()
+                print(f"Playlist with ID {playlist_id} reported for abuse successfully!")
 
-            print(f"Video with ID {video_id} reported for abuse successfully!")
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
+        def get_abuse_report_reason_categories(self):
+            """
+            This method retrieves the categories of abuse report reasons 
+            available on YouTube. It lists the categories and their corresponding IDs.
+            """
+            service = self.service
 
-    def report_channel(self, channel_id, reason, additional_comments=None):
-        """
-        This method allows users to report a channel for abuse. The reason parameter 
-        specifies the reason for reporting, and additional_comments can be used to 
-        provide additional context.
-        """
-        service = self.service
+            try:
+                request = service.videoAbuseReportReasons().list(
+                    part="snippet"
+                )
+                response = request.execute()
 
-        try:
-            request = service.channels().reportAbuse(
-                part="snippet",
-                channelId=channel_id,
-                reasonId=reason,
-                comments=additional_comments
-            )
-            response = request.execute()
+                for reason_category in response["items"]:
+                    category_id = reason_category["id"]
+                    category_label = reason_category["snippet"]["label"]
+                    print(f"Category ID: {category_id}, Label: {category_label}")
 
-            print(f"Channel with ID {channel_id} reported for abuse successfully!")
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
+        def get_abuse_report_reasons_in_category(self, category_id):
+            """
+            This method retrieves the abuse report reasons available within 
+            a specific category_id. It lists the reasons and their corresponding IDs.
+            """
+            service = self.service
 
-    def report_playlist(self, playlist_id, reason, additional_comments=None):
-        """
-        This method allows users to report a playlist for abuse. The reason 
-        parameter specifies the reason for reporting, and additional_comments 
-        can be used to provide additional context
-        """
-        service = self.service
-        try:
-            request = service.playlists().reportAbuse(
-                part="snippet",
-                playlistId=playlist_id,
-                reasonId=reason,
-                comments=additional_comments
-            )
-            response = request.execute()
+            try:
+                request = service.videoAbuseReportReasons().list(
+                    part="snippet",
+                    hl="en",
+                    videoId=category_id
+                )
+                response = request.execute()
 
-            print(f"Playlist with ID {playlist_id} reported for abuse successfully!")
+                for reason in response["items"]:
+                    reason_id = reason["id"]
+                    reason_label = reason["snippet"]["label"]
+                    print(f"Reason ID: {reason_id}, Label: {reason_label}")
 
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
 
-    def get_abuse_report_reason_categories(self):
-        """
-        This method retrieves the categories of abuse report reasons 
-        available on YouTube. It lists the categories and their corresponding IDs.
-        """
-        service = self.service
-
-        try:
-            request = service.videoAbuseReportReasons().list(
-                part="snippet"
-            )
-            response = request.execute()
-
-            for reason_category in response["items"]:
-                category_id = reason_category["id"]
-                category_label = reason_category["snippet"]["label"]
-                print(f"Category ID: {category_id}, Label: {category_label}")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    def get_abuse_report_reasons_in_category(self, category_id):
-        """
-        This method retrieves the abuse report reasons available within 
-        a specific category_id. It lists the reasons and their corresponding IDs.
-        """
-        service = self.service
-
-        try:
-            request = service.videoAbuseReportReasons().list(
-                part="snippet",
-                hl="en",
-                videoId=category_id
-            )
-            response = request.execute()
-
-            for reason in response["items"]:
-                reason_id = reason["id"]
-                reason_label = reason["snippet"]["label"]
-                print(f"Reason ID: {reason_id}, Label: {reason_label}")
-
-        except googleapiclient.errors.HttpError as e:
-            print(f"An error occurred: {e}")
-
-    
-    
+        
+        
