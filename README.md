@@ -3,7 +3,7 @@
 ![YouTubeDataAPIv3Tools](./docs/youtube_data_api_tools.png)
 
 > YouTube Data API v3 Tools is a concise wrapper around the YouTube API. The `YouTubeDataAPIv3Tools` class 
-> contains over 300 methods to interact with YouTube. These methods cover all categories such as videos, playlists, 
+> contains hundreds of methods to interact with YouTube. These methods cover all categories such as videos, playlists, 
 > channels, thumbnails, localization etc. I made sure to cover all the bases.
 
 ## [Setup](#setup)
@@ -99,15 +99,42 @@ The constructor will call the `get_authenticated_service()` method which will us
 ***client_secret.json*** file to authenticate the user and will store the authorization token in 
 a ***token.pickle*** file. Pretty much all of the YouTubeDataAPIv3Tools class methods and
 subclass methods rely on this authentication, so the service returned from `get_authenticated_service` 
-will be stored in a class variable called `self.service` This way we are using the same instance of
-the authentication service in subsequent method calls. 
+will be stored in a class variable called `self.service` and passed to each sub-classes constructor.
+This way we are using the same instance of the authentication service in subsequent method calls.
 
 If no calls to the API are made after a few minutes the user will have to reauthenticate and
 grant the app permissions again in the browser. The ***token.pickle*** file will no
 longer work until this is done.
 
-Note: The `token.pickle` file is important because without it the reauthentication process has to 
+> Note: The `token.pickle` file is important because without it the reauthentication process has to 
 be done with every individual call to the YouTube Data API.
+
+Once you have created the `YouTubeDataAPIv3Tools` object. The following subclasses are available:
+
+- YouTubeDataAPIv3Tools.Channel
+- YouTubeDataAPIv3Tools.ChannelBanner
+- YouTubeDataAPIv3Tools.ChannelSection
+- YouTubeDataAPIv3Tools.Playlist
+- YouTubeDataAPIv3Tools.PlaylistItem
+- YouTubeDataAPIv3Tools.Video
+- YouTubeDataAPIv3Tools.VideoCategories
+- YouTubeDataAPIv3Tools.VideoAbuseReportReason
+- YouTubeDataAPIv3Tools.Captions
+- YouTubeDataAPIv3Tools.Subscriptions
+- YouTubeDataAPIv3Tools.Members
+- YouTubeDataAPIv3Tools.MembershipLevel
+- YouTubeDataAPIv3Tools.Comment
+- YouTubeDataAPIv3Tools.CommentThread
+- YouTubeDataAPIv3Tools.Thumbnail
+- YouTubeDataAPIv3Tools.WaterMark
+- YouTubeDataAPIv3Tools.Activity
+- YouTubeDataAPIv3Tools.Search
+- YouTubeDataAPIv3Tools.LiveBroadcasts
+- YouTubeDataAPIv3Tools.Localization
+- YouTubeDataAPIv3Tools.AbuseReport
+
+These classes wrap each resource type and contain a ton of methods to interact 
+with them in various ways.
 
 ---
 
