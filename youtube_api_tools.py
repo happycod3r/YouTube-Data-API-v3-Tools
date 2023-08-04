@@ -103,39 +103,71 @@ class YouTubeDataAPIv3Tools:
         
         self.service = self.get_authenticated_service()
         
-    def add_scope(self, scope: str) -> list:
+    def add_scope(self, scope: str) -> (list | None):
         """
         This method will add the given scope to the list of scopes held
         in the SCOPES list.
         """
-        self.api_scopes.append(scope)
-        return self.api_scopes
+        try:
+            for i in range(len(self.api_scopes)):
+                if self.api_scopes[i] == scope:
+                    return None
+                else:
+                    self.api_scopes.append(scope)
+                    return self.api_scopes
+        except IndexError as ie:
+            print(f"Index Error.\n{ie}")
+            return None
+        except TypeError as te:
+            print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+            return None
         
-    def add_scopes(self, scopes: list[str]) -> list:
+    def add_scopes(self, scopes: list[str]) -> (list | None):
         """
         Adds API scopes to the list of scopes that you want to use and
         returns the new list.
         """
-        for i in range(len(scopes)):
-            self.api_scopes.append(scopes[i])
+        try:
+            for i in range(len(scopes)):
+                self.api_scopes.append(scopes[i])
             return self.api_scopes
+        except IndexError as ie:
+            print(f"Index Error.\n{ie}")
+            return None
+        except TypeError as te:
+            print(f"Type error: You may have forgotten to enclose the list of scopes with square brackets [scope1, scope2, ...] !\n{te}")
+            return None
             
-    def remove_scope(self, scope: str) -> list:
+    def remove_scope(self, scope: str) -> (list | None):
         """
         Removes the given scope from the list of scopes being used and
         returns the new list.
         """
-        for _scope in range(len(self.api_scopes)):
-            if self.api_scopes[_scope] == scope:
-                self.api_scopes.pop(_scope)
-                return self.api_scopes
+        try:
+            for _scope in range(len(self.api_scopes)):
+                if self.api_scopes[_scope] == scope:
+                    self.api_scopes.pop(_scope)
+                    return self.api_scopes
+        except IndexError as ie:
+            print(f"Index Error.\n{ie}")
+            return None
+        except TypeError as te:
+            print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+            return None
      
-    def remove_scopes(self, scopes: list) -> list:
-        for i in range(len(scopes)):
-            for j in range(len(self.api_scopes)):
-                if self.api_scopes[j] == scopes[i]:
-                    self.api_scopes.pop(j)           
-        return self.api_scopes
+    def remove_scopes(self, scopes: list) -> (list | None):
+        try:
+            for i in range(len(scopes)):
+                for j in range(len(self.api_scopes)):
+                    if self.api_scopes[j] == scopes[i]:
+                        self.api_scopes.pop(j)
+            return self.api_scopes
+        except IndexError as ie:
+            print(f"Index Error.\n{ie}")
+            return None
+        except TypeError as te:
+            print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+            return None
         
     def set_client_secrets_json(self, client_secrets_json: str) -> bool:
         """
@@ -205,51 +237,241 @@ class YouTubeDataAPIv3Tools:
         def __init__(self, ytd_api_tools: object) -> None:
             self.service = ytd_api_tools.service
         
-        def get_channel_id(self, channel_identifier):
+        #////// UTILITY METHODS //////
+        def get_channel_numbers(self, channel_id: str) -> (dict | None):
             service = self.service
 
             try:
                 request = service.channels().list(
-                    part="id",
-                    forUsername=channel_identifier  # Use 'forUsername' for channel's username or 'id' for channel URL
+                    part="snippet,statistics",
+                    id=channel_id
                 )
                 response = request.execute()
 
-                if response.get("items"):
-                    channel_id = response["items"][0]["id"]
-                    return channel_id
-
-                return None
-
+                channel = response["items"][0]
+                numbers = {
+                    "viewCount": channel['statistics']['viewCount'],
+                    "videoCount": channel['statistics']['videoCount'],
+                    "subscriberCount": channel['statistics']['subscriberCount'] 
+                }
+                return numbers
             except googleapiclient.errors.HttpError as e:
-                print(f"An HTTP error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-            except IndexError:
-                print(f"Channel not found for '{channel_identifier}'.")
+        def get_channel_videos(self, channel_id: str, max_results: int=100) -> (list[dict] | None):
+            service = self.service
+            try:
+                request = service.search().list(
+                part="snippet",
+                channelId=channel_id,
+                type="video",
+                maxResults=max_results
+                )
+                response = request.execute()
+                videos = []
+                for item in response["items"]:
+                    videos.append(item)
+                return videos
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
                 return None
-
-        def get_channel_name(self, channel_id):
-            """
-            This method allows you to retrieve the name (title) of a 
-            channel with the specified channel_id.
-            """
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+            
+        def get_channel_sections(self, channel_id: str) -> (list[str] | None):
             service = self.service
 
+            try:
+                request = service.channelSections().list(
+                    part="snippet",
+                    channelId=channel_id
+                )
+                response = request.execute()
+
+                sections = []
+                for item in response["items"]:
+                    sections.append(item)
+                return sections
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        def get_channel_section_ids(self, channel_id: str) -> (list[str] | None):
+            service = self.service
+
+            try:
+                request = service.channelSections().list(
+                    part="snippet",
+                    channelId=channel_id
+                )
+                response = request.execute()
+
+                ids = []
+                for item in response["items"]:
+                    ids.append(item["id"])
+                return ids
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        def iterate_channel_sections(self, channel_id: str, func: object) -> (list[str] | None):
+            service = self.service
+
+            try:
+                request = service.channelSections().list(
+                    part="snippet",
+                    channelId=channel_id
+                )
+                response = request.execute()
+
+                for item in response["items"]:
+                    func(item)
+                return True
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        #////// ENTIRE CHANNEL RESOURCE //////
+        def get_channel(self, channel_id: str) -> (dict | None):
+            service = self.service
             try:
                 channel = service.channels().list(
                     part="snippet",
                     id=channel_id
                 ).execute()
 
-                channel_name = channel["items"][0]["snippet"]["title"]
-                return channel_name
-
+                channel = channel["items"][0]
+                return channel
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_channel_id_by_name(self, channel_name):
+        #////// CHANNEL KIND //////
+        def get_channel_kind(self, channel_id: str) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                kind = channel["items"][0]["kind"]
+                return kind
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+    
+        #////// CHANNEL ETAG //////
+        def get_channel_etag(self, channel_id: str) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                etag = channel["items"][0]["etag"]
+                return etag
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+    
+        #////// CHANNEL ID //////
+        def get_channel_id(self, channel_id: str) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="id",
+                    id=channel_id
+                ).execute()
+
+                id = channel["items"][0]["id"]
+                return id
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        def get_channel_id_by_name(self, channel_name: str) -> (str | None):
             """ 
             This method takes the channel_name as input and returns 
             the corresponding channel ID. It uses the search.list method 
@@ -275,10 +497,71 @@ class YouTubeDataAPIv3Tools:
                     return None
 
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def change_channel_name(self, channel_id, new_name):
+        #////// CHANNEL SNIPPET //////
+        def get_channel_snippet(self, channel_id) -> (dict | None):
+            service = self.service
+
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                snippet = channel["items"][0]["snippet"]
+                return snippet
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        #////// CHANNEL TITLE //////
+        def get_channel_title(self, channel_id) -> (str | None):
+            service = self.service
+
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                title = channel["items"][0]["snippet"]["title"]
+                return title
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        def change_channel_title(self, channel_id, new_name) -> (str | None):
             service = self.service
 
             try:
@@ -298,172 +581,23 @@ class YouTubeDataAPIv3Tools:
                     }
                 ).execute()
 
-                print(f"Channel with ID {channel_id} name changed to '{new_name}' successfully!")
+                return self.get_channel_title(channel_id)
 
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def get_channels(self):
-            """
-            Retrieve information about channels that the authenticated user is 
-            subscribed to:
-            """
-            service = self.service
-
-            try:
-                channels = []
-
-                request = service.subscriptions().list(
-                    part="snippet",
-                    mine=True,
-                    maxResults=50
-                )
-
-                while request is not None:
-                    response = request.execute()
-
-                    for item in response.get("items", []):
-                        channel_id = item["snippet"]["resourceId"]["channelId"]
-                        channel_title = item["snippet"]["title"]
-                        channels.append({
-                            "channel_id": channel_id,
-                            "channel_title": channel_title
-                        })
-
-                    request = service.subscriptions().list_next(request, response)
-
-                return channels
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def subscribe_to_channel(self, channel_id):
-            """
-            Subscribe to a channel using its ID
-            """
-            service = self.service
-            try:
-                service.subscriptions().insert(
-                    part="snippet",
-                    body={
-                        "snippet": {
-                            "resourceId": {
-                                "kind": "youtube#channel",
-                                "channelId": channel_id
-                            }
-                        }
-                    }
-                ).execute()
-                return True
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def unsubscribe_from_channel(self, channel_id):
-            """
-            Unsubscribe from a channel using it's ID.
-            """
-            service = self.service
-
-            try:
-                # First, get the subscription ID for the specified channel
-                request = service.subscriptions().list(
-                    part="id",
-                    mine=True,
-                    forChannelId=channel_id
-                )
-                response = request.execute()
-
-                if response.get("items"):
-                    subscription_id = response["items"][0]["id"]
-
-                    # Unsubscribe from the channel using the subscription ID
-                    service.subscriptions().delete(
-                        id=subscription_id
-                    ).execute()
-
-                    print(f"Unsubscribed from the channel with ID {channel_id} successfully!")
-                else:
-                    print(f"You are not subscribed to the channel with ID {channel_id}.")
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-        
-        def iterate_subscriptions_in_channel(self, channel_id):
-            """
-            Iterate over the subscriptions in a channel.
-            """
-            service = self.service
-
-            try:
-                subscriptions = []
-
-                request = service.subscriptions().list(
-                    part="snippet",
-                    channelId=channel_id,
-                    maxResults=50
-                )
-
-                while request is not None:
-                    response = request.execute()
-
-                    for item in response.get("items", []):
-                        subscribed_channel_id = item["snippet"]["resourceId"]["channelId"]
-                        subscribed_channel_title = item["snippet"]["title"]
-                        subscriptions.append({
-                            "subscribed_channel_id": subscribed_channel_id,
-                            "subscribed_channel_title": subscribed_channel_title
-                        })
-
-                    request = service.subscriptions().list_next(request, response)
-
-                return subscriptions
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-
-        def get_subscriptions_channel_ids(self):
-            """
-            retrieves the channel IDs of the channels to which the authenticated 
-            user is subscribed. The function uses pagination to handle cases 
-            where the user has more than 50 subscriptions (the default API result limit).
-            """
-            service = self.service
-
-            try:
-                channel_ids = []
-
-                # Set the 'mine' parameter to True to get subscriptions of the authenticated user
-                request = service.subscriptions().list(
-                    part="snippet",
-                    mine=True,
-                    maxResults=50  # Adjust the number of results as needed
-                )
-
-                while request is not None:
-                    response = request.execute()
-
-                    # Extract channel IDs from the response
-                    for item in response.get("items", []):
-                        channel_id = item["snippet"]["resourceId"]["channelId"]
-                        channel_ids.append(channel_id)
-
-                    # Check if there are more subscriptions to fetch
-                    request = service.subscriptions().list_next(request, response)
-
-                return channel_ids
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-
-        def get_channel_snippet(self, channel_id):
-            """
-            This method allows you to retrieve the snippet of a channel with 
-            the specified channel_id. It returns the snippet data, which includes 
-            information like the channel's title, description, and profile picture.
-            """
+        #////// CHANNEL DESCRIPTION //////
+        def get_channel_description(self, channel_id) -> (str | None):
             service = self.service
 
             try:
@@ -472,288 +606,1697 @@ class YouTubeDataAPIv3Tools:
                     id=channel_id
                 ).execute()
 
-                snippet = channel["items"][0]["snippet"]
-                return snippet
+                desc = channel["items"][0]["snippet"]["description"]
+                return desc
 
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_channel_info(self, channel_id):
+        #////// CHANNEL CUSTOM URL //////
+        def get_channel_custom_url(self, channel_id) -> (str | None):
             service = self.service
 
             try:
-                request = service.channels().list(
-                    part="snippet,statistics",
+                channel = service.channels().list(
+                    part="snippet",
                     id=channel_id
-                )
-                response = request.execute()
+                ).execute()
 
-                channel = response["items"][0]
-                print(f"Channel Title: {channel['snippet']['title']}")
-                print(f"Subscriber Count: {channel['statistics']['subscriberCount']}")
-                print(f"Video Count: {channel['statistics']['videoCount']}")
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def get_channel_videos(self, channel_id, max_results=100):
-            service = self.service
-            try:
-                request = service.search().list(
-                part="snippet",
-                channelId=channel_id,
-                type="video",
-                maxResults=max_results
-                )
-                response = request.execute()
-                for item in response["items"]:
-                    print(item["snippet"]["title"])
-            except googleapiclient.errors.HttpError as e:
-                print(f"googleapiclient.errors.HttpError:\n {e}")
-            except UnicodeEncodeError as uee:
-                print(f"UnicodeEncodeError:\nUnable to encode one or more characters in a video title.\nMost likely an emoji\n{uee}")
-
-        def get_featured_channels(self, channel_id):
-            service = self.service
-
-            try:
-                request = service.channels().list(
-                    part="snippet,brandingSettings",
-                    id=channel_id
-                )
-                response = request.execute()
-
-                featured_channels = response["items"][0]["brandingSettings"]["channel"]["featuredChannelsUrls"]
-                for channel_url in featured_channels:
-                    print(channel_url)
+                url = channel["items"][0]["snippet"]["customUrl"]
+                return url
 
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def get_channel_sections(self, channel_id):
-            service = self.service
-
-            try:
-                request = service.channelSections().list(
-                    part="snippet",
-                    channelId=channel_id
-                )
-                response = request.execute()
-
-                for item in response["items"]:
-                    print(item["snippet"]["title"] )
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def get_channel_subscribers(self, channel_id):
-            service = self.service
-
-            try:
-                request = service.channels().list(
-                    part="statistics",
-                    id=channel_id
-                )
-                response = request.execute()
-
-                subscriber_count = response["items"][0]["statistics"]["subscriberCount"]
-                print(f"Channel '{channel_id}' has {subscriber_count} subscribers.")
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def get_latest_subscriptions(self, max_results=10):
-            service = self.service
-            try:
-                request = service.subscriptions().list(
-                    part="snippet",
-                    mine=True,
-                    maxResults=max_results,
-                    order="newest"
-                )
-                response = request.execute()
-
-                for subscription in response["items"]:
-                    channel_title = subscription["snippet"]["title"]
-                    channel_id = subscription["snippet"]["resourceId"]["channelId"]
-                    print(f"Subscribed Channel: {channel_title} (Channel ID: {channel_id})")
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def get_subscribed_channels(self, max_results=10):
-            service = self.service
-            try:
-                request = service.subscriptions().list(
-                    part="snippet",
-                    mine=True,
-                    maxResults=max_results
-                )
-                response = request.execute()
-
-                for subscription in response["items"]:
-                    channel_title = subscription["snippet"]["title"]
-                    channel_id = subscription["snippet"]["resourceId"]["channelId"]
-                    print(f"Subscribed Channel: {channel_title} (Channel ID: {channel_id})")
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def is_subscribed_to_channel(self, channel_id):
-            service = self.service
-
-            try:
-                request = service.subscriptions().list(
-                    part="snippet",
-                    mine=True,
-                    forChannelId=channel_id
-                )
-                response = request.execute()
-
-                if "items" in response and len(response["items"]) > 0:
-                    return True
-                else:
-                    return False
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return False
-
-        def subscribe_to_channel(self, channel_id):
-            service = self.service
-
-            try:
-                request = service.subscriptions().insert(
-                    part="snippet",
-                    body={
-                        "snippet": {
-                            "resourceId": {
-                                "kind": "youtube#channel",
-                                "channelId": channel_id
-                            }
-                        }
-                    }
-                )
-                response = request.execute()
-
-                print("Subscribed successfully!")
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def unsubscribe_from_channel(self, channel_id):
-            service = self.service
-
-            try:
-                request = service.subscriptions().delete(
-                    id=channel_id
-                )
-                response = request.execute()
-
-                print("Unsubscribed successfully!")
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def get_subscription_count(self, channel_id):
-            service = self.service
-            try:
-                request = service.channels().list(
-                    part="statistics",
-                    id=channel_id
-                )
-                response = request.execute()
-                if "items" in response:
-                    channel_info = response["items"][0]
-                    if "statistics" in channel_info:
-                        subscription_count = channel_info["statistics"].get("subscriberCount", 0)
-                        return int(subscription_count)
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-            return 0
-
-        def get_my_subscription_count(self):
-            service = self.service
-
-            try:
-                request = service.subscriptions().list(
-                    part="subscriberSnippet",
-                    mine=True
-                )
-                response = request.execute()
-
-                subscription_count = response.get("pageInfo", {}).get("totalResults", 0)
-                return int(subscription_count)
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-            return 0
-
-        def get_subscriber_counts(self, channel_ids):
-            service = self.service
-            try:
-                request = service.channels().list(
-                    part="statistics",
-                    id=",".join(channel_ids)
-                )
-                response = request.execute()
-
-                subscriber_counts = {}
-                for channel_info in response["items"]:
-                    channel_id = channel_info["id"]
-                    if "statistics" in channel_info:
-                        subscriber_count = channel_info["statistics"].get("subscriberCount", 0)
-                        subscriber_counts[channel_id] = int(subscriber_count)
-
-                return subscriber_counts
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-            return {}
-
-        def get_channel_related_channels(self, channel_id, max_results=10):
-            service = self.service
-
-            try:
-                request = service.channels().list(
-                    part="snippet",
-                    relatedToChannelId=channel_id,
-                    type="channel",
-                    maxResults=max_results
-                )
-                response = request.execute()
-
-                for item in response["items"]:
-                    print(item["snippet"]["title"])
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
         
-        def search_channels(self, query, max_results=10):
+        #////// CHANNEL PUBLISHED DATE //////
+        def get_channel_published_date(self, channel_id) -> (str | None):
             service = self.service
 
             try:
-                request = service.search().list(
+                channel = service.channels().list(
                     part="snippet",
-                    q=query,
-                    type="channel",
-                    maxResults=max_results
-                )
-                response = request.execute()
+                    id=channel_id
+                ).execute()
 
-                for item in response["items"]:
-                    print(item["snippet"]["title"])
+                date = channel["items"][0]["snippet"]["publishedAt"]
+                return date
 
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")        
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL THUMBNAILS //////
+        def get_channel_thumbnails(self, channel_id) -> (dict | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                thumbnails = channel["items"][0]["snippet"]["thumbnails"]
+                return thumbnails
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+           
+        #////// CHANNEL DEFAULT RES THUMBNAIL //////
+        def get_channel_default_res_thumbnail(self, channel_id) -> (dict | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                thumbnail = channel["items"][0]["snippet"]["thumbnails"]["default"]
+                return thumbnail
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+         
+        def get_channel_default_res_thumbnail_url(self, channel_id) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                url = channel["items"][0]["snippet"]["thumbnails"]["default"]["url"]
+                return url
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+         
+        def get_channel_default_res_thumbnail_width(self, channel_id) -> (int | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                width = channel["items"][0]["snippet"]["thumbnails"]["default"]["width"]
+                return int(width)
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+          
+        def get_channel_default_res_thumbnail_height(self, channel_id) -> (int | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                height = channel["items"][0]["snippet"]["thumbnails"]["default"]["height"]
+                return int(height)
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+          
+        #////// CHANNEL MEDIUM RES THUMBNAIL //////
+        def get_channel_medium_res_thumbnail(self, channel_id) -> (dict | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                thumbnail = channel["items"][0]["snippet"]["thumbnails"]["medium"]
+                return thumbnail
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_channel_medium_res_thumbnail_url(self, channel_id) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                url = channel["items"][0]["snippet"]["thumbnails"]["medium"]["url"]
+                return url
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+         
+        def get_channel_medium_res_thumbnail_width(self, channel_id) -> (int | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                width = channel["items"][0]["snippet"]["thumbnails"]["medium"]["width"]
+                return int(width)
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+          
+        def get_channel_medium_res_thumbnail_height(self, channel_id) -> (int | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                height = channel["items"][0]["snippet"]["thumbnails"]["medium"]["height"]
+                return int(height)
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+          
+        #////// CHANNEL HIGH RES THUMBNAIL //////
+        def get_channel_high_res_thumbnail(self, channel_id) -> (dict | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                thumbnail = channel["items"][0]["snippet"]["thumbnails"]["high"]
+                return thumbnail
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_channel_high_res_thumbnail_url(self, channel_id) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                url = channel["items"][0]["snippet"]["thumbnails"]["high"]["url"]
+                return url
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+         
+        def get_channel_high_res_thumbnail_width(self, channel_id) -> (int | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                width = channel["items"][0]["snippet"]["thumbnails"]["high"]["width"]
+                return int(width)
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+          
+        def get_channel_high_res_thumbnail_height(self, channel_id) -> (int | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                height = channel["items"][0]["snippet"]["thumbnails"]["high"]["height"]
+                return int(height)
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+          
+        #////// CHANNEL STANDARD RES THUMBNAIL //////
+        def get_channel_standard_res_thumbnail(self, channel_id) -> (dict | None):
+            service = self.service
+            try:
+                channel = service.videos().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                thumbnail = channel["items"][0]["snippet"]["thumbnails"]["standard"]
+                return thumbnail
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_channel_standard_res_thumbnail_url(self, channel_id) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                thumbnail = channel["items"][0]["snippet"]["thumbnails"]["standard"]["url"]
+                return thumbnail
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+         
+        def get_channel_standard_res_thumbnail_width(self, channel_id) -> (int | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                width = channel["items"][0]["snippet"]["thumbnails"]["standard"]["width"]
+                return int(width)
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+          
+        def get_channel_standard_res_thumbnail_height(self, channel_id) -> (int | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                height = channel["items"][0]["snippet"]["thumbnails"]["standard"]["height"]
+                return int(height)
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+         
+        #////// CHANNEL MAX RES THUMBNAIL //////
+        def get_channel_max_res_thumbnail(self, channel_id) -> (dict | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                thumbnail = channel["items"][0]["snippet"]["thumbnails"]["maxres"]
+                return thumbnail
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_channel_max_res_thumbnail_url(self, channel_id) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                thumbnail = channel["items"][0]["snippet"]["thumbnails"]["maxres"]["url"]
+                return thumbnail
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+         
+        def get_channel_max_res_thumbnail_width(self, channel_id) -> (int | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                width = channel["items"][0]["snippet"]["thumbnails"]["maxres"]["width"]
+                return int(width)
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+          
+        def get_channel_max_res_thumbnail_height(self, channel_id) -> (int | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                height = channel["items"][0]["snippet"]["thumbnails"]["maxres"]["height"]
+                return int(height)
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+                
+        #////// CHANNEL DEFAULT LANGUAGE //////
+        def get_channel_default_language(self, channel_id) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                lang = channel["items"][0]["snippet"]["defaultLanguage"]
+                return lang
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL LOCALIZED DATA //////
+        def get_channel_localized_data(self, channel_id) -> (dict | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                data = channel["items"][0]["snippet"]["localized"]
+                return data
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL LOCALIZED TITLE //////
+        def get_channel_localized_title(self, channel_id) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                title = channel["items"][0]["snippet"]["localized"]["title"]
+                return title
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
     
+        #////// CHANNEL LOCALIZED DESCRIPTION //////
+        def get_channel_localized_description(self, channel_id) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                description = channel["items"][0]["snippet"]["localized"]["description"]
+                return description
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL COUNTRY //////
+        def get_channel_country(self, channel_id) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="snippet",
+                    id=channel_id
+                ).execute()
+
+                country = channel["items"][0]["snippet"]["country"]
+                return country
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL CONTENT DETAILS //////
+        def get_channel_content_details(self, channel_id) -> (dict | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="contentDetails",
+                    id=channel_id
+                ).execute()
+
+                details = channel["items"][0]["contentDetails"]
+                return details
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        #////// CHANNEL RELATED PLAYLISTS //////
+        def get_channel_related_playlists(self, channel_id) -> (dict | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="contentDetails",
+                    id=channel_id
+                ).execute()
+
+                playlists = channel["items"][0]["contentDetails"]["relatedPlaylists"]
+                return playlists
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL LIKES //////
+        def get_channel_likes(self, channel_id) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="contentDetails",
+                    id=channel_id
+                ).execute()
+
+                likes = channel["items"][0]["contentDetails"]["relatedPlaylists"]["likes"]
+                return likes
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL FAVORITES //////
+        def get_channel_likes(self, channel_id) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="contentDetails",
+                    id=channel_id
+                ).execute()
+
+                favs = channel["items"][0]["contentDetails"]["relatedPlaylists"]["favorites"]
+                return favs
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL UPLOADS //////
+        def get_channel_uploads(self, channel_id) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="contentDetails",
+                    id=channel_id
+                ).execute()
+
+                uploads = channel["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
+                return uploads
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL STATISTICS //////
+        def get_channel_statistics(self, channel_id) -> (dict | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="statistics",
+                    id=channel_id
+                ).execute()
+
+                statistics = channel["items"][0]["statistics"]
+                return statistics
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL VIEW COUNT //////
+        def get_channel_view_count(self, channel_id) -> (int | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="statistics",
+                    id=channel_id
+                ).execute()
+
+                count = channel["items"][0]["statistics"]["viewCount"]
+                return int(count)
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL SUBSCRIBER COUNT //////
+        def get_channel_subscriber_count(self, channel_id) -> (int | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="statistics",
+                    id=channel_id
+                ).execute()
+
+                count = channel["items"][0]["statistics"]["subscriberCount"]
+                return int(count)
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+    
+        #////// CHANNEL HIDDEN SUBSCRIBER COUNT //////
+        def channel_has_hidden_subscriber_count(self, channel_id) -> (bool | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="statistics",
+                    id=channel_id
+                ).execute()
+
+                has = channel["items"][0]["statistics"]["hidenSubscriberCount"]
+                return bool(has)
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        #////// CHANNEL VIDEO COUNT //////
+        def get_channel_video_count(self, channel_id) -> (int | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="statistics",
+                    id=channel_id
+                ).execute()
+
+                count = channel["items"][0]["statistics"]["videoCount"]
+                return int(count)
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+    
+        #////// CHANNEL TOPIC DETAILS //////
+        def get_channel_topic_details(self, channel_id) -> (dict | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="topicDetails",
+                    id=channel_id
+                ).execute()
+
+                details = channel["items"][0]["topicDetails"]
+                return details
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+    
+        #////// CHANNEL TOPIC IDS //////
+        def get_channel_topic_ids(self, channel_id) -> (list[str] | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="topicDetails",
+                    id=channel_id
+                ).execute()
+
+                ids = channel["items"][0]["topicDetails"]["topicIds"]
+                return ids
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+    
+        #////// CHANNEL TOPIC CATEGORIES //////
+        def get_channel_topic_categories(self, channel_id) -> (list[str] | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="topicDetails",
+                    id=channel_id
+                ).execute()
+
+                cats = channel["items"][0]["topicDetails"]["topicCategories"]
+                return cats
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL STATUS //////
+        def get_channel_status(self, channel_id) -> (dict | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="status",
+                    id=channel_id
+                ).execute()
+
+                status = channel["items"][0]["status"]
+                return status
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+    
+        #////// CHANNEL PRIVACY STATUS //////
+        def get_channel_privacy_status(self, channel_id) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="status",
+                    id=channel_id
+                ).execute()
+
+                status = channel["items"][0]["status"]["privacyStatus"]
+                return status
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+    
+        #////// CHANNEL IS LINKED //////
+        def channel_is_linked(self, channel_id) -> (bool | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="status",
+                    id=channel_id
+                ).execute()
+
+                linked = channel["items"][0]["status"]["isLinked"]
+                return bool(linked) 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        #////// CHANNEL LONG UPLOADS STATUS //////
+        def get_channel_long_uploads_status(self, channel_id) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="status",
+                    id=channel_id
+                ).execute()
+
+                status = channel["items"][0]["status"]["longUploadsStatus"]
+                return status
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+    
+        #////// CHANNEL MADE FOR KIDS //////
+        def channel_is_made_for_kids(self, channel_id) -> (bool | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="status",
+                    id=channel_id
+                ).execute()
+
+                kids = channel["items"][0]["status"]["madeForKids"]
+                return bool(kids) 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        #////// CHANNEL SELF DECLARED MADE FOR KIDS //////
+        def channel_is_self_declared_made_for_kids(self, channel_id) -> (bool | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="status",
+                    id=channel_id
+                ).execute()
+
+                kids = channel["items"][0]["status"]["selfDeclaredMadeForKids"]
+                return bool(kids) 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL BRANDING SETTINGS //////
+        def get_channel_branding_settings(self, channel_id) -> (dict | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="brandingSettings",
+                    id=channel_id
+                ).execute()
+
+                settings = channel["items"][0]["brandingSettings"]
+                return settings
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+    
+        #////// CHANNEL BRANDING //////
+        def get_channel_branding(self, channel_id) -> (dict | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="brandingSettings",
+                    id=channel_id
+                ).execute()
+
+                branding = channel["items"][0]["brandingSettings"]["channel"]
+                return branding
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL BRAND TITLE //////
+        def get_channel_brand_title(self, channel_id) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="brandingSettings",
+                    id=channel_id
+                ).execute()
+
+                title = channel["items"][0]["brandingSettings"]["channel"]["title"]
+                return title
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL BRAND DESCRIPTION //////
+        def get_channel_brand_description(self, channel_id) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="brandingSettings",
+                    id=channel_id
+                ).execute()
+
+                description = channel["items"][0]["brandingSettings"]["channel"]["description"]
+                return description
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL KEYWORDS //////
+        def get_channel_keywords(self, channel_id) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="brandingSettings",
+                    id=channel_id
+                ).execute()
+
+                keywords = channel["items"][0]["brandingSettings"]["channel"]["keywords"]
+                return keywords
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL TRACKING ANALYTICS ACCOUNT ID //////
+        def get_channel_tracking_analytics_account_id(self, channel_id) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="brandingSettings",
+                    id=channel_id
+                ).execute()
+
+                id = channel["items"][0]["brandingSettings"]["channel"]["trackingAnalyticsAccountId"]
+                return id
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL HAS MODERATE COMMENTS //////
+        def channel_has_moderate_comments(self, channel_id) -> (bool | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="brandingSettings",
+                    id=channel_id
+                ).execute()
+
+                moderate = channel["items"][0]["brandingSettings"]["channel"]["moderateComments"]
+                return bool(moderate)
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL UNSUBSCRIBED TRAILER //////
+        def get_channel_unsubscribed_trailer(self, channel_id) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="brandingSettings",
+                    id=channel_id
+                ).execute()
+
+                trailer = channel["items"][0]["brandingSettings"]["channel"]["unsubscribedTrailer"]
+                return trailer
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL BRAND DEFAULT LANGUAGE //////
+        def get_channel_brand_default_language(self, channel_id) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="brandingSettings",
+                    id=channel_id
+                ).execute()
+
+                lang = channel["items"][0]["brandingSettings"]["channel"]["defaultLanguage"]
+                return lang
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL BRAND COUNTRY //////
+        def get_channel_brand_country(self, channel_id) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="brandingSettings",
+                    id=channel_id
+                ).execute()
+
+                country = channel["items"][0]["brandingSettings"]["channel"]["country"]
+                return country
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL WATCH DATA //////
+        def get_channel_watch_data(self, channel_id) -> (dict | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="brandingSettings",
+                    id=channel_id
+                ).execute()
+
+                watch = channel["items"][0]["brandingSettings"]["watch"]
+                return watch
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL WATCH TEXT COLOR //////
+        def get_channel_watch_text_color(self, channel_id) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="brandingSettings",
+                    id=channel_id
+                ).execute()
+
+                color = channel["items"][0]["brandingSettings"]["watch"]["textColor"]
+                return color
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL WATCH BACKGROUND COLOR //////
+        def get_channel_watch_background_color(self, channel_id) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="brandingSettings",
+                    id=channel_id
+                ).execute()
+
+                color = channel["items"][0]["brandingSettings"]["watch"]["backgroundColor"]
+                return color
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL FEATURED PLAYLIST ID //////
+        def get_channel_featured_playlist_id(self, channel_id) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="brandingSettings",
+                    id=channel_id
+                ).execute()
+
+                id = channel["items"][0]["brandingSettings"]["watch"]["featuredPlaylistId"]
+                return id
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL AUDIT DETAILS //////
+        def get_channel_audit_details(self, channel_id) -> (dict | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="auditDetails",
+                    id=channel_id
+                ).execute()
+
+                details = channel["items"][0]["auditDetails"]
+                return details
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL OVERALL GOOD STANDING //////
+        def channel_has_overall_good_standing(self, channel_id) -> (bool | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="auditDetails",
+                    id=channel_id
+                ).execute()
+
+                standing = channel["items"][0]["auditDetails"]["overallGoodStanding"]
+                return bool(standing)
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL COMMUNITY GUIDELINES GOOD STANDING //////
+        def channel_has_community_guidelines_good_standing(self, channel_id) -> (bool | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="auditDetails",
+                    id=channel_id
+                ).execute()
+
+                standing = channel["items"][0]["auditDetails"]["communityGuideLinesGoodStanding"]
+                return bool(standing)
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL CONTENT OWNER DETAILS //////
+        def get_channel_content_owner_details(self, channel_id) -> (dict | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="contentOwnerDetails",
+                    id=channel_id
+                ).execute()
+
+                details = channel["items"][0]["contentOwnerDetails"]
+                return details
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL CONTENT OWNER //////
+        def get_channel_content_owner(self, channel_id) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="contentOwnerDetails",
+                    id=channel_id
+                ).execute()
+
+                owner = channel["items"][0]["contentOwnerDetails"]["contentOwner"]
+                return owner
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL TIME LINKED //////
+        def get_channel_time_linked(self, channel_id) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="contentOwnerDetails",
+                    id=channel_id
+                ).execute()
+
+                time = channel["items"][0]["contentOwnerDetails"]["timeLinked"]
+                return time
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL LOCALIZATIONS //////
+        def get_channel_localizations_data(self, channel_id) -> (dict | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="localizations",
+                    id=channel_id
+                ).execute()
+
+                data = channel["items"][0]["localizations"]
+                return data
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL LOCALIZATIONS TITLE //////
+        def get_channel_localizations_title(self, channel_id) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="localizations",
+                    id=channel_id
+                ).execute()
+
+                title = channel["items"][0]["localizations"]["title"]
+                return title
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// CHANNEL LOCALIZATIONS DESCRIPTION //////
+        def get_channel_localizations_description(self, channel_id) -> (str | None):
+            service = self.service
+            try:
+                channel = service.channels().list(
+                    part="localizations",
+                    id=channel_id
+                ).execute()
+
+                description = channel["items"][0]["localizations"]["description"]
+                return description
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+                
     #//////////// CHANNEL BANNER ////////////
     class ChannelBanner:
         def __init__(self, ytd_api_tools: object) -> None:
             self.service = ytd_api_tools.service
         
+        #////// UTILITY METHODS //////
         def set_channel_banner(self, channel_id, banner_image_url):
             service = self.service
 
@@ -774,27 +2317,6 @@ class YouTubeDataAPIv3Tools:
 
             except googleapiclient.errors.HttpError as e:
                 print(f"An error occurred: {e}")
-
-        def get_channel_banner_url(self, channel_id):
-            """
-            Get the URL of a channel banner using the channel ID. 
-            """
-            service = self.service
-
-            try:
-                request = service.channels().list(
-                    part="brandingSettings",
-                    id=channel_id
-                )
-                response = request.execute()
-
-                branding_settings = response.get("items", [])[0]["brandingSettings"]
-                banner_url = branding_settings["image"]["bannerImageUrl"]
-                return banner_url
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
         
         def get_channel_banner_default_url(self):
             """
@@ -812,7 +2334,16 @@ class YouTubeDataAPIv3Tools:
                 return banner_url
 
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
         def delete_channel_banner(self, channel_id):
@@ -836,8 +2367,116 @@ class YouTubeDataAPIv3Tools:
             except googleapiclient.errors.HttpError as e:
                 print(f"An error occurred: {e}")
 
+        #////// ENTIRE CHANNEL BANNER RESOURCE //////
+        def get_channel_banner(self) -> (dict | None):
+            service = self.service
+            try:
+                request = service.channelBanners().insert()
+                response = request.execute()
+                banner = response
+                return banner
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channel banners.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        #////// ENTIRE CHANNEL BANNER KIND //////
+        def get_channel_banner_kind(self) -> (str | None):
+            service = self.service
+            try:
+                request = service.channelBanners().insert()
+                response = request.execute()
+                kind = response["kind"]
+                return kind
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channel banners.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        #////// ENTIRE CHANNEL BANNER ETAG //////
+        def get_channel_banner_etag(self) -> (str | None):
+            service = self.service
+            try:
+                request = service.channelBanners().insert()
+                response = request.execute()
+                etag = response["etag"]
+                return etag
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channel banners.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// ENTIRE CHANNEL BANNER ETAG //////
+        def get_channel_banner_url(self) -> (str | None):
+            service = self.service
+            try:
+                request = service.channelBanners().insert()
+                response = request.execute()
+                url = response["url"]
+                return url
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channel banners.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        
     #//////////// CHANNEL SECTION ////////////
     class ChannelSection:
+        """
+        Channel sections in the context of the YouTube Data API represent different 
+        types of content sections that you can organize on your YouTube channel. 
+        Each section type serves a specific purpose and allows you to feature different 
+        types of content prominently on your channel's front page. These are some 
+        common channel section types:
+        
+            - AllPlaylists: Displays a collection of playlists from the channel.
+            - CompletedEvents: Displays live event broadcasts that have ended.
+            - LikedPlaylists: Displays playlists that the channel has liked.
+            - Likes: Displays videos that the channel has liked.
+            - LiveEvents: Displays upcoming and live events.
+            - MultipleChannels: Displays other channels that the channel features.
+            - PopularUploads: Displays the channel's most popular uploads.
+            - RecentUploads: Displays the channel's most recent uploads.
+            - SinglePlaylist: Displays a single playlist from the channel.
+            - SubscribedChannels: Displays channels that the channel is subscribed to.
+            - Uploads: Displays the channel's uploaded videos.
+        """
         def __init__(self, ytd_api_tools: object) -> None:
             self.service = ytd_api_tools.service
         
@@ -867,6 +2506,32 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
+        def get_channel_sections(self, channel_id: str) -> (dict | None):
+            service = self.service
+            try:
+                channel = service.channelSections().list(
+                    part="snippet",
+                    channelId=channel_id
+                ).execute()
+                sections = []
+                for i in range(len(channel["items"])):
+                    section = channel["items"][i]
+                    sections.append(section)
+                return sections
+            
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
         #////// CHANNEL SECTION KIND //////
         def get_channel_section_kind(self, section_id) -> (str | None):
             service = self.service
@@ -920,18 +2585,70 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// CHANNEL SECTION ID //////
-        def get_channel_section_id(self, section_id) -> (str | None):
+        def get_channel_section_id_by_index(self, channel_id: str, section_index) -> (str | None):
+            service = self.service
+
+            try:
+                channel = service.channelSections().list(
+                    part="id",
+                    channelId=channel_id
+                ).execute()
+
+                id = channel["items"][section_index]["id"]
+                return id
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_channel_section_id_by_type(self, channel_id: str, section_type: str) -> (str | None):
             service = self.service
 
             try:
                 channel = service.channelSections().list(
                     part="snippet",
-                    id=section_id
+                    channelId=channel_id
                 ).execute()
+                for i in range(len(channel["items"])):
+                    if section_type == channel["items"][i]["snippet"]["type"]:
+                        id = channel["items"][i]["id"]
+                        return id
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_channel_section_ids(self, channel_id: str) -> (list[str] | None):
+            service = self.service
 
-                id = channel["items"][0]["id"]
-                return id
-
+            try:
+                channel = service.channelSections().list(
+                    part="id",
+                    channelId=channel_id
+                ).execute()
+                ids = []
+                for i in range(len(channel["items"])):
+                    id = channel["items"][i]["id"]
+                    ids.append(id)
+                return ids
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1152,7 +2869,7 @@ class YouTubeDataAPIv3Tools:
             except KeyError as ke:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
-        
+
     #//////////// PLAYLIST ////////////
     class Playlist: 
         def __init__(self, ytd_api_tools: object) -> None:
@@ -1183,8 +2900,14 @@ class YouTubeDataAPIv3Tools:
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
             except TypeError as te:
                 print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
                 
         def delete_playlist(self, playlist_id: str) -> bool:
@@ -1200,10 +2923,16 @@ class YouTubeDataAPIv3Tools:
                 return True
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
-                return False
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
             except TypeError as te:
                 print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return False
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
         def save_playlist(self, source_playlist_id: str, destination_playlist_id: str) -> bool:
             """
@@ -1216,10 +2945,16 @@ class YouTubeDataAPIv3Tools:
                 return True
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
-                return False
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
             except TypeError as te:
                 print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return False
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
     
         def update_playlist_details(self, playlist_id, new_title: str=None, new_description: str=None) -> bool:
             """
@@ -1250,10 +2985,16 @@ class YouTubeDataAPIv3Tools:
                 return True
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
-                return False
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
             except TypeError as te:
                 print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return False
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
         def reorder_videos(self, playlist_id: str, video_ids: list) -> bool:
             """
@@ -1292,10 +3033,16 @@ class YouTubeDataAPIv3Tools:
                 return True
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
-                return False
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
             except TypeError as te:
                 print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return False
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
         
         def search_playlists(self, query: str, max_results: int=10) -> (list[dict] | None):
             """
@@ -1317,8 +3064,14 @@ class YouTubeDataAPIv3Tools:
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
             except TypeError as te:
                 print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
         def get_playlist_videos(self, playlist_id, max_results=10) -> (list | None):
@@ -1344,15 +3097,17 @@ class YouTubeDataAPIv3Tools:
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
             except TypeError as te:
                 print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
                 return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
             
         def get_playlist_video_identities(self, playlist_id: str, max_results: int=50) -> (list | None):
-            """
-            The get_videos_in_playlist method returns a list of dictionaries
-            containing both the video title and the video ID.
-            """
             service = self.service
             try:
                 videos = []
@@ -1377,8 +3132,14 @@ class YouTubeDataAPIv3Tools:
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
             except TypeError as te:
                 print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
         def add_video_to_playlist(self, playlist_id: str, video_id: str) -> bool:
@@ -1405,10 +3166,16 @@ class YouTubeDataAPIv3Tools:
 
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
-                return False
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
             except TypeError as te:
                 print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return False
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
         
         def remove_video_from_playlist(self, playlist_item_id: str) -> bool:
             """
@@ -1425,28 +3192,44 @@ class YouTubeDataAPIv3Tools:
                 return True
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
-                return False
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
             except TypeError as te:
                 print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return False
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
         
         def iterate_videos_in_playlist(self, playlist_id: str, func=None) -> (bool | None):
-            if func is not None:
-                videos = self.get_playlist_videos(playlist_id)
-                if videos:
-                    for video in videos:
-                        func(video)
-                    return True
-                else:
-                    print(f"Unable to fetch videos in playlist with ID {playlist_id}.")
-                    return False
-            return None
+            try:
+                if func is not None:
+                    videos = self.get_playlist_videos(playlist_id)
+                    if videos:
+                        for video in videos:
+                            func(video)
+                        return True
+                    else:
+                        print(f"Unable to fetch videos in playlist with ID {playlist_id}.")
+                        return False
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
              
         #////// ENTIRE PLAYLIST RESOURCE //////
         def get_playlist(self, playlist_id: str) -> (str | None):
-            """
-            Get a playlists snippet using the playlist id.
-            """
             service = self.service
 
             try:
@@ -1462,12 +3245,17 @@ class YouTubeDataAPIv3Tools:
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
         def get_playlists(self, max_results: int=10) -> (list | None):
-            """
-            Unlike the get_playlist_snippet method this method returns the 
-            entire playlist resource dict.
-            """
             service = self.service
             try:
                 request = service.playlists().list(
@@ -1482,13 +3270,20 @@ class YouTubeDataAPIv3Tools:
                     playlists.append(playlist)
                 return playlists
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
         def get_liked_videos_playlist(self) -> (dict | None):
-            """
-            Retrieve the snippet for the "Liked videos" playlist.
-            """
+
             service = self.service
 
             try:
@@ -1503,7 +3298,16 @@ class YouTubeDataAPIv3Tools:
                         liked_playlist = item
                         return liked_playlist
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
         #////// PLAYLIST KIND //////
@@ -1523,11 +3327,18 @@ class YouTubeDataAPIv3Tools:
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
             
         def get_all_playlist_kinds(self, max_results=10) -> (list | None):
-            """
-            Get a list of the kind of playlists the authenticated user has.
-            """ 
+            
             service = self.service
 
             try:
@@ -1542,7 +3353,16 @@ class YouTubeDataAPIv3Tools:
                     kinds.append(playlist["kind"])
                 return kinds
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
             
         #////// PLAYLIST ETAG //////
@@ -1562,6 +3382,15 @@ class YouTubeDataAPIv3Tools:
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
         def get_all_playlist_etags(self, max_results=10) -> (list | None): 
             service = self.service
@@ -1579,7 +3408,16 @@ class YouTubeDataAPIv3Tools:
                     etags.append(playlist["etag"])
                 return etags
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
         #////// PLAYLIST ID //////    
@@ -1602,11 +3440,16 @@ class YouTubeDataAPIv3Tools:
                 return None
 
             except googleapiclient.errors.HttpError as e:
-                print(f"An HTTP error occurred: {e}")
+                print(f"An API error occurred: {e}")
                 return None
-
-            except IndexError:
-                print(f"No playlist found with title '{playlist_title}'.")
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
         def get_all_playlist_ids(self, max_results=10) -> (list | None):
@@ -1624,7 +3467,16 @@ class YouTubeDataAPIv3Tools:
                     ids.append(playlist["id"])
                 return ids
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
         #////// PLAYLIST SNIPPET //////
@@ -1647,12 +3499,18 @@ class YouTubeDataAPIv3Tools:
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
         def get_all_playlist_snippets(self, max_results: int=10):
-            """
-            Get a list of the kind of playlists the authenticated user
-            has.
-            """ 
+    
             service = self.service
 
             try:
@@ -1667,18 +3525,37 @@ class YouTubeDataAPIv3Tools:
                     snippets.append(playlist["snippet"])
                 return snippets
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
             
         #////// PLAYLIST PUBLISHED DATETIME //////
         def get_date_playlist_published(self, playlist_id: str) -> (str | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["publishedAt"]
-            return None
+            try:
+                playlist_info = self.get_playlist_snippet(playlist_id)
+                if playlist_info:
+                    return playlist_info["publishedAt"]
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
         def get_all_playlist_published_dates(self, max_results: int=20) -> (str | None):
             service = self.service
@@ -1695,24 +3572,56 @@ class YouTubeDataAPIv3Tools:
                     published_dates.append(playlist["snippet"]["publishedAt"])
                 return published_dates
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
         #////// PLAYLIST CHANNEL ID //////
         def get_playlists_channel_id(self, playlist_id: str):
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info is not None:
-                return playlist_info["channelId"]
-        
+            try:
+                playlist_info = self.get_playlist_snippet(playlist_id)
+                if playlist_info is not None:
+                    return playlist_info["channelId"]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+            
         #////// PLAYLIST TITLE //////                
         def get_playlist_title(self, playlist_id: str) -> (str | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["title"]
-            return None
+            try:
+                playlist_info = self.get_playlist_snippet(playlist_id)
+                if playlist_info:
+                    return playlist_info["title"]
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
         def get_all_playlist_titles(self, max_results=10) -> (list | None):
             service = self.service
@@ -1729,14 +3638,19 @@ class YouTubeDataAPIv3Tools:
                     titles.append(playlist["snippet"]["title"])
                 return titles
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
         def set_playlist_title(self, playlist_id, new_title=None) -> bool:
-            """
-            This method allows you to update the title and description of a 
-            playlist with the specified playlist_id.
-            """
             service = self.service
 
             try:
@@ -1760,18 +3674,40 @@ class YouTubeDataAPIv3Tools:
                 return True
 
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return False
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
         #////// PLAYLIST DESCRIPTION //////
         def get_playlist_description(self, playlist_id: str) -> (str | None):
             """
             Get the description of a playlist using the playlist ID.
             """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["description"]
-            return None
+            try:
+                playlist_info = self.get_playlist_snippet(playlist_id)
+                if playlist_info:
+                    return playlist_info["description"]
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
         def get_all_playlist_descriptions(self, max_results=10) -> (list | None):
             service = self.service
@@ -1788,14 +3724,20 @@ class YouTubeDataAPIv3Tools:
                     descriptions.append(playlist["snippet"]["description"])
                 return descriptions
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
         def set_playlist_description(self, playlist_id, new_description: str=None) -> bool:
-            """
-            This method allows you to update the title and description of a 
-            playlist with the specified playlist_id.
-            """
+            
             service = self.service
 
             try:
@@ -1817,15 +3759,37 @@ class YouTubeDataAPIv3Tools:
                 ).execute()
                 return True
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return False
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
         
         #////// PLAYLIST THUMBNAIL //////
         def get_playlist_thumbnails(self, playlist_id: str) -> (str | None):
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["thumbnails"]
-            return None
+            try: 
+                playlist_info = self.get_playlist_snippet(playlist_id)
+                if playlist_info:
+                    return playlist_info["thumbnails"]
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
         def get_all_playlist_thumbnails(self, max_results=10) -> (list | None):
             service = self.service
@@ -1842,18 +3806,38 @@ class YouTubeDataAPIv3Tools:
                     thumbnails.append(playlist["snippet"]["thumbnails"])
                 return thumbnails
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
         #////// PLAYLIST DEFAULT RES THUMBNAIL //////
         def get_playlist_default_res_thumbnail(self, playlist_id: str) -> (dict | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["thumbnails"]["default"]
-            return None
+
+            try:
+                playlist_info = self.get_playlist_snippet(playlist_id)
+                if playlist_info:
+                    return playlist_info["thumbnails"]["default"]
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
         def get_all_playlist_default_res_thumbnails(self, max_results=10) -> (list | None):
             service = self.service
@@ -1870,18 +3854,37 @@ class YouTubeDataAPIv3Tools:
                     thumbnails.append(playlist["snippet"]["thumbnails"]["default"])
                 return thumbnails
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
         #////// PLAYLIST DEFAULT RES THUMBNAIL URL //////
         def get_playlist_default_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["thumbnails"]["default"]["url"]
-            return None
+            try:
+                playlist_info = self.get_playlist_snippet(playlist_id)
+                if playlist_info:
+                    return playlist_info["thumbnails"]["default"]["url"]
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
         def get_all_playlist_default_res_thumbnail_urls(self, max_results=10) -> (list | None):
             service = self.service
@@ -1898,18 +3901,37 @@ class YouTubeDataAPIv3Tools:
                     thumbnails.append(playlist["snippet"]["thumbnails"]["default"]["url"])
                 return thumbnails
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
         #////// PLAYLIST MEDIUM RES THUMBNAIL //////
         def get_playlist_medium_res_thumbnail(self, playlist_id: str) -> (dict | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["thumbnails"]["medium"]
-            return None
+            try:
+                playlist_info = self.get_playlist_snippet(playlist_id)
+                if playlist_info:
+                    return playlist_info["thumbnails"]["medium"]
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
         def get_all_playlist_medium_res_thumbnails(self, max_results=10) -> (list | None):
             service = self.service
@@ -1926,18 +3948,37 @@ class YouTubeDataAPIv3Tools:
                     thumbnails.append(playlist["snippet"]["thumbnails"]["medium"])
                 return thumbnails
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
         #////// PLAYLIST MEDIUM RES THUMBNAIL URL //////
         def get_playlist_medium_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["thumbnails"]["medium"]["url"]
-            return None
+            try:
+                playlist_info = self.get_playlist_snippet(playlist_id)
+                if playlist_info:
+                    return playlist_info["thumbnails"]["medium"]["url"]
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
         def get_all_playlist_medium_res_thumbnail_urls(self, max_results=10) -> (list | None):
             service = self.service
@@ -1954,18 +3995,37 @@ class YouTubeDataAPIv3Tools:
                     thumbnails.append(playlist["snippet"]["thumbnails"]["medium"]["url"])
                 return thumbnails
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
         #////// PLAYLIST HIGH RES THUMBNAIL //////
         def get_playlist_high_res_thumbnail(self, playlist_id: str) -> (dict | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["thumbnails"]["high"]
-            return None
+            try:
+                playlist_info = self.get_playlist_snippet(playlist_id)
+                if playlist_info:
+                    return playlist_info["thumbnails"]["high"]
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
         def get_all_playlist_high_res_thumbnails(self, max_results=10) -> (list | None):
             service = self.service
@@ -1982,18 +4042,38 @@ class YouTubeDataAPIv3Tools:
                     thumbnails.append(playlist["snippet"]["thumbnails"]["high"])
                 return thumbnails
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
         #////// PLAYLIST HIGH RES THUMBNAIL URL //////
         def get_playlist_high_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["thumbnails"]["high"]["url"]
-            return None
+
+            try:
+                playlist_info = self.get_playlist_snippet(playlist_id)
+                if playlist_info:
+                    return playlist_info["thumbnails"]["high"]["url"]
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
         def get_all_playlist_high_res_thumbnail_urls(self, max_results=10) -> (list | None):
             service = self.service
@@ -2010,18 +4090,37 @@ class YouTubeDataAPIv3Tools:
                     thumbnails.append(playlist["snippet"]["thumbnails"]["high"]["url"])
                 return thumbnails
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
         #////// PLAYLIST STANDARD THUMBNAIL //////
         def get_playlist_standard_res_thumbnail(self, playlist_id: str) -> (dict | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["thumbnails"]["standard"]
-            return None
+            try:
+                playlist_info = self.get_playlist_snippet(playlist_id)
+                if playlist_info:
+                    return playlist_info["thumbnails"]["standard"]
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
         def get_all_playlist_standard_res_thumbnails(self, max_results=10) -> (list | None):
             service = self.service
@@ -2038,18 +4137,37 @@ class YouTubeDataAPIv3Tools:
                     thumbnails.append(playlist["snippet"]["thumbnails"]["standard"])
                 return thumbnails
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
         #////// PLAYLIST STANDARD THUMBNAIL URL //////
         def get_playlist_standard_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["thumbnails"]["standard"]["url"]
-            return None
+            try:
+                playlist_info = self.get_playlist_snippet(playlist_id)
+                if playlist_info:
+                    return playlist_info["thumbnails"]["standard"]["url"]
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
         def get_all_playlist_standard_res_thumbnail_urls(self, max_results=10) -> (list | None):
             service = self.service
@@ -2066,18 +4184,38 @@ class YouTubeDataAPIv3Tools:
                     thumbnails.append(playlist["snippet"]["thumbnails"]["standard"]["url"])
                 return thumbnails
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
         #////// PLAYLIST MAX RES THUMBNAIL //////
         def get_playlist_max_res_thumbnail(self, playlist_id: str) -> (dict | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["thumbnails"]["maxres"]
-            return None
+
+            try:
+                playlist_info = self.get_playlist_snippet(playlist_id)
+                if playlist_info:
+                    return playlist_info["thumbnails"]["maxres"]
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
         def get_all_playlist_max_res_thumbnails(self, max_results=10) -> (list | None):
             service = self.service
@@ -2094,18 +4232,37 @@ class YouTubeDataAPIv3Tools:
                     thumbnails.append(playlist["snippet"]["thumbnails"]["maxres"])
                 return thumbnails
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
         #////// PLAYLIST MAX RES THUMBNAIL URL //////
         def get_playlist_max_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["thumbnails"]["maxres"]["url"]
-            return None
+            try:
+                playlist_info = self.get_playlist_snippet(playlist_id)
+                if playlist_info:
+                    return playlist_info["thumbnails"]["maxres"]["url"]
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
         def get_all_playlist_max_res_thumbnail_urls(self, max_results=10) -> (list | None):
             service = self.service
@@ -2122,18 +4279,37 @@ class YouTubeDataAPIv3Tools:
                     thumbnails.append(playlist["snippet"]["thumbnails"]["maxres"]["url"])
                 return thumbnails
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
         #////// PLAYLIST CHANNEL TITLE //////
         def get_playlist_channel_title(self, playlist_id: str) -> (str | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["channelTitle"]
-            return None
+            try:
+                playlist_info = self.get_playlist_snippet(playlist_id)
+                if playlist_info:
+                    return playlist_info["channelTitle"]
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
         def get_all_playlist_channel_titles(self, max_results=10) -> (list | None):
             """
@@ -2157,31 +4333,40 @@ class YouTubeDataAPIv3Tools:
                     titles.append(playlist["snippet"]["title"])
                 return titles
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
         #////// PLAYLIST DEFAULT LANGUAGE //////
         def get_playlist_default_language(self, playlist_id: str) -> (str | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
             playlist_info = self.get_playlist_snippet(playlist_id)
             if playlist_info:
                 try:
                     return playlist_info['defaultLanguage']
+                except googleapiclient.errors.HttpError as e:
+                    print(f"An API error occurred: {e}")
+                    return None
+                except IndexError as ie:
+                    print(f"There are no playlists with the given ID.\n{ie}")
+                    return None
+                except TypeError as te:
+                    print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                    return None
                 except KeyError as ke:
-                    print(f"Key error: No default language field available.\n {ke}")
+                    print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                     return None
             return None
 
         def get_all_playlist_default_languages(self, max_results=10) -> (list | None):
-            """
-            I don't know why you would need to do this since this method
-            will return a list of the same title due to all playlists being
-            in the same channel, but I figured what the hell. Why not?
-            Who knows what someone may be coding or need, so here it is 
-            anyway.
-            """
+
             service = self.service
 
             try:
@@ -2196,30 +4381,39 @@ class YouTubeDataAPIv3Tools:
                     langs.append(playlist["snippet"]["defaultLanguage"])
                 return langs
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
                 return None
             except KeyError as ke:
-                print(f"Key error: No default language field available.\n {ke}")
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
         #////// PLAYLIST LOCALIZED DATA //////
         def get_playlist_localized_data(self, playlist_id: str) -> (str | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["localized"]
-            return None
-
+            try:
+                playlist_info = self.get_playlist_snippet(playlist_id)
+                if playlist_info:
+                    return playlist_info["localized"]
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+            
         def get_all_playlists_localized_data(self, max_results=10) -> (list | None):
-            """
-            I don't know why you would need to do this since this method
-            will return a list of the same title due to all playlists being
-            in the same channel, but I figured what the hell. Why not?
-            Who knows what someone may be coding or need, so here it is 
-            anyway.
-            """
             service = self.service
 
             try:
@@ -2234,27 +4428,39 @@ class YouTubeDataAPIv3Tools:
                     titles.append(playlist["snippet"]["localized"])
                 return titles
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
         #////// PLAYLIST LOCALIZED TITLE //////
         def get_playlist_localized_title(self, playlist_id: str) -> (str | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["localized"]["title"]
-            return None
+            try:
+                playlist_info = self.get_playlist_snippet(playlist_id)
+                if playlist_info:
+                    return playlist_info["localized"]["title"]
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
         def get_all_playlists_localized_titles(self, max_results=10) -> (list | None):
-            """
-            I don't know why you would need to do this since this method
-            will return a list of the same title due to all playlists being
-            in the same channel, but I figured what the hell. Why not?
-            Who knows what someone may be coding or need, so here it is 
-            anyway.
-            """
             service = self.service
 
             try:
@@ -2269,27 +4475,39 @@ class YouTubeDataAPIv3Tools:
                     titles.append(playlist["snippet"]["localized"]["title"])
                 return titles
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
         #////// PLAYLIST LOCALIZED DESCRIPTION //////
         def get_playlist_localized_description(self, playlist_id: str) -> (str | None):
-            """
-            Get the name of a playlist using the playlst id.
-            """
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                return playlist_info["localized"]["description"]
-            return None
+            try:
+                playlist_info = self.get_playlist_snippet(playlist_id)
+                if playlist_info:
+                    return playlist_info["localized"]["description"]
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
         def get_all_playlists_localized_descriptions(self, max_results=10) -> (list | None):
-            """
-            I don't know why you would need to do this since this method
-            will return a list of the same title due to all playlists being
-            in the same channel, but I figured what the hell. Why not?
-            Who knows what someone may be coding or need, so here it is 
-            anyway.
-            """
             service = self.service
 
             try:
@@ -2304,14 +4522,20 @@ class YouTubeDataAPIv3Tools:
                     descriptions.append(playlist["snippet"]["localized"]["description"])
                 return descriptions
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
         #////// PLAYLIST STATUS //////
         def get_playlist_status(self, playlist_id: str) -> (str | None):
-            """
-            Get a playlists snippet using the playlist id.
-            """
             service = self.service
 
             try:
@@ -2327,15 +4551,17 @@ class YouTubeDataAPIv3Tools:
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
             except KeyError as ke:
-                print(f"Key error: No status field available.\n {ke}")
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_all_playlist_status(self, max_results: int=10):
-            """
-            Get a list of the kind of playlists the authenticated user
-            has.
-            """ 
+        def get_all_playlist_statuses(self, max_results: int=10):
             service = self.service
 
             try:
@@ -2350,17 +4576,20 @@ class YouTubeDataAPIv3Tools:
                     snippets.append(playlist["status"])
                 return snippets
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
                 return None
             except KeyError as ke:
-                print(f"Key error: No status field available.\n {ke}")
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
        
         #////// PLAYLIST PRIVACY STATUS //////
         def get_playlist_privacy_status(self, playlist_id: str) -> (str | None):
-            """
-            Get a playlists snippet using the playlist id.
-            """
             service = self.service
 
             try:
@@ -2380,11 +4609,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: No privacy status field available.\n {ke}")
                 return None
 
-        def get_all_playlist_priacy_status(self, max_results: int=10):
-            """
-            Get a list of the kind of playlists the authenticated user
-            has.
-            """ 
+        def get_all_playlist_priacy_statuses(self, max_results: int=10):
             service = self.service
 
             try:
@@ -2406,11 +4631,6 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         def set_playlist_privacy_status(self, playlist_id, privacy_status):
-            """
-            This method allows you to update the privacy status of a playlist 
-            with the specified playlist_id. The privacy_status can be set to 
-            "private" or "public."
-            """
         
             service = self.service
 
@@ -2439,9 +4659,6 @@ class YouTubeDataAPIv3Tools:
         
         #////// PLAYLIST CONTENT DETAILS //////
         def get_playlist_content_details(self, playlist_id: str) -> (str | None):
-            """
-            Get a playlists snippet using the playlist id.
-            """
             service = self.service
 
             try:
@@ -2461,11 +4678,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: No content details field available.\n {ke}")
                 return None
 
-        def get_all_playlist_content_details(self, max_results: int=10):
-            """
-            Get a list of the kind of playlists the authenticated user
-            has.
-            """ 
+        def get_all_playlist_content_details(self, max_results: int=10): 
             service = self.service
 
             try:
@@ -2480,17 +4693,21 @@ class YouTubeDataAPIv3Tools:
                     details.append(playlist["contentDetails"])
                 return details
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
                 return None
             except KeyError as ke:
-                print(f"Key error: No status field available.\n {ke}")
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
        
         #////// PLAYLIST ITEM COUNT //////
         def get_playlist_item_count(self, playlist_id: str) -> (int | None):
-            """
-            Get a playlists snippet using the playlist id.
-            """
+
             service = self.service
 
             try:
@@ -2506,15 +4723,17 @@ class YouTubeDataAPIv3Tools:
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
             except KeyError as ke:
-                print(f"Key error: No content details field available.\n {ke}")
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
         def get_all_playlist_item_counts(self, max_results: int=10) -> (list[int] | None):
-            """
-            Get a list of the kind of playlists the authenticated user
-            has.
-            """ 
             service = self.service
 
             try:
@@ -2529,17 +4748,21 @@ class YouTubeDataAPIv3Tools:
                     counts.append(playlist["contentDetails"]["itemCount"])
                 return counts
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
                 return None
             except KeyError as ke:
-                print(f"Key error: No item count field available.\n {ke}")
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
         #////// PLAYLIST PLAYER //////
         def get_playlist_player(self, playlist_id: str) -> (str | None):
-            """
-            Get a playlists snippet using the playlist id.
-            """
+          
             service = self.service
 
             try:
@@ -2555,15 +4778,17 @@ class YouTubeDataAPIv3Tools:
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
             except KeyError as ke:
-                print(f"Key error: No player field available.\n {ke}")
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
         def get_all_playlist_players(self, max_results: int=10):
-            """
-            Get a list of the kind of playlists the authenticated user
-            has.
-            """ 
             service = self.service
 
             try:
@@ -2578,17 +4803,20 @@ class YouTubeDataAPIv3Tools:
                     details.append(playlist["contentDetails"])
                 return details
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
                 return None
             except KeyError as ke:
-                print(f"Key error: No status field available.\n {ke}")
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
        
         #////// PLAYLIST EMBED HTML //////
         def get_playlist_embed_html(self, playlist_id: str) -> (int | None):
-            """
-            Get a playlists snippet using the playlist id.
-            """
             service = self.service
 
             try:
@@ -2604,15 +4832,17 @@ class YouTubeDataAPIv3Tools:
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
             except KeyError as ke:
-                print(f"Key error: No item count field available.\n {ke}")
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
         def get_all_playlist_embed_htmls(self, max_results: int=10) -> (list[int] | None):
-            """
-            Get a list of the kind of playlists the authenticated user
-            has.
-            """ 
             service = self.service
 
             try:
@@ -2627,10 +4857,16 @@ class YouTubeDataAPIv3Tools:
                     counts.append(playlist["player"]["embedHtml"])
                 return counts
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
                 return None
             except KeyError as ke:
-                print(f"Key error: No item count field available.\n {ke}")
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
     #//////////// PLAYLIST ITEM ////////////
@@ -2638,11 +4874,121 @@ class YouTubeDataAPIv3Tools:
         def __init__(self, ytd_api_tools: object) -> None:
             self.service = ytd_api_tools.service
         
+        def get_playlist_item_by_index(self, playlist_id: str, index: int=0) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+
+                playlist_item = response["items"][index]
+                return playlist_item
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        def get_playlist_item_by_id(self, item_id: str=None) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                playlist_item = response["items"][0]
+                return playlist_item
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist item with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        def get_all_playlist_items(self, playlist_id: str) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                items = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    items.append(pitem)
+                return items
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        def get_playlist_item(self, playlist_id: str, item_id: str) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id,
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+
+                playlist_item = response["items"]
+                return playlist_item
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+                
     #//////////// VIDEO ////////////
     class Video:
+
         def __init__(self, ytd_api_tools: object) -> None:
             self.service = ytd_api_tools.service
-                    
+
+        #////// UTILITY METHODS //////                    
         def upload_video(self, video_path, title, description, privacy_status="public"):
             """
             The upload_video(video_path, title, description, privacy_status), takes the 
@@ -6872,6 +9218,223 @@ class YouTubeDataAPIv3Tools:
         def __init__(self, ytd_api_tools: object) -> None:
             self.service = ytd_api_tools.service
     
+        def subscribe_to_channel(self, channel_id):
+            service = self.service
+
+            try:
+                request = service.subscriptions().insert(
+                    part="snippet",
+                    body={
+                        "snippet": {
+                            "resourceId": {
+                                "kind": "youtube#channel",
+                                "channelId": channel_id
+                            }
+                        }
+                    }
+                )
+                response = request.execute()
+
+                print("Subscribed successfully!")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def unsubscribe_from_channel(self, channel_id):
+            service = self.service
+
+            try:
+                request = service.subscriptions().delete(
+                    id=channel_id
+                )
+                response = request.execute()
+
+                print("Unsubscribed successfully!")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+    
+        def get_channels_subscribed_to(self):
+            """
+            Retrieve information about channels that the authenticated user is 
+            subscribed to:
+            """
+            service = self.service
+
+            try:
+                channels = []
+
+                request = service.subscriptions().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=50
+                )
+
+                while request is not None:
+                    response = request.execute()
+
+                    for item in response.get("items", []):
+                        channel_id = item["snippet"]["resourceId"]["channelId"]
+                        channel_title = item["snippet"]["title"]
+                        channels.append({
+                            "channel_id": channel_id,
+                            "channel_title": channel_title
+                        })
+
+                    request = service.subscriptions().list_next(request, response)
+
+                return channels
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+
+        def iterate_subscriptions_in_channel(self, channel_id, func):
+            """
+            Iterate over the subscriptions in a channel.
+            """
+            service = self.service
+            try:
+                subscriptions = []
+
+                request = service.subscriptions().list(
+                    part="snippet",
+                    channelId=channel_id,
+                    maxResults=50
+                )
+                while request is not None:
+                    response = request.execute()
+
+                    for item in response["items"]:
+                        func(item)
+
+                    request = service.subscriptions().list_next(request, response)
+
+                return subscriptions
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        def get_subscriptions_channel_ids(self):
+            """
+            retrieves the channel IDs of the channels to which the authenticated 
+            user is subscribed. The function uses pagination to handle cases 
+            where the user has more than 50 subscriptions (the default API result limit).
+            """
+            service = self.service
+
+            try:
+                channel_ids = []
+
+                # Set the 'mine' parameter to True to get subscriptions of the authenticated user
+                request = service.subscriptions().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=50  # Adjust the number of results as needed
+                )
+
+                while request is not None:
+                    response = request.execute()
+
+                    # Extract channel IDs from the response
+                    for item in response.get("items", []):
+                        channel_id = item["snippet"]["resourceId"]["channelId"]
+                        channel_ids.append(channel_id)
+
+                    # Check if there are more subscriptions to fetch
+                    request = service.subscriptions().list_next(request, response)
+
+                return channel_ids
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
+
+        def get_latest_subscriptions(self, max_results=10):
+            service = self.service
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results,
+                    order="newest"
+                )
+                response = request.execute()
+
+                for subscription in response["items"]:
+                    channel_title = subscription["snippet"]["title"]
+                    channel_id = subscription["snippet"]["resourceId"]["channelId"]
+                    print(f"Subscribed Channel: {channel_title} (Channel ID: {channel_id})")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_subscribed_channels(self, max_results=10):
+            service = self.service
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    mine=True,
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                for subscription in response["items"]:
+                    channel_title = subscription["snippet"]["title"]
+                    channel_id = subscription["snippet"]["resourceId"]["channelId"]
+                    print(f"Subscribed Channel: {channel_title} (Channel ID: {channel_id})")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def is_subscribed_to_channel(self, channel_id):
+            service = self.service
+
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    mine=True,
+                    forChannelId=channel_id
+                )
+                response = request.execute()
+
+                if "items" in response and len(response["items"]) > 0:
+                    return True
+                else:
+                    return False
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return False
+
+        def get_my_subscription_count(self):
+            service = self.service
+
+            try:
+                request = service.subscriptions().list(
+                    part="subscriberSnippet",
+                    mine=True
+                )
+                response = request.execute()
+
+                subscription_count = response.get("pageInfo", {}).get("totalResults", 0)
+                return int(subscription_count)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+            return 0
+
     #//////////// MEMBERS ////////////
     class Members:
         def __init__(self, ytd_api_tools: object) -> None:
@@ -7156,9 +9719,272 @@ class YouTubeDataAPIv3Tools:
     
     #//////////// WATERMARKS ////////////
     class WaterMark:
+        """
+        The WaterMark class requires authorization with at least one of 
+        the following scopes:
+
+          - https://www.googleapis.com/auth/youtubepartner
+          - https://www.googleapis.com/auth/youtube.upload
+          - https://www.googleapis.com/auth/youtube
+          - https://www.googleapis.com/auth/youtube.force-ssl
+        """
         def __init__(self, ytd_api_tools: object) -> None:
             self.service = ytd_api_tools.service
-    
+            
+        #////// ENTIRE WATERMARK RESOURCE //////
+        def get_watermark(self, channel_id: str) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.watermarks().set(
+                    channelId=channel_id
+                )
+                response = request.execute()
+                watermark = response["watermark"]
+                return watermark
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+         
+        #////// WATERMARK TIMING PART //////
+        def get_watermark_timing(self, channel_id: str) -> (dict | None):
+            service = self.service
+            try:
+                request = service.watermarks().set(
+                    channelId=channel_id
+                )
+                response = request.execute()
+                watermark_timing = response["watermark"]["timing"]
+                return watermark_timing
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+             
+        #////// WATERMARK TIMING TYPE //////
+        def get_watermark_timing_type(self, channel_id: str) -> (str | None):
+            service = self.service
+            try:
+                request = service.watermarks().set(
+                    channelId=channel_id
+                )
+                response = request.execute()
+                _type = response["watermark"]["timing"]["type"]
+                return _type
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+            
+        #////// WATERMARK TIMING OFFSET MS //////
+        def get_watermark_timing_offset_ms(self, channel_id: str) -> (int | None):
+            service = self.service
+            try:
+                request = service.watermarks().set(
+                    channelId=channel_id
+                )
+                response = request.execute()
+                offset = response["watermark"]["timing"]["offsetMs"]
+                return offset
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+         
+        #////// WATERMARK TIMING DURATION MS //////
+        def get_watermark_timing_duration_ms(self, channel_id: str) -> (int | None):
+            service = self.service
+            try:
+                request = service.watermarks().set(
+                    channelId=channel_id
+                )
+                response = request.execute()
+                duration = response["watermark"]["timing"]["durationMs"]
+                return duration
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+        
+        #////// WATERMARK POSITION PART //////
+        def get_watermark_position(self, channel_id: str) -> (dict | None):
+            service = self.service
+            try:
+                request = service.watermarks().set(
+                    channelId=channel_id
+                )
+                response = request.execute()
+                position = response["watermark"]["position"]
+                return position
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+             
+        #////// WATERMARK POSITION TYPE //////
+        def get_watermark_position_type(self, channel_id: str) -> (str | None):
+            service = self.service
+            try:
+                request = service.watermarks().set(
+                    channelId=channel_id
+                )
+                response = request.execute()
+                position_type = response["watermark"]["position"]["type"]
+                return position_type
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+            
+        #////// WATERMARK CORNER POSITION //////
+        def get_watermark_corner_position(self, channel_id: str) -> (str | None):
+            service = self.service
+            try:
+                request = service.watermarks().set(
+                    channelId=channel_id
+                )
+                response = request.execute()
+                position = response["watermark"]["position"]["cornerPosition"]
+                return position
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+         
+        #////// WATERMARK IMAGE URL //////
+        def get_watermark_image_url(self, channel_id: str) -> (str | None):
+            service = self.service
+            try:
+                request = service.watermarks().set(
+                    channelId=channel_id
+                )
+                response = request.execute()
+                url = response["watermark"]["imageUrl"]
+                return url
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+         
+        #////// WATERMARK IMAGE BYTES //////
+        def get_watermark_image_bytes(self, channel_id: str) -> (str | None):
+            service = self.service
+            try:
+                request = service.watermarks().set(
+                    channelId=channel_id
+                )
+                response = request.execute()
+                bytez = response["watermark"]["imageBytes"]
+                return bytez
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+         
+        #////// WATERMARK TARGET CHANNEL ID //////
+        def get_watermark_target_channel_id(self, channel_id: str) -> (str | None):
+            service = self.service
+            try:
+                request = service.watermarks().set(
+                    channelId=channel_id
+                )
+                response = request.execute()
+                id = response["watermark"]["targetChannelId"]
+                return id
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+         
     #//////////// ACTIVITY ////////////
     class Activity:
         def __init__(self, ytd_api_tools: object) -> None:
@@ -7386,6 +10212,24 @@ class YouTubeDataAPIv3Tools:
     class Search:
         def __init__(self, ytd_api_tools: object) -> None:
             self.service = ytd_api_tools.service
+            
+        def search_channels(self, query, max_results=10):
+            service = self.service
+
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    q=query,
+                    type="channel",
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")        
             
         def search_videos(self, query, max_results=10):
             service = self.service
