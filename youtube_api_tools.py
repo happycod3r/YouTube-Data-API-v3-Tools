@@ -7613,7 +7613,7 @@ class YouTubeDataAPIv3Tools:
             self.service = ytd_api_tools.service
 
         #////// UTILITY METHODS //////                    
-        def upload_video(self, video_path, title, description, privacy_status="public"):
+        def upload_video(self, video_path: str, title: str, description: str, privacy_status: str="public") -> (bool | None):
             """
             The upload_video(video_path, title, description, privacy_status), takes the 
             following parameters:
@@ -7661,21 +7661,44 @@ class YouTubeDataAPIv3Tools:
                     response = requests.put(upload_url, data=video_file, headers=headers)
 
                     if response.status_code == 200:
-                        print("Video uploaded successfully!")
+                        video_file.close()
+                        return True
                     else:
-                        print("Video upload failed.")
-
-                    video_file.close()
-
+                        video_file.close()
+                        return False
                 else:
-                    print("Upload URL not found. Unable to start video upload.")
-
-            except HttpError as e:
-                print(f"An HTTP error occurred: {e}")
+                    return False
             except OSError as e:
                 print(f"An OS error occurred: {e}")
-
-        def delete_video(self, video_id):
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"IndexError:\n{e}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+        
+        def video_exists(self, video_id: str) -> bool:
+            try:
+                if self.get_video(video_id) is not None:
+                    return True
+                return False                    
+            except googleapiclient.errors.HttpError as e:
+                return False
+            except IndexError as e:
+                return False
+            except TypeError as te:
+                return False
+            except KeyError as ke:
+                return False
+                          
+        def delete_video(self, video_id: str) -> (bool | None):
             service = self.service
 
             try:
@@ -7683,12 +7706,24 @@ class YouTubeDataAPIv3Tools:
                     id=video_id
                 ).execute()
 
-                print(f"Video with ID {video_id} deleted successfully!")
-
+                return True
+            except OSError as e:
+                print(f"An OS error occurred: {e}")
+                None
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"IndexError:\n{e}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
-        def like_video(self, video_id):
+        def like_video(self, video_id: str) -> (bool | None):
             """
             This method like_video(video_id) takes the video_id of the video 
             you want to like and calls the videos.rate method with rating="like" 
@@ -7702,13 +7737,22 @@ class YouTubeDataAPIv3Tools:
                     rating="like"
                 )
                 response = request.execute()
-
-                print(f"Video with ID {video_id} liked successfully!")
+                return True
 
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"IndexError:\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
 
-        def unlike_video(self, video_id):
+        def unlike_video(self, video_id: str) -> (bool | None):
             service = self.service
 
             try:
@@ -7718,12 +7762,22 @@ class YouTubeDataAPIv3Tools:
                 )
                 response = request.execute()
 
-                print(f"Video with ID {video_id} unliked successfully!")
+                return True
 
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"IndexError:\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
 
-        def save_video_to_playlist(self, playlist_id, video_id):
+        def save_video_to_playlist(self, playlist_id: str, video_id: str) -> (bool | None):
             """
             This method allows you to save a video specified by ID to a playlist
             also specified by ID.
@@ -7744,12 +7798,22 @@ class YouTubeDataAPIv3Tools:
                     }
                 ).execute()
 
-                print(f"Video with ID {video_id} saved to the playlist with ID {playlist_id} successfully!")
+                return True
 
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"IndexError:\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
 
-        def set_video_tags(self, video_id, tags):
+        def set_video_tags(self, video_id: str, tags: list[str]) -> (bool | None):
             """
             This method allows you to set the tags for a video with 
             the specified video_id. Provide a list of tags to update the video's tags.
@@ -7773,12 +7837,21 @@ class YouTubeDataAPIv3Tools:
                     }
                 ).execute()
 
-                print(f"Tags for video with ID {video_id} updated successfully!")
-
+                return True
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"IndexError:\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
     
-        def update_video_privacy_status(self, video_id, privacy_status):
+        def update_video_privacy_status(self, video_id: str, privacy_status: str) -> (bool | None):
             """
             This function allows you to update the privacy status of a video 
             with the specified video_id. The privacy_status can be set to 
@@ -7803,12 +7876,22 @@ class YouTubeDataAPIv3Tools:
                     }
                 ).execute()
 
-                print(f"Privacy status for video with ID {video_id} updated successfully!")
+                return True
 
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"IndexError:\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
 
-        def update_video_details(self, video_id, new_title=None, new_description=None, new_tags=None):
+        def update_video_details(self, video_id: str, new_title: str=None, new_description: str=None, new_tags: list[str]=None) -> (bool | None):
             """
             This method allows you to update the title, description, and tags of a 
             video with the specified video_id. You can provide the new values for these 
@@ -7838,78 +7921,22 @@ class YouTubeDataAPIv3Tools:
                     }
                 ).execute()
 
-                print(f"Video with ID {video_id} snippet updated successfully!")
+                return True
 
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def iterate_related_videos(self, video_id, max_results=10):
-            service = self.service
-
-            try:
-                request = service.search().list(
-                    part="snippet",
-                    relatedToVideoId=video_id,
-                    type="video",
-                    maxResults=max_results
-                )
-                response = request.execute()
-
-                related_videos = response.get("items", [])
-                for video in related_videos:
-                    video_id = video["id"]["videoId"]
-                    video_title = video["snippet"]["title"]
-                    channel_title = video["snippet"]["channelTitle"]
-                    print(f"Video ID: {video_id}, Title: {video_title}, Channel: {channel_title}")
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def get_related_videos(self, video_id, max_results=10):
-            """
-            This method retrieves related videos for a specific video. It prints 
-            information about videos related to the given video based on YouTube's 
-            recommendation algorithm.
-            """
-            service = self.service
-
-            try:
-                request = service.search().list(
-                    part="snippet",
-                    relatedToVideoId=video_id,
-                    type="video",
-                    maxResults=max_results
-                )
-                response = request.execute()
-
-                for video in response["items"]:
-                    title = video["snippet"]["title"]
-                    video_id = video["id"]["videoId"]
-                    print(f"Related Video: {title} (Video ID: {video_id})")
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def get_videos_by_category(self, category_id, region_code="US", max_results=10):
-            service = self.service
-
-            try:
-                request = service.search().list(
-                    part="snippet",
-                    videoCategoryId=category_id,
-                    regionCode=region_code,
-                    type="video",
-                    maxResults=max_results
-                )
-                response = request.execute()
-
-                for item in response["items"]:
-                    print(item["snippet"]["title"])
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-        
-        def get_trending_videos(self, region_code="US", max_results=10):
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"IndexError:\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+      
+        def get_trending_videos(self, region_code: str="US", max_results: int=10) -> (list[dict] | None):
             service = self.service
             try:
                 request = service.videos().list(
@@ -7920,85 +7947,26 @@ class YouTubeDataAPIv3Tools:
                 )
                 response = request.execute()
 
+                trending = []
                 for item in response["items"]:
-                    print(item["snippet"]["title"])
+                    trending.append(item)
+                return trending
 
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def get_videos_by_tag(self, tag, region_code="US", max_results=10):
-            service = self.service
-            try:
-                request = service.search().list(
-                    part="snippet",
-                    q=tag,
-                    regionCode=region_code,
-                    type="video",
-                    maxResults=max_results
-                )
-                response = request.execute()
-
-                for item in response["items"]:
-                    print(item["snippet"]["title"])
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-        
-        def get_recommended_videos(self, video_id, max_results=10):
-            """
-            This method will get recommended videos based on a given video's ID.
-            """
-            service = self.service
-
-            try:
-                # Get recommended videos for the given video ID
-                request = service.search().list(
-                    part="snippet",
-                    relatedToVideoId=video_id,
-                    type="video",
-                    maxResults=max_results
-                )
-                response = request.execute()
-
-                recommended_videos = []
-                for item in response["items"]:
-                    video = item["snippet"]
-                    recommended_videos.append({
-                        "video_id": item["id"]["videoId"],
-                        "title": video["title"],
-                        "channel": video["channelTitle"]
-                    })
-
-                return recommended_videos
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"IndexError:\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
                 return None
 
-        def get_all_video_details(self, video_id):
-            service = self.service
-
-            try:
-                request = service.videos().list(
-                    part="snippet,contentDetails,statistics",
-                    id=video_id
-                )
-                response = request.execute()
-
-                video = response["items"][0]
-                print(f"Title: {video['snippet']['title']}")
-                print(f"Channel: {video['snippet']['channelTitle']}")
-                print(f"Published At: {video['snippet']['publishedAt']}")
-                print(f"Duration: {video['contentDetails']['duration']}")
-                print(f"Views: {video['statistics']['viewCount']}")
-                print(f"Likes: {video['statistics']['likeCount']}")
-                print(f"Dislikes: {video['statistics']['dislikeCount']}")
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-        
-#/////////////////////////////
-
         #////// ENTIRE VIDEO RESOURCE //////
-        def get_video(self, video_id) -> (dict | None):
+        def get_video(self, video_id: str) -> (dict | None):
             service = self.service
 
             try:
@@ -8023,7 +7991,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None 
             
-        def get_videos_by_id(self, video_ids: list) -> (list[dict] | None):
+        def get_videos_by_id(self, video_ids: list[str]) -> (list[dict] | None):
             service = self.service
             videos = []
             try:
@@ -8077,7 +8045,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO KIND //////
-        def get_video_kind(self, video_id) -> (str | None):
+        def get_video_kind(self, video_id: str) -> (str | None):
             service = self.service
             try:
                 video = service.videos().list(
@@ -8102,7 +8070,7 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// VIDEO ETAG //////
-        def get_video_etag(self, video_id) -> (str | None):
+        def get_video_etag(self, video_id: str) -> (str | None):
             service = self.service
             try:
                 video = service.videos().list(
@@ -8127,7 +8095,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO ID //////
-        def get_video_id(self, video_id) -> (str | None):
+        def get_video_id(self, video_id: str) -> (str | None):
             service = self.service
             try:
                 video = service.videos().list(
@@ -8152,7 +8120,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO SNIPPET PART //////
-        def get_video_snippet(self, video_id) -> (dict | None):
+        def get_video_snippet(self, video_id: str) -> (dict | None):
             service = self.service
 
             try:
@@ -8178,7 +8146,7 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// VIDEO PUBLISHED DATETIME //////
-        def get_video_publish_date(self, video_id) -> (str | None):
+        def get_video_publish_date(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -8204,7 +8172,7 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// VIDEO CHANNEL ID //////
-        def get_video_channel_id(self, video_id) -> (str | None):
+        def get_video_channel_id(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -8230,7 +8198,7 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// VIDEO TITLE //////
-        def get_video_title(self, video_id) -> (str | None):
+        def get_video_title(self, video_id: str) -> (str | None):
             service = self.service
             try:
                 video = service.videos().list(
@@ -8254,7 +8222,7 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// VIDEO DESCRIPTION //////
-        def get_video_description(self, video_id) -> (str | None):
+        def get_video_description(self, video_id: str) -> (str | None):
             service = self.service
             try:
                 video = service.videos().list(
@@ -8278,7 +8246,7 @@ class YouTubeDataAPIv3Tools:
                 return None
             
         #////// VIDEO THUMBNAILS //////
-        def get_video_thumbnails(self, video_id) -> (dict | None):
+        def get_video_thumbnails(self, video_id: str) -> (dict | None):
             service = self.service
             try:
                 video = service.videos().list(
@@ -8302,7 +8270,7 @@ class YouTubeDataAPIv3Tools:
                 return None
            
         #////// VIDEO DEFAULT RES THUMBNAIL //////
-        def get_video_default_res_thumbnail(self, video_id) -> (dict | None):
+        def get_video_default_res_thumbnail(self, video_id: str) -> (dict | None):
             service = self.service
             try:
                 video = service.videos().list(
@@ -8325,7 +8293,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
          
-        def get_video_default_res_thumbnail_url(self, video_id) -> (str | None):
+        def get_video_default_res_thumbnail_url(self, video_id: str) -> (str | None):
             service = self.service
             try:
                 video = service.videos().list(
@@ -8348,7 +8316,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
          
-        def get_video_default_res_thumbnail_width(self, video_id) -> (int | None):
+        def get_video_default_res_thumbnail_width(self, video_id: str) -> (int | None):
             service = self.service
             try:
                 video = service.videos().list(
@@ -8371,7 +8339,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
           
-        def get_video_default_res_thumbnail_height(self, video_id) -> (int | None):
+        def get_video_default_res_thumbnail_height(self, video_id: str) -> (int | None):
             service = self.service
             try:
                 video = service.videos().list(
@@ -8395,7 +8363,7 @@ class YouTubeDataAPIv3Tools:
                 return None
           
         #////// VIDEO MEDIUM RES THUMBNAIL //////
-        def get_video_medium_res_thumbnail(self, video_id) -> (dict | None):
+        def get_video_medium_res_thumbnail(self, video_id: str) -> (dict | None):
             service = self.service
             try:
                 video = service.videos().list(
@@ -8418,7 +8386,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_video_medium_res_thumbnail_url(self, video_id) -> (str | None):
+        def get_video_medium_res_thumbnail_url(self, video_id: str) -> (str | None):
             service = self.service
             try:
                 video = service.videos().list(
@@ -8441,7 +8409,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
          
-        def get_video_medium_res_thumbnail_width(self, video_id) -> (int | None):
+        def get_video_medium_res_thumbnail_width(self, video_id: str) -> (int | None):
             service = self.service
             try:
                 video = service.videos().list(
@@ -8464,7 +8432,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
           
-        def get_video_medium_res_thumbnail_height(self, video_id) -> (int | None):
+        def get_video_medium_res_thumbnail_height(self, video_id: str) -> (int | None):
             service = self.service
             try:
                 video = service.videos().list(
@@ -8488,7 +8456,7 @@ class YouTubeDataAPIv3Tools:
                 return None
           
         #////// VIDEO HIGH RES THUMBNAIL //////
-        def get_video_high_res_thumbnail(self, video_id) -> (dict | None):
+        def get_video_high_res_thumbnail(self, video_id: str) -> (dict | None):
             service = self.service
             try:
                 video = service.videos().list(
@@ -8511,7 +8479,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_video_high_res_thumbnail_url(self, video_id) -> (str | None):
+        def get_video_high_res_thumbnail_url(self, video_id: str) -> (str | None):
             service = self.service
             try:
                 video = service.videos().list(
@@ -8534,7 +8502,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
          
-        def get_video_high_res_thumbnail_width(self, video_id) -> (int | None):
+        def get_video_high_res_thumbnail_width(self, video_id: str) -> (int | None):
             service = self.service
             try:
                 video = service.videos().list(
@@ -8557,7 +8525,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
           
-        def get_video_high_res_thumbnail_height(self, video_id) -> (int | None):
+        def get_video_high_res_thumbnail_height(self, video_id: str) -> (int | None):
             service = self.service
             try:
                 video = service.videos().list(
@@ -8581,7 +8549,7 @@ class YouTubeDataAPIv3Tools:
                 return None
           
         #////// VIDEO STANDARD RES THUMBNAIL //////
-        def get_video_standard_res_thumbnail(self, video_id) -> (dict | None):
+        def get_video_standard_res_thumbnail(self, video_id: str) -> (dict | None):
             service = self.service
             try:
                 video = service.videos().list(
@@ -8604,7 +8572,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_video_standard_res_thumbnail_url(self, video_id) -> (str | None):
+        def get_video_standard_res_thumbnail_url(self, video_id: str) -> (str | None):
             service = self.service
             try:
                 video = service.videos().list(
@@ -8627,7 +8595,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
          
-        def get_video_standard_res_thumbnail_width(self, video_id) -> (int | None):
+        def get_video_standard_res_thumbnail_width(self, video_id: str) -> (int | None):
             service = self.service
             try:
                 video = service.videos().list(
@@ -8650,7 +8618,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
           
-        def get_video_standard_res_thumbnail_height(self, video_id) -> (int | None):
+        def get_video_standard_res_thumbnail_height(self, video_id: str) -> (int | None):
             service = self.service
             try:
                 video = service.videos().list(
@@ -8674,7 +8642,7 @@ class YouTubeDataAPIv3Tools:
                 return None
          
         #////// VIDEO MAX RES THUMBNAIL //////
-        def get_video_max_res_thumbnail(self, video_id) -> (dict | None):
+        def get_video_max_res_thumbnail(self, video_id: str) -> (dict | None):
             service = self.service
             try:
                 video = service.videos().list(
@@ -8697,7 +8665,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_video_max_res_thumbnail_url(self, video_id) -> (str | None):
+        def get_video_max_res_thumbnail_url(self, video_id: str) -> (str | None):
             service = self.service
             try:
                 video = service.videos().list(
@@ -8720,7 +8688,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
          
-        def get_video_max_res_thumbnail_width(self, video_id) -> (int | None):
+        def get_video_max_res_thumbnail_width(self, video_id: str) -> (int | None):
             service = self.service
             try:
                 video = service.videos().list(
@@ -8743,7 +8711,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
           
-        def get_video_max_res_thumbnail_height(self, video_id) -> (int | None):
+        def get_video_max_res_thumbnail_height(self, video_id: str) -> (int | None):
             service = self.service
             try:
                 video = service.videos().list(
@@ -8767,7 +8735,7 @@ class YouTubeDataAPIv3Tools:
                 return None
          
         #////// VIDEO CHANNEL TITLE //////
-        def get_video_channel_title(self, video_id) -> (list[str] | None):
+        def get_video_channel_title(self, video_id: str) -> (list[str] | None):
             service = self.service
             try:
                 video = service.videos().list(
@@ -8792,7 +8760,7 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// VIDEO TAGS //////
-        def get_video_tags(self, video_id):
+        def get_video_tags(self, video_id: str) -> (list[str] | None):
             service = self.service
 
             try:
@@ -8844,7 +8812,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO CATEGORY ID //////
-        def get_video_category_id(self, video_id):
+        def get_video_category_id(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -8870,7 +8838,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO LIVE BROADCASTING CONTENT //////
-        def get_video_live_broadcast_content(self, video_id):
+        def get_video_live_broadcast_content(self, video_id: str) -> (dict | None):
             service = self.service
 
             try:
@@ -8896,7 +8864,7 @@ class YouTubeDataAPIv3Tools:
                 return None
           
         #////// VIDEO DEFAULT LANGUAGE //////
-        def get_video_default_language(self, video_id):
+        def get_video_default_language(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -8922,7 +8890,7 @@ class YouTubeDataAPIv3Tools:
                 return None   
         
         #////// VIDEO LOCALIZED DATA //////
-        def get_video_localized_data(self, video_id):
+        def get_video_localized_data(self, video_id: str) -> (dict | None):
             service = self.service
 
             try:
@@ -8948,7 +8916,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO LOCALIZED TITLE //////
-        def get_video_localized_title(self, video_id):
+        def get_video_localized_title(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -8974,7 +8942,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO LOCALIZED DESCRIPTION //////
-        def get_video_localized_description(self, video_id):
+        def get_video_localized_description(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -9000,7 +8968,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO DEFAULT AUDIO LANGUAGE //////
-        def get_video_default_audio_language(self, video_id):
+        def get_video_default_audio_language(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -9026,7 +8994,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO CONTENT DETAILS PART //////
-        def get_video_content_details(self, video_id):
+        def get_video_content_details(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -9052,7 +9020,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO DURATION //////
-        def get_video_duration(self, video_id):
+        def get_video_duration(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -9078,7 +9046,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO DIMENSION //////
-        def get_video_dimension(self, video_id):
+        def get_video_dimension(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -9104,7 +9072,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO DEFINITION //////
-        def get_video_definition(self, video_id):
+        def get_video_definition(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -9130,7 +9098,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO CAPTION //////
-        def get_video_caption(self, video_id):
+        def get_video_caption(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -9156,7 +9124,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO LICENSED CONTENT //////
-        def get_video_licensed_content(self, video_id):
+        def get_video_licensed_content(self, video_id: str) -> (bool | None):
             service = self.service
 
             try:
@@ -9166,7 +9134,7 @@ class YouTubeDataAPIv3Tools:
                 ).execute()
 
                 content = video["items"][0]["contentDetails"]["licensedContent"]
-                return content
+                return bool(content)
 
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
@@ -9182,7 +9150,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO REGION RESTRICTION //////
-        def get_video_region_restriction(self, video_id):
+        def get_video_region_restriction(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -9208,7 +9176,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO REGION RESTRICTION ALLOWED //////
-        def get_video_region_restriction_allowed(self, video_id):
+        def get_video_region_restriction_allowed(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -9234,7 +9202,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO REGION RESTRICTION BLOCKED //////
-        def get_video_region_restriction_blocked(self, video_id):
+        def get_video_region_restriction_blocked(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -9260,7 +9228,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO CONTENT RATING //////
-        def get_video_content_rating(self, video_id):
+        def get_video_content_rating(self, video_id: str) -> (dict | None):
             service = self.service
 
             try:
@@ -9286,7 +9254,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PROJECTION //////
-        def get_video_projection(self, video_id):
+        def get_video_projection(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -9312,7 +9280,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO HAS CUSTOM THUMBNAIL //////
-        def video_has_custom_thumbnail(self, video_id):
+        def video_has_custom_thumbnail(self, video_id: str) -> (bool | None):
             service = self.service
 
             try:
@@ -9338,7 +9306,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO STATUS PART //////
-        def get_video_status(self, video_id):
+        def get_video_status(self, video_id: str) -> (dict | None):
             service = self.service
 
             try:
@@ -9364,7 +9332,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO UPLOAD STATUS //////
-        def get_video_upload_status(self, video_id):
+        def get_video_upload_status(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -9390,7 +9358,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO FAILURE REASON //////
-        def get_video_failure_reason(self, video_id):
+        def get_video_failure_reason(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -9416,7 +9384,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO REJECTION REASON //////
-        def get_video_rejection_reason(self, video_id):
+        def get_video_rejection_reason(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -9442,7 +9410,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PRIVACY STATUS //////
-        def get_video_privacy_status(self, video_id):
+        def get_video_privacy_status(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -9468,7 +9436,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PUBLISHED DATE //////
-        def get_video_published_date(self, video_id):
+        def get_video_published_date(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -9494,7 +9462,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO LICENSE //////
-        def get_video_license(self, video_id):
+        def get_video_license(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -9520,7 +9488,7 @@ class YouTubeDataAPIv3Tools:
                 return None
             
         #////// VIDEO EMBEDDABLE //////
-        def video_is_embeddable(self, video_id) -> (bool | None):
+        def video_is_embeddable(self, video_id: str) -> (bool | None):
             service = self.service
 
             try:
@@ -9546,7 +9514,7 @@ class YouTubeDataAPIv3Tools:
                 return None
             
         #////// VIDEO PUBLIC STATS VIEWABLE //////
-        def video_public_stats_viewable(self, video_id) -> (bool | None):
+        def video_public_stats_viewable(self, video_id: str) -> (bool | None):
             service = self.service
 
             try:
@@ -9572,7 +9540,7 @@ class YouTubeDataAPIv3Tools:
                 return None
             
         #////// VIDEO MADE FOR KIDS //////
-        def video_is_made_for_kids(self, video_id) -> (bool | None):
+        def video_is_made_for_kids(self, video_id: str) -> (bool | None):
             service = self.service
 
             try:
@@ -9598,7 +9566,7 @@ class YouTubeDataAPIv3Tools:
                 return None
             
         #////// VIDEO SELF DECLARED MADE FOR KIDS //////
-        def video_self_declared_for_kids(self, video_id) -> (bool | None):
+        def video_self_declared_for_kids(self, video_id: str) -> (bool | None):
             service = self.service
 
             try:
@@ -9624,7 +9592,7 @@ class YouTubeDataAPIv3Tools:
                 return None
             
         #////// VIDEO STATISTICS PART //////
-        def get_video_statistics(self, video_id):
+        def get_video_statistics(self, video_id: str) -> (dict | None):
             service = self.service
 
             try:
@@ -9650,7 +9618,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO VIEW COUNT //////
-        def get_video_view_count(self, video_id):
+        def get_video_view_count(self, video_id: str) -> (int | None):
             service = self.service
 
             try:
@@ -9676,7 +9644,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO LIKE COUNT //////
-        def get_video_like_count(self, video_id):
+        def get_video_like_count(self, video_id: str) -> (int | None):
             service = self.service
 
             try:
@@ -9702,7 +9670,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO DISLIKE COUNT //////
-        def get_video_dislike_count(self, video_id):
+        def get_video_dislike_count(self, video_id: str) -> (int | None):
             service = self.service
 
             try:
@@ -9728,7 +9696,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO FAVORITE COUNT //////
-        def get_video_favorite_count(self, video_id):
+        def get_video_favorite_count(self, video_id: str) -> (int | None):
             service = self.service
 
             try:
@@ -9754,7 +9722,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO COMMENT COUNT //////
-        def get_video_comment_count(self, video_id):
+        def get_video_comment_count(self, video_id: str) -> (int | None):
             service = self.service
 
             try:
@@ -9780,7 +9748,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PLAYER PART //////
-        def get_video_player(self, video_id):
+        def get_video_player(self, video_id: str) -> (dict | None):
             service = self.service
 
             try:
@@ -9806,7 +9774,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PLAYER EMBED HTML //////
-        def get_video_embed_html(self, video_id):
+        def get_video_embed_html(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -9832,7 +9800,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PLAYER EMBED HEIGHT //////
-        def get_video_embed_height(self, video_id):
+        def get_video_embed_height(self, video_id: str) -> (float | None):
             service = self.service
 
             try:
@@ -9842,7 +9810,7 @@ class YouTubeDataAPIv3Tools:
                 ).execute()
 
                 height = video["items"][0]["player"]["embedHeight"]
-                return height
+                return float(height)
 
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
@@ -9858,7 +9826,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PLAYER EMBED WIDTH //////
-        def get_video_embed_width(self, video_id):
+        def get_video_embed_width(self, video_id: str) -> (float | None):
             service = self.service
 
             try:
@@ -9868,7 +9836,7 @@ class YouTubeDataAPIv3Tools:
                 ).execute()
 
                 width = video["items"][0]["player"]["embedWidth"]
-                return width
+                return float(width)
 
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
@@ -9884,7 +9852,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO TOPIC DETAILS PART //////
-        def get_video_topic_details(self, video_id):
+        def get_video_topic_details(self, video_id: str) -> (dict | None):
             service = self.service
 
             try:
@@ -9910,7 +9878,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO TOPIC IDS //////
-        def get_video_topic_ids(self, video_id) -> (list[str] | None):
+        def get_video_topic_ids(self, video_id: str) -> (list[str] | None):
             service = self.service
 
             try:
@@ -9936,7 +9904,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO RELEVANT TOPIC IDS //////
-        def get_video_relevant_topic_ids(self, video_id) -> (list[str] | None):
+        def get_video_relevant_topic_ids(self, video_id: str) -> (list[str] | None):
             service = self.service
 
             try:
@@ -9962,7 +9930,7 @@ class YouTubeDataAPIv3Tools:
                 return None
           
         #////// VIDEO TOPIC CATEGORIES //////
-        def get_video_topic_categories(self, video_id) -> (list[str] | None):
+        def get_video_topic_categories(self, video_id: str) -> (list[str] | None):
             service = self.service
 
             try:
@@ -9988,7 +9956,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO RECORDING DETAILS PART //////
-        def get_video_recording_details(self, video_id):
+        def get_video_recording_details(self, video_id: str) -> (dict | None):
             service = self.service
 
             try:
@@ -10014,7 +9982,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO RECORDING DATE //////
-        def get_video_recording_date(self, video_id):
+        def get_video_recording_date(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -10040,7 +10008,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO FILE DETAILS PART //////
-        def get_video_file_details(self, video_id) -> (dict | None):
+        def get_video_file_details(self, video_id: str) -> (dict | None):
             service = self.service
 
             try:
@@ -10066,7 +10034,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO FILE NAME //////
-        def get_video_file_name(self, video_id) -> (str | None):
+        def get_video_file_name(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -10092,7 +10060,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO FILE SIZE //////
-        def get_video_file_size(self, video_id) -> (int | None):
+        def get_video_file_size(self, video_id: str) -> (int | None):
             service = self.service
 
             try:
@@ -10118,7 +10086,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO FILE TYPE //////
-        def get_video_file_type(self, video_id) -> (str | None):
+        def get_video_file_type(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -10144,7 +10112,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO CONTAINER //////
-        def get_video_container(self, video_id) -> (str | None):
+        def get_video_container(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -10170,7 +10138,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO STREAMS //////
-        def get_video_streams(self, video_id) -> (list[dict] | None):
+        def get_video_streams(self, video_id: str) -> (list[dict] | None):
             service = self.service
 
             try:
@@ -10196,7 +10164,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO STREAMS PIXEL WIDTH //////
-        def get_video_streams_pixel_width(self, video_id) -> (int | None):
+        def get_video_streams_pixel_width(self, video_id: str) -> (int | None):
             service = self.service
 
             try:
@@ -10222,7 +10190,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO STREAMS PIXEL HEIGHT //////
-        def get_video_streams_pixel_height(self, video_id) -> (int | None):
+        def get_video_streams_pixel_height(self, video_id: str) -> (int | None):
             service = self.service
 
             try:
@@ -10248,7 +10216,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO STREAMS FRAMERATE FPS //////
-        def get_video_streams_framerate_fps(self, video_id) -> (int | None):
+        def get_video_streams_framerate_fps(self, video_id: str) -> (int | None):
             service = self.service
 
             try:
@@ -10274,7 +10242,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO STREAMS ASPECT RATIO //////
-        def get_video_streams_aspect_ratio(self, video_id) -> (int | None):
+        def get_video_streams_aspect_ratio(self, video_id: str) -> (int | None):
             service = self.service
 
             try:
@@ -10300,7 +10268,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO STREAMS CODEC //////
-        def get_video_streams_codec(self, video_id) -> (str | None):
+        def get_video_streams_codec(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -10326,7 +10294,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO STREAMS BITRATE BPS //////
-        def get_video_streams_bitrate_bps(self, video_id) -> (float | None):
+        def get_video_streams_bitrate_bps(self, video_id: str) -> (float | None):
             service = self.service
 
             try:
@@ -10352,7 +10320,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO STREAMS ROTATION //////
-        def get_video_streams_rotation(self, video_id) -> (str | None):
+        def get_video_streams_rotation(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -10378,7 +10346,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO STREAMS VENDOR //////
-        def get_video_streams_vendor(self, video_id) -> (str | None):
+        def get_video_streams_vendor(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -10404,7 +10372,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// AUDIO STREAMS //////
-        def get_audio_streams(self, video_id) -> (list[dict] | None):
+        def get_audio_streams(self, video_id: str) -> (list[dict] | None):
             service = self.service
 
             try:
@@ -10430,7 +10398,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// AUDIO STREAMS CHANNEL COUNT //////
-        def get_audio_streams_channel_count(self, video_id) -> (int | None):
+        def get_audio_streams_channel_count(self, video_id: str) -> (int | None):
             service = self.service
 
             try:
@@ -10456,7 +10424,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// AUDIO STREAMS CODEC //////
-        def get_audio_streams_codec(self, video_id) -> (str | None):
+        def get_audio_streams_codec(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -10482,7 +10450,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// AUDIO STREAMS BITRATE BPS //////
-        def get_audio_streams_bitrate_bps(self, video_id) -> (float | None):
+        def get_audio_streams_bitrate_bps(self, video_id: str) -> (float | None):
             service = self.service
 
             try:
@@ -10508,7 +10476,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// AUDIO STREAMS VENDOR //////
-        def get_audio_streams_vendor(self, video_id) -> (str | None):
+        def get_audio_streams_vendor(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -10534,7 +10502,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO DURATION MS //////
-        def get_video_duration_ms(self, video_id) -> (int | None):
+        def get_video_duration_ms(self, video_id: str) -> (int | None):
             service = self.service
 
             try:
@@ -10560,7 +10528,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO BITRATE BPS //////
-        def get_video_bitrate_bps(self, video_id) -> (int | None):
+        def get_video_bitrate_bps(self, video_id: str) -> (int | None):
             service = self.service
 
             try:
@@ -10586,7 +10554,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO CREATION TIME //////
-        def get_video_creation_time(self, video_id) -> (str | None):
+        def get_video_creation_time(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -10612,7 +10580,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PROCESSING DETAILS PART //////
-        def get_video_processing_deatils(self, video_id) -> (dict | None):
+        def get_video_processing_deatils(self, video_id: str) -> (dict | None):
             service = self.service
 
             try:
@@ -10638,7 +10606,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PROCESSING STATUS //////
-        def get_video_processing_status(self, video_id) -> (str | None):
+        def get_video_processing_status(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -10664,7 +10632,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PROCESSING PROGRESS //////
-        def get_video_processing_progress(self, video_id) -> (dict | None):
+        def get_video_processing_progress(self, video_id: str) -> (dict | None):
             service = self.service
 
             try:
@@ -10690,7 +10658,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PROCESSING PROGRESS PARTS TOTAL //////
-        def get_video_processing_progress_parts_total(self, video_id) -> (float | None):
+        def get_video_processing_progress_parts_total(self, video_id: str) -> (float | None):
             service = self.service
 
             try:
@@ -10716,7 +10684,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PROCESSING PROGRESS PARTS PROCESSED //////
-        def get_video_processing_progress_parts_processed(self, video_id) -> (float | None):
+        def get_video_processing_progress_parts_processed(self, video_id: str) -> (float | None):
             service = self.service
 
             try:
@@ -10742,7 +10710,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PROCESSING PROGRESS TIME LEFT MS //////
-        def get_video_processing_progress_time_left_ms(self, video_id) -> (float | None):
+        def get_video_processing_progress_time_left_ms(self, video_id: str) -> (float | None):
             service = self.service
 
             try:
@@ -10768,7 +10736,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PROCESSING PROCESSING FAILURE REASON //////
-        def get_video_processing_failure_reason(self, video_id) -> (str | None):
+        def get_video_processing_failure_reason(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -10794,7 +10762,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PROCESSING PROCESSING FILE DETAILS AVAILABILITY //////
-        def get_video_processing_file_details_availability(self, video_id) -> (str | None):
+        def get_video_processing_file_details_availability(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -10820,7 +10788,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PROCESSING ISSUES AVAILABILITY //////
-        def get_video_processing_issues_availability(self, video_id) -> (str | None):
+        def get_video_processing_issues_availability(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -10846,7 +10814,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PROCESSING TAG SUGGESTIONS AVAILABILITY //////
-        def get_video_processing_tag_suggestions_availability(self, video_id) -> (str | None):
+        def get_video_processing_tag_suggestions_availability(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -10872,7 +10840,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PROCESSING EDITOR SUGGESTIONS AVAILABILITY //////
-        def get_video_processing_editor_suggestions_availability(self, video_id) -> (str | None):
+        def get_video_processing_editor_suggestions_availability(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -10898,7 +10866,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PROCESSING THUMBNAILS AVAILABILITY //////
-        def get_video_processing_thumbnails_availability(self, video_id) -> (str | None):
+        def get_video_processing_thumbnails_availability(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -10924,7 +10892,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO SUGGESTIONS PART //////
-        def get_video_suggestions(self, video_id) -> (dict | None):
+        def get_video_suggestions(self, video_id: str) -> (dict | None):
             service = self.service
 
             try:
@@ -10950,7 +10918,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO SUGGESTIONS PROCESSING ERRORS //////
-        def get_video_suggestions_processing_errors(self, video_id) -> (list[str] | None):
+        def get_video_suggestions_processing_errors(self, video_id: str) -> (list[str] | None):
             service = self.service
 
             try:
@@ -10976,7 +10944,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO SUGGESTIONS PROCESSING WARNINGS //////
-        def get_video_suggestions_processing_warnings(self, video_id) -> (list[str] | None):
+        def get_video_suggestions_processing_warnings(self, video_id: str) -> (list[str] | None):
             service = self.service
 
             try:
@@ -11002,7 +10970,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO SUGGESTIONS PROCESSING HINTS //////
-        def get_video_suggestions_processing_hints(self, video_id) -> (list[str] | None):
+        def get_video_suggestions_processing_hints(self, video_id: str) -> (list[str] | None):
             service = self.service
 
             try:
@@ -11028,7 +10996,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO TAG SUGGESTIONS //////
-        def get_video_tag_suggestions(self, video_id) -> (list[dict] | None):
+        def get_video_tag_suggestions(self, video_id: str) -> (list[dict] | None):
             service = self.service
 
             try:
@@ -11054,7 +11022,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO EDITOR SUGGESTIONS //////
-        def get_video_editor_suggestions(self, video_id) -> (list[str] | None):
+        def get_video_editor_suggestions(self, video_id: str) -> (list[str] | None):
             service = self.service
 
             try:
@@ -11080,7 +11048,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO LIVE STREAMING DETAILS PART //////
-        def get_video_live_streaming_details(self, video_id) -> (dict | None):
+        def get_video_live_streaming_details(self, video_id: str) -> (dict | None):
             service = self.service
 
             try:
@@ -11106,7 +11074,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO LIVE STREAMING ACTUAL START TIME //////
-        def get_video_live_streaming_actual_start_time(self, video_id) -> (str | None):
+        def get_video_live_streaming_actual_start_time(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -11132,7 +11100,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO LIVE STREAMING ACTUAL END TIME //////
-        def get_video_live_streaming_actual_end_time(self, video_id) -> (str | None):
+        def get_video_live_streaming_actual_end_time(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -11158,7 +11126,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO LIVE STREAMING SCHEDULED START TIME //////
-        def get_video_live_streaming_scheduled_start_time(self, video_id) -> (str | None):
+        def get_video_live_streaming_scheduled_start_time(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -11184,7 +11152,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO LIVE STREAMING CONCURRENT VIEWERS //////
-        def get_video_live_streaming_concurrent_viewers(self, video_id) -> (int | None):
+        def get_video_live_streaming_concurrent_viewers(self, video_id: str) -> (int | None):
             service = self.service
 
             try:
@@ -11210,7 +11178,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO LIVE STREAMING ACTIVE LIVE CHAT ID //////
-        def get_video_live_streaming_active_live_chat_id(self, video_id) -> (str | None):
+        def get_video_live_streaming_active_live_chat_id(self, video_id: str) -> (str | None):
             service = self.service
 
             try:
@@ -11236,7 +11204,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO LOCALIZATIONS PART //////
-        def get_video_localizations(self, video_id) -> (dict | None):
+        def get_video_localizations(self, video_id: str) -> (dict | None):
             service = self.service
 
             try:
@@ -13003,6 +12971,120 @@ class YouTubeDataAPIv3Tools:
 
             except googleapiclient.errors.HttpError as e:
                 print(f"An error occurred: {e}")
+        
+        def iterate_related_videos(self, video_id, max_results=10):
+            service = self.service
+
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    relatedToVideoId=video_id,
+                    type="video",
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                related_videos = response.get("items", [])
+                for video in related_videos:
+                    video_id = video["id"]["videoId"]
+                    video_title = video["snippet"]["title"]
+                    channel_title = video["snippet"]["channelTitle"]
+                    print(f"Video ID: {video_id}, Title: {video_title}, Channel: {channel_title}")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_related_videos(self, video_id, max_results=10):
+            """
+            This method retrieves related videos for a specific video. It prints 
+            information about videos related to the given video based on YouTube's 
+            recommendation algorithm.
+            """
+            service = self.service
+
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    relatedToVideoId=video_id,
+                    type="video",
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                for video in response["items"]:
+                    title = video["snippet"]["title"]
+                    video_id = video["id"]["videoId"]
+                    print(f"Related Video: {title} (Video ID: {video_id})")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_videos_by_category(self, category_id, region_code="US", max_results=10):
+            service = self.service
+
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    videoCategoryId=category_id,
+                    regionCode=region_code,
+                    type="video",
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
+        def get_videos_by_tag(self, tag, region_code="US", max_results=10):
+            service = self.service
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    q=tag,
+                    regionCode=region_code,
+                    type="video",
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                for item in response["items"]:
+                    print(item["snippet"]["title"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+        
+        def get_recommended_videos(self, video_id, max_results=10):
+            """
+            This method will get recommended videos based on a given video's ID.
+            """
+            service = self.service
+
+            try:
+                # Get recommended videos for the given video ID
+                request = service.search().list(
+                    part="snippet",
+                    relatedToVideoId=video_id,
+                    type="video",
+                    maxResults=max_results
+                )
+                response = request.execute()
+
+                recommended_videos = []
+                for item in response["items"]:
+                    video = item["snippet"]
+                    recommended_videos.append({
+                        "video_id": item["id"]["videoId"],
+                        "title": video["title"],
+                        "channel": video["channelTitle"]
+                    })
+
+                return recommended_videos
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+                return None
         
     #//////////// LIVE BROADCASTS ///////////
     class LiveBroadcast:
