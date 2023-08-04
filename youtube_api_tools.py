@@ -12133,29 +12133,6 @@ class YouTubeDataAPIv3Tools:
             self.service = ytd_api_tools.service
             
         #////// UTILITY METHODS //////
-        def get_caption_tracks(self, video_id: str):
-            """
-            This method retrieves the caption tracks (subtitles) available for 
-            a specific video identified by video_id. It prints information about 
-            each caption track, including its ID, language, and whether it is 
-            auto-generated.
-            """
-            service = self.service
-            try:
-                request = service.captions().list(
-                    part="snippet",
-                    videoId=video_id
-                )
-                response = request.execute()
-
-                for caption_track in response["items"]:
-                    track_id = caption_track["id"]
-                    language = caption_track["snippet"]["language"]
-                    is_auto_generated = caption_track["snippet"]["isAutoSynced"]
-                    print(f"Caption Track ID: {track_id}, Language: {language}, Auto-generated: {is_auto_generated}")
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
 
         def download_caption_track(self, track_id: str, output_file: str):
             """
@@ -12301,6 +12278,889 @@ class YouTubeDataAPIv3Tools:
             except googleapiclient.errors.HttpError as e:
                 print(f"An error occurred: {e}")
 
+        #////// ENTIRE CAPTION RESOURCE //////
+        def get_caption_tracks(self, video_id: str) -> (list[dict] | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    videoId=video_id
+                )
+                response = request.execute()
+                tracks = []
+                for item in response["items"]:
+                    tracks.append(item)
+                return tracks
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+
+        def get_caption_track(self, caption_id: str, video_id: str=None) -> (dict | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    id=caption_id,
+                    videoId=video_id
+                )
+                response = request.execute()
+                return response["items"][0]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+
+        #////// CAPTION TRACK KIND //////
+        def get_caption_track_kinds(self, video_id: str) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    videoId=video_id
+                )
+                response = request.execute()
+                kinds = []
+                for item in response["items"]:
+                    kinds.append(item["kind"])
+                return kinds
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+
+        def get_caption_kind(self, caption_id: str, video_id: str=None) -> (str | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    id=caption_id,
+                    videoId=video_id
+                )
+                response = request.execute()
+                return response["items"][0]["kind"]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+
+        #////// CAPTION TRACK ETAGS //////
+        def get_caption_track_etags(self, video_id: str) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    videoId=video_id
+                )
+                response = request.execute()
+                etags = []
+                for item in response["items"]:
+                    etags.append(item["etag"])
+                return etags
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+
+        def get_caption_etag(self, caption_id: str, video_id: str=None) -> (str | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    id=caption_id,
+                    videoId=video_id
+                )
+                response = request.execute()
+                return response["items"][0]["etag"]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+
+        #////// CAPTION TRACK IDS //////
+        def get_caption_track_ids(self, video_id: str) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    videoId=video_id
+                )
+                response = request.execute()
+                ids = []
+                for item in response["items"]:
+                    ids.append(item["id"])
+                return ids
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+
+        def get_caption_id(self, caption_id: str, video_id: str=None) -> (str | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    id=caption_id,
+                    videoId=video_id
+                )
+                response = request.execute()
+                return response["items"][0]["id"]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+
+        #////// CAPTION TRACK SNIPPETS //////
+        def get_caption_track_snippets(self, video_id: str) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    videoId=video_id
+                )
+                response = request.execute()
+                snippets = []
+                for item in response["items"]:
+                    snippets.append(item["snippet"])
+                return snippets
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+
+        def get_caption_snippet(self, caption_id: str, video_id: str=None) -> (str | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    id=caption_id,
+                    videoId=video_id
+                )
+                response = request.execute()
+                return response["items"][0]["snippet"]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+        
+        #////// CAPTION TRACK VIDEO IDS //////
+        def get_caption_track_video_ids(self, video_id: str) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    videoId=video_id
+                )
+                response = request.execute()
+                ids = []
+                for item in response["items"]:
+                    ids.append(item["snippet"]["videoId"])
+                return ids
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+
+        def get_caption_track_video_id(self, caption_id: str, video_id: str=None) -> (str | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    id=caption_id,
+                    videoId=video_id
+                )
+                response = request.execute()
+                return response["items"][0]["snippet"]["videoId"]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+        
+        #////// CAPTION TRACK LAST UPDATED //////
+        def get_caption_track_last_updates(self, video_id: str) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    videoId=video_id
+                )
+                response = request.execute()
+                dates = []
+                for item in response["items"]:
+                    dates.append(item["snippet"]["lastUpdated"])
+                return dates
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+
+        def get_caption_track_last_update(self, caption_id: str, video_id: str=None) -> (str | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    id=caption_id,
+                    videoId=video_id
+                )
+                response = request.execute()
+                return response["items"][0]["snippet"]["lastUpdated"]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+        
+        #////// CAPTION TRACK TRACK KIND //////
+        def get_caption_track_track_kinds(self, video_id: str) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    videoId=video_id
+                )
+                response = request.execute()
+                kinds = []
+                for item in response["items"]:
+                    kinds.append(item["snippet"]["trackKind"])
+                return kinds
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+
+        def get_caption_track_track_kind(self, caption_id: str, video_id: str=None) -> (str | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    id=caption_id,
+                    videoId=video_id
+                )
+                response = request.execute()
+                return response["items"][0]["snippet"]["trackKind"]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+        
+        #////// CAPTION TRACK LANGUAGE //////
+        def get_caption_track_languages(self, video_id: str) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    videoId=video_id
+                )
+                response = request.execute()
+                langs = []
+                for item in response["items"]:
+                    langs.append(item["snippet"]["language"])
+                return langs
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+
+        def get_caption_track_language(self, caption_id: str, video_id: str=None) -> (str | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    id=caption_id,
+                    videoId=video_id
+                )
+                response = request.execute()
+                return response["items"][0]["snippet"]["language"]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+        
+        #////// CAPTION TRACK NAME //////
+        def get_caption_track_names(self, video_id: str) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    videoId=video_id
+                )
+                response = request.execute()
+                names = []
+                for item in response["items"]:
+                    names.append(item["snippet"]["name"])
+                return names
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+
+        def get_caption_track_name(self, caption_id: str, video_id: str=None) -> (str | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    id=caption_id,
+                    videoId=video_id
+                )
+                response = request.execute()
+                return response["items"][0]["snippet"]["name"]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+        
+        #////// CAPTION AUDIO TRACK TYPE //////
+        def get_caption_audio_track_types(self, video_id: str) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    videoId=video_id
+                )
+                response = request.execute()
+                types = []
+                for item in response["items"]:
+                    types.append(item["snippet"]["audioTrackType"])
+                return types
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+
+        def get_caption_audio_track_type(self, caption_id: str, video_id: str=None) -> (str | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    id=caption_id,
+                    videoId=video_id
+                )
+                response = request.execute()
+                return response["items"][0]["snippet"]["audioTrackType"]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+        
+        #////// CAPTION IS CC //////
+        def captions_are_cc(self, video_id: str) -> (list[bool] | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    videoId=video_id
+                )
+                response = request.execute()
+                ccs = []
+                for item in response["items"]:
+                    ccs.append(bool(item["snippet"]["isCC"]))
+                return ccs
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+
+        def caption_is_cc(self, caption_id: str, video_id: str=None) -> (bool | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    id=caption_id,
+                    videoId=video_id
+                )
+                response = request.execute()
+                return bool(response["items"][0]["snippet"]["isCC"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+        
+        #////// CAPTION IS LARGE //////
+        def captions_are_large(self, video_id: str) -> (list[bool] | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    videoId=video_id
+                )
+                response = request.execute()
+                answers = []
+                for item in response["items"]:
+                    answers.append(bool(item["snippet"]["isLarge"]))
+                return answers
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+
+        def caption_is_large(self, caption_id: str, video_id: str=None) -> (bool | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    id=caption_id,
+                    videoId=video_id
+                )
+                response = request.execute()
+                return bool(response["items"][0]["snippet"]["isLarge"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+        
+        #////// CAPTION IS EASY READER //////
+        def captions_are_easy_readers(self, video_id: str) -> (list[bool] | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    videoId=video_id
+                )
+                response = request.execute()
+                answers = []
+                for item in response["items"]:
+                    answers.append(bool(item["snippet"]["isEasyReader"]))
+                return answers
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+
+        def caption_is_easy_reader(self, caption_id: str, video_id: str=None) -> (bool | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    id=caption_id,
+                    videoId=video_id
+                )
+                response = request.execute()
+                return bool(response["items"][0]["snippet"]["isEasyReader"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+        
+        #////// CAPTION IS DRAFT //////
+        def captions_are_drafts(self, video_id: str) -> (list[bool] | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    videoId=video_id
+                )
+                response = request.execute()
+                answers = []
+                for item in response["items"]:
+                    answers.append(bool(item["snippet"]["isDraft"]))
+                return answers
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+
+        def caption_is_draft(self, caption_id: str, video_id: str=None) -> (bool | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    id=caption_id,
+                    videoId=video_id
+                )
+                response = request.execute()
+                return bool(response["items"][0]["snippet"]["isDraft"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+        
+        #////// CAPTION IS AUTO SYNCED //////
+        def captions_are_auto_synced(self, video_id: str) -> (list[bool] | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    videoId=video_id
+                )
+                response = request.execute()
+                answers = []
+                for item in response["items"]:
+                    answers.append(bool(item["snippet"]["isAutoSynced"]))
+                return answers
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+
+        def caption_is_auto_synced(self, caption_id: str, video_id: str=None) -> (bool | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    id=caption_id,
+                    videoId=video_id
+                )
+                response = request.execute()
+                return bool(response["items"][0]["snippet"]["isAutoSynced"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+        
+        #////// CAPTION STATUS //////
+        def caption_statuses(self, video_id: str) -> (list[bool] | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    videoId=video_id
+                )
+                response = request.execute()
+                answers = []
+                for item in response["items"]:
+                    answers.append(bool(item["snippet"]["status"]))
+                return answers
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+
+        def caption_status(self, caption_id: str, video_id: str=None) -> (bool | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    id=caption_id,
+                    videoId=video_id
+                )
+                response = request.execute()
+                return bool(response["items"][0]["snippet"]["status"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+        
+        #////// CAPTION FAILURE REASON //////
+        def caption_failure_reasons(self, video_id: str) -> (list[bool] | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    videoId=video_id
+                )
+                response = request.execute()
+                answers = []
+                for item in response["items"]:
+                    answers.append(bool(item["snippet"]["failureReason"]))
+                return answers
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+
+        def caption_failure_reason(self, caption_id: str, video_id: str=None) -> (bool | None):
+            service = self.service
+            try:
+                request = service.captions().list(
+                    part="snippet",
+                    id=caption_id,
+                    videoId=video_id
+                )
+                response = request.execute()
+                return bool(response["items"][0]["snippet"]["failureReason"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+        
+        
     #//////////// SUBSSCRIPTIONS ////////////
     class Subscriptions:
         def __init__(self, ytd_api_tools: object) -> None:
