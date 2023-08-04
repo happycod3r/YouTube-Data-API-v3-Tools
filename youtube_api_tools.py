@@ -3866,7 +3866,6 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        #////// PLAYLIST DEFAULT RES THUMBNAIL URL //////
         def get_playlist_default_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
             try:
                 playlist_info = self.get_playlist_snippet(playlist_id)
@@ -3913,6 +3912,46 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
+        def get_playlist_default_res_thumbnail_width(self, playlist_id: str) -> (int | None):
+
+            try:
+                playlist_info = self.get_playlist_snippet(playlist_id)
+                if playlist_info:
+                    return int(playlist_info["thumbnails"]["default"]["width"])
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        def get_playlist_default_res_thumbnail_height(self, playlist_id: str) -> (int | None):
+
+            try:
+                playlist_info = self.get_playlist_snippet(playlist_id)
+                if playlist_info:
+                    return int(playlist_info["thumbnails"]["default"]["height"])
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+          
         #////// PLAYLIST MEDIUM RES THUMBNAIL //////
         def get_playlist_medium_res_thumbnail(self, playlist_id: str) -> (dict | None):
             try:
@@ -3960,7 +3999,6 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        #////// PLAYLIST MEDIUM RES THUMBNAIL URL //////
         def get_playlist_medium_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
             try:
                 playlist_info = self.get_playlist_snippet(playlist_id)
@@ -3994,6 +4032,46 @@ class YouTubeDataAPIv3Tools:
                 for playlist in response["items"]:
                     thumbnails.append(playlist["snippet"]["thumbnails"]["medium"]["url"])
                 return thumbnails
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_playlist_medium_res_thumbnail_width(self, playlist_id: str) -> (int | None):
+
+            try:
+                playlist_info = self.get_playlist_snippet(playlist_id)
+                if playlist_info:
+                    return int(playlist_info["thumbnails"]["medium"]["width"])
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        def get_playlist_medium_res_thumbnail_height(self, playlist_id: str) -> (int | None):
+
+            try:
+                playlist_info = self.get_playlist_snippet(playlist_id)
+                if playlist_info:
+                    return int(playlist_info["thumbnails"]["medium"]["height"])
+                return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -4054,7 +4132,6 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        #////// PLAYLIST HIGH RES THUMBNAIL URL //////
         def get_playlist_high_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
 
             try:
@@ -4089,6 +4166,46 @@ class YouTubeDataAPIv3Tools:
                 for playlist in response["items"]:
                     thumbnails.append(playlist["snippet"]["thumbnails"]["high"]["url"])
                 return thumbnails
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_playlist_high_res_thumbnail_width(self, playlist_id: str) -> (int | None):
+
+            try:
+                playlist_info = self.get_playlist_snippet(playlist_id)
+                if playlist_info:
+                    return int(playlist_info["thumbnails"]["high"]["width"])
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        def get_playlist_high_res_thumbnail_height(self, playlist_id: str) -> (int | None):
+
+            try:
+                playlist_info = self.get_playlist_snippet(playlist_id)
+                if playlist_info:
+                    return int(playlist_info["thumbnails"]["high"]["height"])
+                return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -4149,7 +4266,6 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        #////// PLAYLIST STANDARD THUMBNAIL URL //////
         def get_playlist_standard_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
             try:
                 playlist_info = self.get_playlist_snippet(playlist_id)
@@ -4183,6 +4299,46 @@ class YouTubeDataAPIv3Tools:
                 for playlist in response["items"]:
                     thumbnails.append(playlist["snippet"]["thumbnails"]["standard"]["url"])
                 return thumbnails
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_playlist_standard_res_thumbnail_width(self, playlist_id: str) -> (int | None):
+
+            try:
+                playlist_info = self.get_playlist_snippet(playlist_id)
+                if playlist_info:
+                    return int(playlist_info["thumbnails"]["standard"]["width"])
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        def get_playlist_standard_res_thumbnail_height(self, playlist_id: str) -> (int | None):
+
+            try:
+                playlist_info = self.get_playlist_snippet(playlist_id)
+                if playlist_info:
+                    return int(playlist_info["thumbnails"]["standard"]["height"])
+                return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -4244,7 +4400,6 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        #////// PLAYLIST MAX RES THUMBNAIL URL //////
         def get_playlist_max_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
             try:
                 playlist_info = self.get_playlist_snippet(playlist_id)
@@ -4278,6 +4433,46 @@ class YouTubeDataAPIv3Tools:
                 for playlist in response["items"]:
                     thumbnails.append(playlist["snippet"]["thumbnails"]["maxres"]["url"])
                 return thumbnails
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_playlist_max_res_thumbnail_width(self, playlist_id: str) -> (int | None):
+
+            try:
+                playlist_info = self.get_playlist_snippet(playlist_id)
+                if playlist_info:
+                    return int(playlist_info["thumbnails"]["maxres"]["width"])
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        def get_playlist_max_res_thumbnail_height(self, playlist_id: str) -> (int | None):
+
+            try:
+                playlist_info = self.get_playlist_snippet(playlist_id)
+                if playlist_info:
+                    return int(playlist_info["thumbnails"]["maxres"]["height"])
+                return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -4874,6 +5069,7 @@ class YouTubeDataAPIv3Tools:
         def __init__(self, ytd_api_tools: object) -> None:
             self.service = ytd_api_tools.service
         
+        #////// ENTIRE PLAYLIST ITEM RESOURCE //////
         def get_playlist_item_by_index(self, playlist_id: str, index: int=0) -> (str | None):
             service = self.service
 
@@ -4900,7 +5096,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_playlist_item_by_id(self, item_id: str=None) -> (str | None):
+        def get_playlist_item_by_id(self, item_id: str=None) -> (list[dict] | None):
             service = self.service
 
             try:
@@ -4954,14 +5150,13 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_playlist_item(self, playlist_id: str, item_id: str) -> (str | None):
+        def get_playlist_item(self, item_id: str) -> (str | None):
             service = self.service
 
             try:
                 request = service.playlistItems().list(
                     part="snippet",
-                    id=item_id,
-                    playlistId=playlist_id
+                    id=item_id
                 )
                 response = request.execute()
 
@@ -4981,7 +5176,2436 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-                
+        #////// PLAYLIST ITEM KIND //////
+        def get_playlist_item_kind(self, item_id: str) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                kind = response["items"][0]["kind"]
+                return kind
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        def get_all_playlist_item_kinds(self, playlist_id: str) -> (list[str] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                kinds = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    kinds.append(pitem["kind"])
+                return kinds
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// PLAYLIST ITEM ETAG //////
+        def get_playlist_item_etag(self, item_id: str) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                etag = response["items"][0]["etag"]
+                return etag
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_etags(self, playlist_id: str) -> (list[str] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                etags = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    etags.append(pitem["etag"])
+                return etags
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// PLAYLIST ITEM ETAG //////
+        def get_playlist_item_id(self, item_id: str) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                id = response["items"][0]["id"]
+                return id
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_ids(self, playlist_id: str) -> (list[str] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                etags = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    id.append(pitem["id"])
+                return id
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// PLAYLIST ITEM SNIPPETS //////
+        def get_playlist_item_snippet(self, item_id: str) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                snippet = response["items"][0]["snippet"]
+                return snippet
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_snippets(self, playlist_id: str) -> (list[str] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                snippets = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    snippets.append(pitem["snippet"])
+                return snippets
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// PLAYLIST ITEM PUBLISH DATES //////
+        def get_playlist_item_published_date(self, item_id: str) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                date = response["items"][0]["snippet"]["publishedAt"]
+                return date
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_publish_dates(self, playlist_id: str) -> (list[str] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                dates = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    dates.append(pitem["snippet"]["publishedAt"])
+                return dates
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// PLAYLIST ITEM CHANNEL ID //////
+        def get_playlist_item_channel_id(self, item_id: str) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                id = response["items"][0]["snippet"]["channelId"]
+                return id
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_channel_ids(self, playlist_id: str) -> (list[str] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                ids = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    ids.append(pitem["snippet"]["channelId"])
+                return ids
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// PLAYLIST ITEM TITLE //////
+        def get_playlist_item_title(self, item_id: str) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                title = response["items"][0]["snippet"]["title"]
+                return title
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_titles(self, playlist_id: str) -> (list[str] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                titles = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    titles.append(pitem["snippet"]["title"])
+                return titles
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// PLAYLIST ITEM DESCRIPTION //////
+        def get_playlist_item_description(self, item_id: str) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                description = response["items"][0]["snippet"]["description"]
+                return description
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_descriptions(self, playlist_id: str) -> (list[str] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                descriptions = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    descriptions.append(pitem["snippet"]["description"])
+                return descriptions
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// PLAYLIST ITEM THUMBNAILS //////
+        def get_playlist_item_thumbnail(self, item_id: str) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                thumb = response["items"][0]["snippet"]["thumbnails"]
+                return thumb
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_thumbnails(self, playlist_id: str) -> (list[dict] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                thumbs = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    thumbs.append(pitem["snippet"]["thumbnails"])
+                return thumbs
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// PLAYLIST ITEM DEFAULT RES THUMBNAIL //////
+        def get_playlist_item_default_res_thumbnail(self, item_id: str) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                thumb = response["items"][0]["snippet"]["thumbnails"]["default"]
+                return thumb
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_default_res_thumbnails(self, playlist_id: str) -> (list[dict] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                thumbs = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    thumbs.append(pitem["snippet"]["thumbnails"]["default"])
+                return thumbs
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_playlist_item_default_res_thumbnail_url(self, item_id: str) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                url = response["items"][0]["snippet"]["thumbnails"]["default"]["url"]
+                return url
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_default_res_thumbnail_urls(self, playlist_id: str) -> (list[str] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                urls = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    urls.append(pitem["snippet"]["thumbnails"]["default"]["url"])
+                return urls
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_playlist_item_default_res_thumbnail_width(self, item_id: str) -> (int | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                width = response["items"][0]["snippet"]["thumbnails"]["default"]["width"]
+                return int(width)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_default_res_thumbnail_widths(self, playlist_id: str) -> (list[int] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                widths = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    widths.append(pitem["snippet"]["thumbnails"]["default"]["width"])
+                return widths
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_playlist_item_default_res_thumbnail_height(self, item_id: str) -> (int | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                height = response["items"][0]["snippet"]["thumbnails"]["default"]["height"]
+                return int(height)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_default_res_thumbnail_heights(self, playlist_id: str) -> (list[int] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                heights = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    heights.append(pitem["snippet"]["thumbnails"]["default"]["height"])
+                return heights
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// PLAYLIST ITEM MEDIUM RES THUMBNAIL //////
+        def get_playlist_item_medium_res_thumbnail(self, item_id: str) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                thumb = response["items"][0]["snippet"]["thumbnails"]["medium"]
+                return thumb
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_medium_res_thumbnails(self, playlist_id: str) -> (list[dict] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                thumbs = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    thumbs.append(pitem["snippet"]["thumbnails"]["medium"])
+                return thumbs
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_playlist_item_medium_res_thumbnail_url(self, item_id: str) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                url = response["items"][0]["snippet"]["thumbnails"]["medium"]["url"]
+                return url
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_medium_res_thumbnail_urls(self, playlist_id: str) -> (list[str] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                urls = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    urls.append(pitem["snippet"]["thumbnails"]["medium"]["url"])
+                return urls
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_playlist_item_medium_res_thumbnail_width(self, item_id: str) -> (int | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                width = response["items"][0]["snippet"]["thumbnails"]["medium"]["width"]
+                return int(width)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_medium_res_thumbnail_widths(self, playlist_id: str) -> (list[int] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                widths = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    widths.append(pitem["snippet"]["thumbnails"]["medium"]["width"])
+                return widths
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_playlist_item_medium_res_thumbnail_height(self, item_id: str) -> (int | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                height = response["items"][0]["snippet"]["thumbnails"]["medium"]["height"]
+                return int(height)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_medium_res_thumbnail_heights(self, playlist_id: str) -> (list[int] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                heights = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    heights.append(pitem["snippet"]["thumbnails"]["medium"]["height"])
+                return heights
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// PLAYLIST ITEM HIGH RES THUMBNAIL //////
+        def get_playlist_item_high_res_thumbnail(self, item_id: str) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                thumb = response["items"][0]["snippet"]["thumbnails"]["high"]
+                return thumb
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_high_res_thumbnails(self, playlist_id: str) -> (list[dict] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                thumbs = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    thumbs.append(pitem["snippet"]["thumbnails"]["high"])
+                return thumbs
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_playlist_item_high_res_thumbnail_url(self, item_id: str) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                url = response["items"][0]["snippet"]["thumbnails"]["high"]["url"]
+                return url
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_high_res_thumbnail_urls(self, playlist_id: str) -> (list[str] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                urls = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    urls.append(pitem["snippet"]["thumbnails"]["high"]["url"])
+                return urls
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_playlist_item_high_res_thumbnail_width(self, item_id: str) -> (int | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                width = response["items"][0]["snippet"]["thumbnails"]["high"]["width"]
+                return int(width)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_high_res_thumbnail_widths(self, playlist_id: str) -> (list[int] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                widths = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    widths.append(pitem["snippet"]["thumbnails"]["high"]["width"])
+                return widths
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_playlist_item_high_res_thumbnail_height(self, item_id: str) -> (int | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                height = response["items"][0]["snippet"]["thumbnails"]["high"]["height"]
+                return int(height)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_high_res_thumbnail_heights(self, playlist_id: str) -> (list[int] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                heights = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    heights.append(pitem["snippet"]["thumbnails"]["high"]["height"])
+                return heights
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// PLAYLIST ITEM STANDARD RES THUMBNAIL //////
+        def get_playlist_item_standard_res_thumbnail(self, item_id: str) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                thumb = response["items"][0]["snippet"]["thumbnails"]["standard"]
+                return thumb
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_standard_res_thumbnails(self, playlist_id: str) -> (list[dict] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                thumbs = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    thumbs.append(pitem["snippet"]["thumbnails"]["standard"])
+                return thumbs
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_playlist_item_standard_res_thumbnail_url(self, item_id: str) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                url = response["items"][0]["snippet"]["thumbnails"]["standard"]["url"]
+                return url
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_standard_res_thumbnail_urls(self, playlist_id: str) -> (list[str] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                urls = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    urls.append(pitem["snippet"]["thumbnails"]["standard"]["url"])
+                return urls
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_playlist_item_standard_res_thumbnail_width(self, item_id: str) -> (int | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                width = response["items"][0]["snippet"]["thumbnails"]["standard"]["width"]
+                return int(width)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_standard_res_thumbnail_widths(self, playlist_id: str) -> (list[int] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                widths = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    widths.append(pitem["snippet"]["thumbnails"]["standard"]["width"])
+                return widths
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_playlist_item_standard_res_thumbnail_height(self, item_id: str) -> (int | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                height = response["items"][0]["snippet"]["thumbnails"]["standard"]["height"]
+                return int(height)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_standard_res_thumbnail_heights(self, playlist_id: str) -> (list[int] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                heights = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    heights.append(pitem["snippet"]["thumbnails"]["standard"]["height"])
+                return heights
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// PLAYLIST ITEM MAX RES THUMBNAIL //////
+        def get_playlist_item_max_res_thumbnail(self, item_id: str) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                thumb = response["items"][0]["snippet"]["thumbnails"]["maxres"]
+                return thumb
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_max_res_thumbnails(self, playlist_id: str) -> (list[dict] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                thumbs = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    thumbs.append(pitem["snippet"]["thumbnails"]["maxres"])
+                return thumbs
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+                   
+        def get_playlist_item_max_res_thumbnail_url(self, item_id: str) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                url = response["items"][0]["snippet"]["thumbnails"]["maxres"]["url"]
+                return url
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_max_res_thumbnail_urls(self, playlist_id: str) -> (list[str] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                urls = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    urls.append(pitem["snippet"]["thumbnails"]["maxres"]["url"])
+                return urls
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+             
+        def get_playlist_item_max_res_thumbnail_width(self, item_id: str) -> (int | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                width = response["items"][0]["snippet"]["thumbnails"]["maxres"]["width"]
+                return int(width)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_max_res_thumbnail_widths(self, playlist_id: str) -> (list[int] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                widths = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    widths.append(pitem["snippet"]["thumbnails"]["maxres"]["width"])
+                return widths
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_playlist_item_max_res_thumbnail_height(self, item_id: str) -> (int | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                height = response["items"][0]["snippet"]["thumbnails"]["maxres"]["height"]
+                return int(height)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_max_res_thumbnail_heights(self, playlist_id: str) -> (list[int] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                heights = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    heights.append(pitem["snippet"]["thumbnails"]["maxres"]["height"])
+                return heights
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// PLAYLIST ITEM CHANNEL TITLE //////
+        def get_playlist_item_channel_title(self, item_id: str) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                title = response["items"][0]["snippet"]["channelTitle"]
+                return title
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_channel_titles(self, playlist_id: str) -> (list[str] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                titles = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    titles.append(pitem["snippet"]["channelTitle"])
+                return titles
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// PLAYLIST ITEM VIDEO OWNER CHANNEL TITLE //////
+        def get_playlist_item_video_owner_channel_title(self, item_id: str) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                title = response["items"][0]["snippet"]["videoOwnerChannelTitle"]
+                return title
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_video_owner_channel_titles(self, playlist_id: str) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                titles = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    titles.append(pitem["snippet"]["videoOwnerChannelTitle"])
+                return titles
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// PLAYLIST ITEM VIDEO OWNER CHANNEL ID //////
+        def get_playlist_item_video_owner_channel_id(self, item_id: str) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                id = response["items"][0]["snippet"]["videoOwnerChannelId"]
+                return id
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_video_owner_channel_ids(self, playlist_id: str) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                ids = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    ids.append(pitem["snippet"]["videoOwnerChannelId"])
+                return ids
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// PLAYLIST ITEM PLAYLIST ID //////
+        def get_playlist_item_playlist_id(self, item_id: str) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                id = response["items"][0]["snippet"]["playlistId"]
+                return id
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// PLAYLIST ITEM POSITION //////
+        def get_playlist_item_position(self, item_id: str) -> (int | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                position = response["items"][0]["snippet"]["position"]
+                return int(position)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_positions(self, playlist_id: str) -> (list[int] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                positions = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    positions.append(pitem["snippet"]["position"])
+                return positions
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        #////// PLAYLIST ITEM RESOURCE ID //////
+        def get_playlist_item_resource_id(self, item_id: str) -> (int | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                id = response["items"][0]["snippet"]["resourceId"]
+                return id
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_resource_ids(self, playlist_id: str) -> (list[int] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                ids = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    ids.append(pitem["snippet"]["resourceId"])
+                return ids
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// PLAYLIST ITEM RESOURCE ID KIND //////
+        def get_playlist_item_resource_id_kind(self, item_id: str) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                kind = response["items"][0]["snippet"]["resourceId"]["kind"]
+                return kind
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_resource_id_kinds(self, playlist_id: str) -> (list[str] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                kinds = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    kinds.append(pitem["snippet"]["resourceId"]["kind"])
+                return kinds
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// PLAYLIST ITEM RESOURCE ID VIDEO ID //////
+        def get_playlist_item_resource_id_video_id(self, item_id: str) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    id=item_id
+                )
+                response = request.execute()
+
+                id = response["items"][0]["snippet"]["resourceId"]["videoId"]
+                return id
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_resource_id_video_ids(self, playlist_id: str) -> (list[str] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="snippet",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                ids = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    ids.append(pitem["snippet"]["resourceId"]["videoId"])
+                return ids
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// PLAYLIST ITEM CONTENT DETAILS //////
+        def get_playlist_item_content_details(self, item_id: str) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="contentDetails",
+                    id=item_id
+                )
+                response = request.execute()
+
+                details = response["items"][0]["contentDetails"]
+                return details
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_items_content_details(self, playlist_id: str) -> (list[dict] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="contentDetails",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                ids = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    ids.append(pitem["contentDetails"])
+                return ids
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// PLAYLIST ITEM VIDEO ID //////
+        def get_playlist_item_video_id(self, item_id: str) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="contentDetails",
+                    id=item_id
+                )
+                response = request.execute()
+
+                id = response["items"][0]["contentDetails"]["videoId"]
+                return id
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_video_ids(self, playlist_id: str) -> (list[str] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="contentDetails",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                ids = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    ids.append(pitem["contentDetails"]["videoId"])
+                return ids
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// PLAYLIST ITEM START AT //////
+        def get_playlist_item_start_at_time(self, item_id: str) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="contentDetails",
+                    id=item_id
+                )
+                response = request.execute()
+
+                time = response["items"][0]["contentDetails"]["startAt"]
+                return time
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_start_at_times(self, playlist_id: str) -> (list[str] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="contentDetails",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                times = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    times.append(pitem["contentDetails"]["startAt"])
+                return times
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// PLAYLIST ITEM END AT //////
+        def get_playlist_item_end_at_time(self, item_id: str) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="contentDetails",
+                    id=item_id
+                )
+                response = request.execute()
+
+                time = response["items"][0]["contentDetails"]["endAt"]
+                return time
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_end_at_times(self, playlist_id: str) -> (list[str] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="contentDetails",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                times = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    times.append(pitem["contentDetails"]["endAt"])
+                return times
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// PLAYLIST ITEM _NOTE //////
+        def get_playlist_item_note(self, item_id: str) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="contentDetails",
+                    id=item_id
+                )
+                response = request.execute()
+
+                note = response["items"][0]["contentDetails"]["note"]
+                return note
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_notes(self, playlist_id: str) -> (list[str] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="contentDetails",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                notes = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    notes.append(pitem["contentDetails"]["note"])
+                return notes
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// PLAYLIST ITEM VIDEO PUBLISHED DATE //////
+        def get_playlist_item_video_published_date(self, item_id: str) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="contentDetails",
+                    id=item_id
+                )
+                response = request.execute()
+
+                date = response["items"][0]["contentDetails"]["videoPublishedAt"]
+                return date
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_video_published_dates(self, playlist_id: str) -> (list[str] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="contentDetails",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                dates = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    dates.append(pitem["contentDetails"]["videoPublishedAt"])
+                return dates
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// PLAYLIST ITEM STATUS //////
+        def get_playlist_item_status(self, item_id: str) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="status",
+                    id=item_id
+                )
+                response = request.execute()
+
+                status = response["items"][0]["status"]
+                return status
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_statuses(self, playlist_id: str) -> (list[dict] | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="status",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                statuses = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    statuses.append(pitem["status"])
+                return statuses
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// PLAYLIST ITEM PRIVACY STATUS //////
+        def get_playlist_item_privacy_status(self, item_id: str) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="status",
+                    id=item_id
+                )
+                response = request.execute()
+
+                status = response["items"][0]["status"]["privacyStatus"]
+                return status
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlist items with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_playlist_item_privacy_statuses(self, playlist_id: str) -> (list[dict] | None): 
+            service = self.service
+
+            try:
+                request = service.playlistItems().list(
+                    part="status",
+                    playlistId=playlist_id
+                )
+                response = request.execute()
+                statuses = []
+                playlist_items = response["items"]
+                for pitem in playlist_items:
+                    statuses.append(pitem["status"]["privacyStatus"])
+                return statuses
+ 
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
     #//////////// VIDEO ////////////
     class Video:
 
