@@ -12283,7 +12283,7 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// ENTIRE CAPTION RESOURCE //////
-        def get_caption_tracks(self, video_id: str) -> (list[dict] | None):
+        def get_all_captions(self, video_id: str) -> (list[dict] | None):
             service = self.service
             try:
                 request = service.captions().list(
@@ -12308,7 +12308,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{e}")
                 return None
 
-        def get_caption_track(self, caption_id: str, video_id: str=None) -> (dict | None):
+        def get_caption(self, caption_id: str, video_id: str=None) -> (dict | None):
             service = self.service
             try:
                 request = service.captions().list(
@@ -12332,7 +12332,7 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// CAPTION TRACK KIND //////
-        def get_caption_track_kinds(self, video_id: str) -> (list[str] | None):
+        def get_all_caption_kinds(self, video_id: str) -> (list[str] | None):
             service = self.service
             try:
                 request = service.captions().list(
@@ -12381,7 +12381,7 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// CAPTION TRACK ETAGS //////
-        def get_caption_track_etags(self, video_id: str) -> (list[str] | None):
+        def get_all_caption_etags(self, video_id: str) -> (list[str] | None):
             service = self.service
             try:
                 request = service.captions().list(
@@ -12430,7 +12430,7 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// CAPTION TRACK IDS //////
-        def get_caption_track_ids(self, video_id: str) -> (list[str] | None):
+        def get_all_caption_ids(self, video_id: str) -> (list[str] | None):
             service = self.service
             try:
                 request = service.captions().list(
@@ -12479,7 +12479,7 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// CAPTION TRACK SNIPPETS //////
-        def get_caption_track_snippets(self, video_id: str) -> (list[str] | None):
+        def get_all_caption_snippets(self, video_id: str) -> (list[str] | None):
             service = self.service
             try:
                 request = service.captions().list(
@@ -12528,7 +12528,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CAPTION TRACK VIDEO IDS //////
-        def get_caption_track_video_ids(self, video_id: str) -> (list[str] | None):
+        def get_all_caption_video_ids(self, video_id: str) -> (list[str] | None):
             service = self.service
             try:
                 request = service.captions().list(
@@ -12553,7 +12553,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{e}")
                 return None
 
-        def get_caption_track_video_id(self, caption_id: str, video_id: str=None) -> (str | None):
+        def get_caption_video_id(self, caption_id: str, video_id: str=None) -> (str | None):
             service = self.service
             try:
                 request = service.captions().list(
@@ -12577,7 +12577,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CAPTION TRACK LAST UPDATED //////
-        def get_caption_track_last_updates(self, video_id: str) -> (list[str] | None):
+        def get_all_captions_last_updates(self, video_id: str) -> (list[str] | None):
             service = self.service
             try:
                 request = service.captions().list(
@@ -12602,7 +12602,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{e}")
                 return None
 
-        def get_caption_track_last_update(self, caption_id: str, video_id: str=None) -> (str | None):
+        def get_captions_last_update(self, caption_id: str, video_id: str=None) -> (str | None):
             service = self.service
             try:
                 request = service.captions().list(
@@ -12626,7 +12626,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CAPTION TRACK TRACK KIND //////
-        def get_caption_track_track_kinds(self, video_id: str) -> (list[str] | None):
+        def get_all_caption_track_kinds(self, video_id: str) -> (list[str] | None):
             service = self.service
             try:
                 request = service.captions().list(
@@ -12651,7 +12651,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{e}")
                 return None
 
-        def get_caption_track_track_kind(self, caption_id: str, video_id: str=None) -> (str | None):
+        def get_caption_track_kind(self, caption_id: str, video_id: str=None) -> (str | None):
             service = self.service
             try:
                 request = service.captions().list(
@@ -12675,7 +12675,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CAPTION TRACK LANGUAGE //////
-        def get_caption_track_languages(self, video_id: str) -> (list[str] | None):
+        def get_all_caption_track_languages(self, video_id: str) -> (list[str] | None):
             service = self.service
             try:
                 request = service.captions().list(
@@ -12822,7 +12822,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CAPTION IS CC //////
-        def captions_are_cc(self, video_id: str) -> (list[bool] | None):
+        def captions_are_cc(self, video_id: str) -> (dict | None):
             service = self.service
             try:
                 request = service.captions().list(
@@ -12830,10 +12830,10 @@ class YouTubeDataAPIv3Tools:
                     videoId=video_id
                 )
                 response = request.execute()
-                ccs = []
+                answers = {}
                 for item in response["items"]:
-                    ccs.append(bool(item["snippet"]["isCC"]))
-                return ccs
+                    answers[f"{item['id']}"] = bool(item['snippet']['isCC'])
+                return answers
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12871,7 +12871,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CAPTION IS LARGE //////
-        def captions_are_large(self, video_id: str) -> (list[bool] | None):
+        def captions_are_large(self, video_id: str) -> (dict | None):
             service = self.service
             try:
                 request = service.captions().list(
@@ -12879,9 +12879,9 @@ class YouTubeDataAPIv3Tools:
                     videoId=video_id
                 )
                 response = request.execute()
-                answers = []
+                answers = {}
                 for item in response["items"]:
-                    answers.append(bool(item["snippet"]["isLarge"]))
+                    answers[f"{item['id']}"] = bool(item['snippet']['isLarge'])
                 return answers
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
@@ -12920,7 +12920,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CAPTION IS EASY READER //////
-        def captions_are_easy_readers(self, video_id: str) -> (list[bool] | None):
+        def captions_are_easy_readers(self, video_id: str) -> (dict | None):
             service = self.service
             try:
                 request = service.captions().list(
@@ -12928,9 +12928,9 @@ class YouTubeDataAPIv3Tools:
                     videoId=video_id
                 )
                 response = request.execute()
-                answers = []
+                answers = {}
                 for item in response["items"]:
-                    answers.append(bool(item["snippet"]["isEasyReader"]))
+                    answers[f"{item['id']}"] = bool(item['snippet']['isEasyReader'])
                 return answers
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
@@ -12977,9 +12977,9 @@ class YouTubeDataAPIv3Tools:
                     videoId=video_id
                 )
                 response = request.execute()
-                answers = []
+                answers = {}
                 for item in response["items"]:
-                    answers.append(bool(item["snippet"]["isDraft"]))
+                    answers[f"{item['id']}"] = bool(item['snippet']['isDraft'])
                 return answers
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
@@ -13018,7 +13018,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CAPTION IS AUTO SYNCED //////
-        def captions_are_auto_synced(self, video_id: str) -> (list[bool] | None):
+        def captions_are_auto_synced(self, video_id: str) -> (dict | None):
             service = self.service
             try:
                 request = service.captions().list(
@@ -13026,9 +13026,9 @@ class YouTubeDataAPIv3Tools:
                     videoId=video_id
                 )
                 response = request.execute()
-                answers = []
+                answers = {}
                 for item in response["items"]:
-                    answers.append(bool(item["snippet"]["isAutoSynced"]))
+                    answers[f"{item['id']}"] = bool(item['snippet']['isAutoSynced'])
                 return answers
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
