@@ -12134,34 +12134,31 @@ class YouTubeDataAPIv3Tools:
             
         #////// UTILITY METHODS //////
 
-        def download_caption_track(self, track_id: str, output_file: str):
-            """
-            This function allows you to download a specific caption track 
-            identified by track_id and save it to a local file specified by 
-            output_file.
-            """
+        def download_caption_track(self, track_id: str, output_file: str) -> (bool | None):
             service = self.service
-
             try:
                 request = service.captions().download(
                     id=track_id
                 )
                 with open(output_file, "wb") as file:
                     file.write(request.execute())
-
-                print(f"Caption track downloaded and saved to {output_file}")
-
+                    file.close()
+                return True
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
 
-        def upload_caption_track(self, video_id: str, language: str, caption_file: str):
-            """
-            This method allows you to upload a new caption track (subtitle) for 
-            a specific video identified by video_id. Provide the language of the 
-            subtitle and the path to the caption file (caption_file).
-            """
+        def upload_caption_track(self, video_id: str, language: str, caption_file: str) -> (bool | None):
             service = self.service
-
             try:
                 request = service.captions().insert(
                     part="snippet",
@@ -12176,31 +12173,42 @@ class YouTubeDataAPIv3Tools:
                     media_body=googleapiclient.http.MediaFileUpload(caption_file, mimetype="text/vtt", resumable=True)
                 )
                 response = request.execute()
-
-                print(f"Caption track uploaded with track ID: {response['id']}")
-
+                return True
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
 
-        def delete_caption_track(self, track_id: str):
-            """
-            This function allows you to delete a specific caption track 
-            identified by track_id.
-            """
+        def delete_caption_track(self, track_id: str) -> (bool | None):
             service = self.service
-
             try:
                 request = service.captions().delete(
                     id=track_id
                 )
                 response = request.execute()
-
-                print(f"Caption track with ID {track_id} deleted successfully.")
-
+                return True
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
 
-        def update_caption_track(self, track_id: str, language: str, new_name: str):
+        def update_caption_track(self, track_id: str, language: str, new_name: str) -> (bool | None):
             """
             This function allows you to update the language and name of 
             an existing caption track identified by track_id.
@@ -12220,36 +12228,22 @@ class YouTubeDataAPIv3Tools:
                 )
                 response = request.execute()
 
-                print(f"Caption track with ID {track_id} updated successfully.")
+                return True
 
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
 
-        def get_caption_track_by_id(self, track_id: str):
-            """
-            This method will directly retrieve the details of a specific caption 
-            track by its ID. This can be useful if you already know the caption track 
-            ID and want to access its metadata.
-            """
-            service = self.service
-
-            try:
-                request = service.captions().list(
-                    part="snippet",
-                    id=track_id
-                )
-                response = request.execute()
-
-                if "items" in response:
-                    caption_track = response["items"][0]
-                    language = caption_track["snippet"]["language"]
-                    is_auto_generated = caption_track["snippet"]["isAutoSynced"]
-                    print(f"Caption Track ID: {track_id}, Language: {language}, Auto-generated: {is_auto_generated}")
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def get_caption_upload_status(self, track_id: str):
+        def get_caption_upload_status(self, track_id: str) -> (str | None):
             """
             When you upload a new caption track, you can check the upload 
             status to see if it is still being processed. This can be helpful 
@@ -12269,14 +12263,24 @@ class YouTubeDataAPIv3Tools:
                     caption_track = response["items"][0]
                     status = caption_track["snippet"]["status"]["uploadStatus"]
                     if status == "succeeded":
-                        print(f"Caption track with ID {track_id} upload succeeded.")
+                        return "succeeded"
                     elif status == "failed":
-                        print(f"Caption track with ID {track_id} upload failed.")
+                        return "failed"
                     else:
-                        print(f"Caption track with ID {track_id} is still being processed.")
+                        return "processing"
 
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
 
         #////// ENTIRE CAPTION RESOURCE //////
         def get_caption_tracks(self, video_id: str) -> (list[dict] | None):
