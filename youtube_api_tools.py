@@ -17114,7 +17114,7 @@ class YouTubeDataAPIv3Tools:
         def __init__(self, ytd_api_tools: object) -> None:
             self.service = ytd_api_tools.service
         
-        def report_video(self, video_id, reason, additional_comments=None):
+        def report_video(self, video_id: str, reason: str, additional_comments=None) -> (bool | None):
             """
             This method allows users to report a video for abuse. The reason parameter 
             specifies the reason for reporting, and additional_comments can be used to 
@@ -17130,20 +17130,27 @@ class YouTubeDataAPIv3Tools:
                     comments=additional_comments
                 )
                 response = request.execute()
-
-                print(f"Video with ID {video_id} reported for abuse successfully!")
-
+                return True
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no comments with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
-        def report_channel(self, channel_id, reason, additional_comments=None):
+        def report_channel(self, channel_id: str, reason: str, additional_comments=None) -> (bool | None):
             """
             This method allows users to report a channel for abuse. The reason parameter 
             specifies the reason for reporting, and additional_comments can be used to 
             provide additional context.
             """
             service = self.service
-
             try:
                 request = service.channels().reportAbuse(
                     part="snippet",
@@ -17153,12 +17160,21 @@ class YouTubeDataAPIv3Tools:
                 )
                 response = request.execute()
 
-                print(f"Channel with ID {channel_id} reported for abuse successfully!")
-
+                return True
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no comments with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
-        def report_playlist(self, playlist_id, reason, additional_comments=None):
+        def report_playlist(self, playlist_id: str, reason: str, additional_comments=None) -> (bool | None):
             """
             This method allows users to report a playlist for abuse. The reason 
             parameter specifies the reason for reporting, and additional_comments 
@@ -17173,40 +17189,54 @@ class YouTubeDataAPIv3Tools:
                     comments=additional_comments
                 )
                 response = request.execute()
-
-                print(f"Playlist with ID {playlist_id} reported for abuse successfully!")
-
+                return True
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no comments with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
-        def get_abuse_report_reason_categories(self):
+        def get_abuse_report_reason_categories(self) -> (list[dict] | None):
             """
             This method retrieves the categories of abuse report reasons 
             available on YouTube. It lists the categories and their corresponding IDs.
             """
             service = self.service
-
             try:
                 request = service.videoAbuseReportReasons().list(
                     part="snippet"
                 )
                 response = request.execute()
-
+                cats = []
                 for reason_category in response["items"]:
-                    category_id = reason_category["id"]
-                    category_label = reason_category["snippet"]["label"]
-                    print(f"Category ID: {category_id}, Label: {category_label}")
-
+                    cats.append(reason_category)
+                return cats
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no comments with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
-        def get_abuse_report_reasons_in_category(self, category_id):
+        def get_abuse_report_reasons_in_category(self, category_id: str) -> (list[dict] | None):
             """
             This method retrieves the abuse report reasons available within 
             a specific category_id. It lists the reasons and their corresponding IDs.
             """
             service = self.service
-
             try:
                 request = service.videoAbuseReportReasons().list(
                     part="snippet",
@@ -17214,14 +17244,22 @@ class YouTubeDataAPIv3Tools:
                     videoId=category_id
                 )
                 response = request.execute()
-
+                reasons = []
                 for reason in response["items"]:
-                    reason_id = reason["id"]
-                    reason_label = reason["snippet"]["label"]
-                    print(f"Reason ID: {reason_id}, Label: {reason_label}")
-
+                    reasons.append(reason)
+                return reasons
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no comments with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
         
         
