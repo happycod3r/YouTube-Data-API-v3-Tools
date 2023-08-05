@@ -14899,7 +14899,491 @@ class YouTubeDataAPIv3Tools:
     class Comment:
         def __init__(self, ytd_api_tools: object) -> None:
             self.service = ytd_api_tools.service
+        
+        #////// ENTIRE COMMENT RESOURCE //////
+        def get_comment(self, comment_id) -> (dict | None):
+            service = self.service
+            try:
+                request = service.comments().list(
+                    part="snippet",
+                    id=comment_id
+                )
+                response = request.execute()
+                
+                return response["items"][0]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no comments with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
     
+        #////// COMMENT KIND //////
+        def get_comment_kind(self, comment_id) -> (str | None):
+            service = self.service
+            try:
+                request = service.comments().list(
+                    part="snippet",
+                    id=comment_id
+                )
+                response = request.execute()
+                
+                return response["items"][0]["kind"]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no comments with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// COMMENT ETAG //////
+        def get_comment_etag(self, comment_id) -> (str | None):
+            service = self.service
+            try:
+                request = service.comments().list(
+                    part="snippet",
+                    id=comment_id
+                )
+                response = request.execute()
+                
+                return response["items"][0]["etag"]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no comments with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// COMMENT ID //////
+        def get_comment_ids_for_video(self, video_id) -> (list[str] | None):
+            try:
+                request = self.service.commentThreads().list(
+                    part="snippet",
+                    videoId=video_id,
+                    maxResults=10  # Adjust as needed
+                )
+                response = request.execute()
+                
+                comment_ids = []
+                for item in response.get("items", []):
+                    comment_ids.append(item["snippet"]["topLevelComment"]["id"])
+                
+                return comment_ids
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return []
+        
+        #////// COMMENT SNIPPET //////
+        def get_comment_snippet(self, comment_id) -> (str | None):
+            service = self.service
+            try:
+                request = service.comments().list(
+                    part="snippet",
+                    id=comment_id
+                )
+                response = request.execute()
+                
+                return response["items"][0]["snippet"]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no comments with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// COMMENT AUTHOR DISPLAY NAME //////
+        def get_comment_author_display_name(self, comment_id) -> (str | None):
+            service = self.service
+            try:
+                request = service.comments().list(
+                    part="snippet",
+                    id=comment_id
+                )
+                response = request.execute()
+                
+                return response["items"][0]["snippet"]["authorDisplayName"]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no comments with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// COMMENT AUTHOR PROFILE IMAGE URL //////
+        def get_comment_author_profile_image_url(self, comment_id) -> (str | None):
+            service = self.service
+            try:
+                request = service.comments().list(
+                    part="snippet",
+                    id=comment_id
+                )
+                response = request.execute()
+                return response["items"][0]["snippet"]["authorProfileImageUrl"]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no comments with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+            
+        #////// COMMENT AUTHOR CHANNEL URL //////
+        def get_comment_author_channel_url(self, comment_id) -> (str | None):
+            service = self.service
+            try:
+                request = service.comments().list(
+                    part="snippet",
+                    id=comment_id
+                )
+                response = request.execute()
+                return response["items"][0]["snippet"]["authorChannelUrl"]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no comments with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// COMMENT AUTHOR CHANNEL ID //////
+        def get_comment_author_channel_id(self, comment_id) -> (str | None):
+            service = self.service
+            try:
+                request = service.comments().list(
+                    part="snippet",
+                    id=comment_id
+                )
+                response = request.execute()
+                return response["items"][0]["snippet"]["authorChannelId"]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no comments with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+            
+        #////// COMMENT VALUE //////
+        def get_comment_value(self, comment_id) -> (str | None):
+            service = self.service
+            try:
+                request = service.comments().list(
+                    part="snippet",
+                    id=comment_id
+                )
+                response = request.execute()
+                return response["items"][0]["snippet"]["value"]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no comments with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// COMMENT CHANNEL ID //////
+        def get_comment_channel_id(self, comment_id) -> (str | None):
+            service = self.service
+            try:
+                request = service.comments().list(
+                    part="snippet",
+                    id=comment_id
+                )
+                response = request.execute()
+                return response["items"][0]["snippet"]["channelId"]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no comments with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// COMMENT VIDEO ID //////
+        def get_comment_video_id(self, comment_id) -> (str | None):
+            service = self.service
+            try:
+                request = service.comments().list(
+                    part="snippet",
+                    id=comment_id
+                )
+                response = request.execute()
+                return response["items"][0]["snippet"]["videoId"]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no comments with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// COMMENT TEXT DISPLAY //////
+        def get_comment_text_display(self, comment_id) -> (str | None):
+            service = self.service
+            try:
+                request = service.comments().list(
+                    part="snippet",
+                    id=comment_id
+                )
+                response = request.execute()
+                return response["items"][0]["snippet"]["textDisplay"]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no comments with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// COMMENT ORIGINAL TEXT //////
+        def get_comment_original_text(self, comment_id) -> (str | None):
+            service = self.service
+            try:
+                request = service.comments().list(
+                    part="snippet",
+                    id=comment_id
+                )
+                response = request.execute()
+                return response["items"][0]["snippet"]["textOriginal"]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no comments with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// COMMENT PARENT ID //////
+        def get_comment_parent_id(self, comment_id) -> (str | None):
+            service = self.service
+            try:
+                request = service.comments().list(
+                    part="snippet",
+                    id=comment_id
+                )
+                response = request.execute()
+                return response["items"][0]["snippet"]["parentId"]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no comments with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// COMMENT CAN RATE //////
+        def comment_can_rate(self, comment_id) -> (bool | None):
+            service = self.service
+            try:
+                request = service.comments().list(
+                    part="snippet",
+                    id=comment_id
+                )
+                response = request.execute()
+                return bool(response["items"][0]["snippet"]["canRate"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no comments with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// COMMENT VIEWER RATING //////
+        def get_comment_viewer_rating(self, comment_id) -> (str | None):
+            service = self.service
+            try:
+                request = service.comments().list(
+                    part="snippet",
+                    id=comment_id
+                )
+                response = request.execute()
+                return response["items"][0]["snippet"]["viewerRting"]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no comments with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// COMMENT LIKE COUNT //////
+        def get_comment_like_count(self, comment_id) -> (int | None):
+            service = self.service
+            try:
+                request = service.comments().list(
+                    part="snippet",
+                    id=comment_id
+                )
+                response = request.execute()
+                return int(response["items"][0]["snippet"]["likeCount"])
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no comments with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// COMMENT MODERATION STATUS //////
+        def get_comment_moderation_status(self, comment_id) -> (str | None):
+            service = self.service
+            try:
+                request = service.comments().list(
+                    part="snippet",
+                    id=comment_id
+                )
+                response = request.execute()
+                return response["items"][0]["snippet"]["moderationStatus"]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no comments with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+           
+        #////// COMMENT PUBLISH DATE //////
+        def get_time_comment_published_at(self, comment_id) -> (str | None):
+            service = self.service
+            try:
+                request = service.comments().list(
+                    part="snippet",
+                    id=comment_id
+                )
+                response = request.execute()
+                return response["items"][0]["snippet"]["publishedAt"]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no comments with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// COMMENT UPDATED DATE //////
+        def get_time_comment_updated_at(self, comment_id) -> (str | None):
+            service = self.service
+            try:
+                request = service.comments().list(
+                    part="snippet",
+                    id=comment_id
+                )
+                response = request.execute()
+                return response["items"][0]["snippet"]["updatedAt"]
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no comments with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+               
     #//////////// COMMENT THREAD ////////////
     class CommentThread:
         def __init__(self, ytd_api_tools: object) -> None:
