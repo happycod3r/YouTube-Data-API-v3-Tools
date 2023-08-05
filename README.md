@@ -118,7 +118,6 @@ Once you have created the `YouTubeDataAPIv3Tools` object. The following subclass
 - YouTubeDataAPIv3Tools.PlaylistItem
 - YouTubeDataAPIv3Tools.Video
 - YouTubeDataAPIv3Tools.VideoCategories
-- YouTubeDataAPIv3Tools.VideoAbuseReportReason
 - YouTubeDataAPIv3Tools.Captions
 - YouTubeDataAPIv3Tools.Subscriptions
 - YouTubeDataAPIv3Tools.Members
@@ -132,6 +131,7 @@ Once you have created the `YouTubeDataAPIv3Tools` object. The following subclass
 - YouTubeDataAPIv3Tools.LiveBroadcasts
 - YouTubeDataAPIv3Tools.Localization
 - YouTubeDataAPIv3Tools.AbuseReport
+- YouTubeDataAPIv3Tools.AbuseReport.VideoAbuseReportReason
 
 These classes wrap each resource type and contain a ton of methods to interact 
 with them in various ways.
