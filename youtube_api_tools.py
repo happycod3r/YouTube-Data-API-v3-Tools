@@ -13164,7 +13164,6 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{e}")
                 return None
         
-        
     #//////////// SUBSSCRIPTIONS ////////////
     class Subscriptions:
         def __init__(self, ytd_api_tools: object) -> None:
@@ -13187,7 +13186,7 @@ class YouTubeDataAPIv3Tools:
                 )
                 response = request.execute()
 
-                print("Subscribed successfully!")
+                return True
 
             except googleapiclient.errors.HttpError as e:
                 print(f"An error occurred: {e}")
@@ -13387,6 +13386,1303 @@ class YouTubeDataAPIv3Tools:
 
             return 0
 
+        #////// ENTIRE SUBSCRIPTION RESOURCE //////
+        def get_all_subscriptions(self) -> (list[dict] | None):
+            service = self.service
+
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    mine=True
+                )
+                response = request.execute()
+
+                subscriptions = []
+                subscription_info = response["items"]
+                for sub in subscription_info:
+                    subscriptions.append(sub)
+                
+                return subscriptions
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_subscription_by_index(self, channel_id: str=None, index: int=0) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    channelId=channel_id,
+                    mine=True
+                )
+                response = request.execute()
+
+                subscription_info = response["items"][index]
+                return subscription_info
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_subscription(self, sub_id: str, channel_id: str=None) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    id=sub_id,
+                    channelId=channel_id,
+                    mine=True
+                )
+                response = request.execute()
+
+                subscription = response["items"][0]
+                return subscription
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// SUBSCRIPTION KIND //////
+        def get_subscription_kind(self, sub_id: str, channel_id: str=None) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    id=sub_id,
+                    channelId=channel_id,
+                    mine=True
+                )
+                response = request.execute()
+
+                subscription = response["items"][0]["kind"]
+                return subscription
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no subscriptions with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_subscriptions_kinds(self) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    mine=True
+                )
+                response = request.execute()
+                info = []
+                subscription_info = response["items"]
+                for sub in subscription_info:
+                    info.append(sub["kind"])
+                return info
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// SUBSCRIPTION ETAG //////
+        def get_subscription_etag(self, sub_id: str, channel_id: str=None) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    id=sub_id,
+                    channelId=channel_id,
+                    mine=True
+                )
+                response = request.execute()
+
+                info = response["items"][0]["etag"]
+                return info
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no subscriptions with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_subscriptions_etags(self) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    mine=True
+                )
+                response = request.execute()
+                info = []
+                subscription_info = response["items"]
+                for sub in subscription_info:
+                    info.append(sub["etag"])
+                return info
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// SUBSCRIPTION ID //////
+        def get_subscription_id(self, sub_id: str, channel_id: str=None) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    id=sub_id,
+                    channelId=channel_id,
+                    mine=True
+                )
+                response = request.execute()
+
+                info = response["items"][0]["id"]
+                return info
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no subscriptions with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_subscriptions_ids(self) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    mine=True
+                )
+                response = request.execute()
+                info = []
+                subscription_info = response["items"]
+                for sub in subscription_info:
+                    info.append(sub["id"])
+                return info
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// SUBSCRIPTION SNIPPET //////
+        def get_subscription_snippet(self, sub_id: str, channel_id: str=None) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    id=sub_id,
+                    channelId=channel_id,
+                    mine=True
+                )
+                response = request.execute()
+
+                info = response["items"][0]["snippet"]
+                return info
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no subscriptions with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_subscriptions_snippets(self) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    mine=True
+                )
+                response = request.execute()
+                info = []
+                subscription_info = response["items"]
+                for sub in subscription_info:
+                    info.append(sub["snippet"])
+                return info
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// SUBSCRIPTION PUBLISH DATE //////
+        def get_subscription_published_date(self, sub_id: str, channel_id: str=None) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    id=sub_id,
+                    channelId=channel_id,
+                    mine=True
+                )
+                response = request.execute()
+
+                info = response["items"][0]["snippet"]["publishedAt"]
+                return info
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no subscriptions with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_subscriptions_publish_dates(self) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    mine=True
+                )
+                response = request.execute()
+                info = []
+                subscription_info = response["items"]
+                for sub in subscription_info:
+                    info.append(sub["snippet"]["publishedAt"])
+                return info
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// SUBSCRIPTION CHANNEL TITLE //////
+        def get_subscription_channel_title(self, sub_id: str, channel_id: str=None) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    id=sub_id,
+                    channelId=channel_id,
+                    mine=True
+                )
+                response = request.execute()
+
+                info = response["items"][0]["snippet"]["channelTitle"]
+                return info
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no subscriptions with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_subscriptions_channel_titles(self) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    mine=True
+                )
+                response = request.execute()
+                info = []
+                subscription_info = response["items"]
+                for sub in subscription_info:
+                    info.append(sub["snippet"]["channelTitle"])
+                return info
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// SUBSCRIPTION TITLE //////
+        def get_subscription_title(self, sub_id: str, channel_id: str=None) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    id=sub_id,
+                    channelId=channel_id,
+                    mine=True
+                )
+                response = request.execute()
+
+                info = response["items"][0]["snippet"]["title"]
+                return info
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no subscriptions with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_subscriptions_titles(self) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    mine=True
+                )
+                response = request.execute()
+                info = []
+                subscription_info = response["items"]
+                for sub in subscription_info:
+                    info.append(sub["snippet"]["title"])
+                return info
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// SUBSCRIPTION DESCRIPTION //////
+        def get_subscription_description(self, sub_id: str, channel_id: str=None) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    id=sub_id,
+                    channelId=channel_id,
+                    mine=True
+                )
+                response = request.execute()
+
+                info = response["items"][0]["snippet"]["description"]
+                return info
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no subscriptions with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_subscriptions_descriptions(self) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    mine=True
+                )
+                response = request.execute()
+                info = []
+                subscription_info = response["items"]
+                for sub in subscription_info:
+                    info.append(sub["snippet"]["description"])
+                return info
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// SUBSCRIPTION RESOURCE ID //////
+        def get_subscription_resource_id(self, sub_id: str, channel_id: str=None) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    id=sub_id,
+                    channelId=channel_id,
+                    mine=True
+                )
+                response = request.execute()
+
+                info = response["items"][0]["snippet"]["resourceId"]
+                return info
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no subscriptions with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_subscriptions_resource_ids(self) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    mine=True
+                )
+                response = request.execute()
+                info = []
+                subscription_info = response["items"]
+                for sub in subscription_info:
+                    info.append(sub["snippet"]["resourceId"])
+                return info
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// SUBSCRIPTION RESOURCE ID KIND //////
+        def get_subscription_resource_id_kind(self, sub_id: str, channel_id: str=None) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    id=sub_id,
+                    channelId=channel_id,
+                    mine=True
+                )
+                response = request.execute()
+
+                info = response["items"][0]["snippet"]["resourceId"]["kind"]
+                return info
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no subscriptions with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_subscriptions_resource_id_kinds(self) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    mine=True
+                )
+                response = request.execute()
+                info = []
+                subscription_info = response["items"]
+                for sub in subscription_info:
+                    info.append(sub["snippet"]["resourceId"]["kind"])
+                return info
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// SUBSCRIPTION RESOURCE ID CHANNEL ID //////
+        def get_subscription_resource_id_channel_id(self, sub_id: str, channel_id: str=None) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    id=sub_id,
+                    channelId=channel_id,
+                    mine=True
+                )
+                response = request.execute()
+
+                info = response["items"][0]["snippet"]["resourceId"]["channelId"]
+                return info
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no subscriptions with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_subscriptions_resource_id_channel_ids(self) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    mine=True
+                )
+                response = request.execute()
+                info = []
+                subscription_info = response["items"]
+                for sub in subscription_info:
+                    info.append(sub["snippet"]["resourceId"]["channelIds"])
+                return info
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// SUBSCRIPTION CHANNEL ID //////
+        def get_subscription_channel_id(self, sub_id: str, channel_id: str=None) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    id=sub_id,
+                    channelId=channel_id,
+                    mine=True
+                )
+                response = request.execute()
+
+                info = response["items"][0]["snippet"]["channelId"]
+                return info
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no subscriptions with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_subscriptions_channel_ids(self) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    mine=True
+                )
+                response = request.execute()
+                info = []
+                subscription_info = response["items"]
+                for sub in subscription_info:
+                    info.append(sub["snippet"]["channelId"])
+                return info
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// SUBSCRIPTION THUMBNAIL //////
+        def get_subscription_thumbnail(self, sub_id: str, channel_id: str=None) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    id=sub_id,
+                    channelId=channel_id,
+                    mine=True
+                )
+                response = request.execute()
+
+                info = response["items"][0]["snippet"]["thumbnail"]
+                return info
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no subscriptions with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_subscriptions_thumbnails(self) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.subscriptions().list(
+                    part="snippet",
+                    mine=True
+                )
+                response = request.execute()
+                info = []
+                subscription_info = response["items"]
+                for sub in subscription_info:
+                    info.append(sub["snippet"]["thumbnail"])
+                return info
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+         
+        #////// SUBSCRIPTION CONTENT DETAILS //////
+        def get_subscription_content_details(self, sub_id: str, channel_id: str=None) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.subscriptions().list(
+                    part="contentDetails",
+                    id=sub_id,
+                    channelId=channel_id,
+                    mine=True
+                )
+                response = request.execute()
+
+                info = response["items"][0]["contentDetails"]
+                return info
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no subscriptions with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_subscriptions_content_details(self) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.subscriptions().list(
+                    part="contentDetails",
+                    mine=True
+                )
+                response = request.execute()
+                info = []
+                subscription_info = response["items"]
+                for sub in subscription_info:
+                    info.append(sub["contentDetails"])
+                return info
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+         
+        #////// SUBSCRIPTION TOTAL ITEM COUNT //////
+        def get_subscription_total_item_count(self, sub_id: str, channel_id: str=None) -> (int | None):
+            service = self.service
+
+            try:
+                request = service.subscriptions().list(
+                    part="contentDetails",
+                    id=sub_id,
+                    channelId=channel_id,
+                    mine=True
+                )
+                response = request.execute()
+
+                info = response["items"][0]["contentDetails"]["totalItemCount"]
+                return int(info)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no subscriptions with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_subscriptions_total_item_counts(self) -> (list[int] | None):
+            service = self.service
+            try:
+                request = service.subscriptions().list(
+                    part="contentDetails",
+                    mine=True
+                )
+                response = request.execute()
+                info = []
+                subscription_info = response["items"]
+                for sub in subscription_info:
+                    info.append(int(sub["contentDetails"]["totalItemCount"]))
+                return info
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+          
+        #////// SUBSCRIPTION NEW ITEM COUNT //////
+        def get_subscription_new_item_count(self, sub_id: str, channel_id: str=None) -> (int | None):
+            service = self.service
+
+            try:
+                request = service.subscriptions().list(
+                    part="contentDetails",
+                    id=sub_id,
+                    channelId=channel_id,
+                    mine=True
+                )
+                response = request.execute()
+
+                info = response["items"][0]["contentDetails"]["newItemCount"]
+                return int(info)
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no subscriptions with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_subscriptions_new_item_counts(self) -> (list[int] | None):
+            service = self.service
+            try:
+                request = service.subscriptions().list(
+                    part="contentDetails",
+                    mine=True
+                )
+                response = request.execute()
+                info = []
+                subscription_info = response["items"]
+                for sub in subscription_info:
+                    info.append(int(sub["contentDetails"]["newItemCount"]))
+                return info
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+          
+        #////// SUBSCRIPTION ACTIVITY TYPE //////
+        def get_subscription_activity_type(self, sub_id: str, channel_id: str=None) -> (str | None):
+            service = self.service
+
+            try:
+                request = service.subscriptions().list(
+                    part="contentDetails",
+                    id=sub_id,
+                    channelId=channel_id,
+                    mine=True
+                )
+                response = request.execute()
+
+                info = response["items"][0]["contentDetails"]["activityType"]
+                return info
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no subscriptions with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_subscriptions_activity_types(self) -> (list[int] | None):
+            service = self.service
+            try:
+                request = service.subscriptions().list(
+                    part="contentDetails",
+                    mine=True
+                )
+                response = request.execute()
+                info = []
+                subscription_info = response["items"]
+                for sub in subscription_info:
+                    info.append(int(sub["contentDetails"]["newItemCount"]))
+                return info
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+          
+        #////// SUBSCRIPTION SUBSCRIBER SNIPPET //////
+        def get_subscriber_snippet(self, sub_id: str, channel_id: str=None) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.subscriptions().list(
+                    part="subscriberSnippet",
+                    id=sub_id,
+                    channelId=channel_id,
+                    mine=True
+                )
+                response = request.execute()
+
+                info = response["items"][0]["subscriberSnippet"]
+                return info
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no subscriptions with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_subscribers_snippets(self) -> (list[dict] | None):
+            service = self.service
+            try:
+                request = service.subscriptions().list(
+                    part="subscriberSnippet",
+                    mine=True
+                )
+                response = request.execute()
+                info = []
+                subscription_info = response["items"]
+                for sub in subscription_info:
+                    info.append(int(sub["subscriberSnippet"]))
+                return info
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+          
+        #////// SUBSCRIPTION SUBSCRIBER TITLE //////
+        def get_subscriber_title(self, sub_id: str, channel_id: str=None) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.subscriptions().list(
+                    part="subscriberSnippet",
+                    id=sub_id,
+                    channelId=channel_id,
+                    mine=True
+                )
+                response = request.execute()
+
+                info = response["items"][0]["subscriberSnippet"]["title"]
+                return info
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no subscriptions with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_subscribers_titles(self) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.subscriptions().list(
+                    part="subscriberSnippet",
+                    mine=True
+                )
+                response = request.execute()
+                info = []
+                subscription_info = response["items"]
+                for sub in subscription_info:
+                    info.append(int(sub["subscriberSnippet"]["title"]))
+                return info
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+          
+        #////// SUBSCRIPTION SUBSCRIBER DESCRIPTION //////
+        def get_subscriber_description(self, sub_id: str, channel_id: str=None) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.subscriptions().list(
+                    part="subscriberSnippet",
+                    id=sub_id,
+                    channelId=channel_id,
+                    mine=True
+                )
+                response = request.execute()
+
+                info = response["items"][0]["subscriberSnippet"]["description"]
+                return info
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no subscriptions with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_subscribers_descriptions(self) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.subscriptions().list(
+                    part="subscriberSnippet",
+                    mine=True
+                )
+                response = request.execute()
+                info = []
+                subscription_info = response["items"]
+                for sub in subscription_info:
+                    info.append(int(sub["subscriberSnippet"]["description"]))
+                return info
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+          
+        #////// SUBSCRIPTION SUBSCRIBER CHANNEL ID //////
+        def get_subscriber_channel_id(self, sub_id: str, channel_id: str=None) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.subscriptions().list(
+                    part="subscriberSnippet",
+                    id=sub_id,
+                    channelId=channel_id,
+                    mine=True
+                )
+                response = request.execute()
+
+                info = response["items"][0]["subscriberSnippet"]["channelId"]
+                return info
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no subscriptions with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_subscribers_channel_ids(self) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.subscriptions().list(
+                    part="subscriberSnippet",
+                    mine=True
+                )
+                response = request.execute()
+                info = []
+                subscription_info = response["items"]
+                for sub in subscription_info:
+                    info.append(int(sub["subscriberSnippet"]["channelId"]))
+                return info
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+         
+        #////// SUBSCRIPTION SUBSCRIBER THUMBNAILS //////
+        def get_subscriber_thumbnails(self, sub_id: str, channel_id: str=None) -> (dict | None):
+            service = self.service
+
+            try:
+                request = service.subscriptions().list(
+                    part="subscriberSnippet",
+                    id=sub_id,
+                    channelId=channel_id,
+                    mine=True
+                )
+                response = request.execute()
+
+                info = response["items"][0]["subscriberSnippet"]["thumbnails"]
+                return info
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no subscriptions with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_all_subscribers_thumbnails(self) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.subscriptions().list(
+                    part="subscriberSnippet",
+                    mine=True
+                )
+                response = request.execute()
+                info = []
+                subscription_info = response["items"]
+                for sub in subscription_info:
+                    info.append(int(sub["subscriberSnippet"]["thumbnails"]))
+                return info
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+           
+        
     #//////////// MEMBERS ////////////
     class Members:
         def __init__(self, ytd_api_tools: object) -> None:
