@@ -14674,12 +14674,121 @@ class YouTubeDataAPIv3Tools:
         def __init__(self, ytd_api_tools: object) -> None:
             self.service = ytd_api_tools.service
     
-    #//////////// MEMBERSHIP LEVEL ////////////
-    class MembershipLevel:
+    #//////////// MEMBERSHIPS LEVEL ////////////
+    class MembershipsLevel:
         def __init__(self, ytd_api_tools: object) -> None:
             self.service = ytd_api_tools.service
-            
-        def get_membership_level_snippet(self, channel_id, membership_level_id):
+        
+        #////// ENTIRE MEMBERSHIPS LEVEL RESOURCE //////
+        def get_memberships_level(self, channel_id: str, membership_level_id: str) -> (dict | None):
+            try:
+                request = self.service.members().list(
+                    part="snippet",
+                    channelId=channel_id,
+                    id=membership_level_id
+                )
+                response = request.execute()
+                
+                if "items" in response:
+                    return response["items"][0]
+                else:
+                    return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        #////// MEMBERSHIPS LEVEL KIND //////
+        def get_memberships_level_kind(self, channel_id: str, membership_level_id: str) -> (str | None):
+            try:
+                request = self.service.members().list(
+                    part="snippet",
+                    channelId=channel_id,
+                    id=membership_level_id
+                )
+                response = request.execute()
+                
+                if "items" in response:
+                    return response["items"][0]["kind"]
+                else:
+                    return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// MEMBERSHIPS LEVEL ETAG //////
+        def get_memberships_level_etag(self, channel_id: str, membership_level_id: str) -> (str | None):
+            try:
+                request = self.service.members().list(
+                    part="snippet",
+                    channelId=channel_id,
+                    id=membership_level_id
+                )
+                response = request.execute()
+                
+                if "items" in response:
+                    return response["items"][0]["etag"]
+                else:
+                    return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// MEMBERSHIPS LEVEL ID //////
+        def get_memberships_level_id(self, channel_id: str, membership_level_id: str) -> (str | None):
+            try:
+                request = self.service.members().list(
+                    part="snippet",
+                    channelId=channel_id,
+                    id=membership_level_id
+                )
+                response = request.execute()
+                
+                if "items" in response:
+                    return response["items"][0]["id"]
+                else:
+                    return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        #////// MEMBERSHIPS LEVEL SNIPPET //////    
+        def get_memberships_level_snippet(self, channel_id: str, membership_level_id: str) -> (dict | None):
             try:
                 request = self.service.members().list(
                     part="snippet",
@@ -14691,10 +14800,99 @@ class YouTubeDataAPIv3Tools:
                 if "items" in response:
                     return response["items"][0]["snippet"]
                 else:
-                    print("Membership level not found.")
                     return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+    
+        #////// MEMBERSHIPS LEVEL CREATOR CHANNEL ID //////    
+        def get_memberships_level_creator_channel_id(self, channel_id: str, membership_level_id: str) -> (str | None):
+            try:
+                request = self.service.members().list(
+                    part="snippet",
+                    channelId=channel_id,
+                    id=membership_level_id
+                )
+                response = request.execute()
+                
+                if "items" in response:
+                    return response["items"][0]["snippet"]["creatorChannelId"]
+                else:
+                    return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+    
+        #////// MEMBERSHIPS LEVEL DETAILS //////    
+        def get_memberships_level_details(self, channel_id: str, membership_level_id: str) -> (str | None):
+            try:
+                request = self.service.members().list(
+                    part="snippet",
+                    channelId=channel_id,
+                    id=membership_level_id
+                )
+                response = request.execute()
+                
+                if "items" in response:
+                    return response["items"][0]["snippet"]["levelDetails"]
+                else:
+                    return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        #////// MEMBERSHIPS LEVEL DISPLAY NAME //////    
+        def get_memberships_level_display_name(self, channel_id: str, membership_level_id: str):
+            try:
+                request = self.service.members().list(
+                    part="snippet",
+                    channelId=channel_id,
+                    id=membership_level_id
+                )
+                response = request.execute()
+                
+                if "items" in response:
+                    return response["items"][0]["snippet"]["displayName"]
+                else:
+                    return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
     
     #//////////// COMMENT ////////////
