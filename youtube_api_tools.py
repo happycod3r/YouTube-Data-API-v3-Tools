@@ -17298,49 +17298,36 @@ class YouTubeDataAPIv3Tools:
     class Localization:
         def __init__(self, ytd_api_tools: object) -> None:
             self.service = ytd_api_tools.service
-        
-        def get_channel_default_language(self, channel_id):
-            service = self.service
-
-            try:
-                request = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                )
-                response = request.execute()
-
-                default_language = response.get("items", [])[0]["snippet"]["defaultLanguage"]
-                return default_language
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
             
-        def verify_video(self, video_id, country_code):
+        def verify_video(self, video_id: str, country_code: str) -> (bool | None):
             """
             Verify if a video is available in a specific country using its ID.
             """
             service = self.service
-
             try:
-                # Get video details for the specified video ID and country code
                 request = service.videos().list(
                     part="status",
                     id=video_id,
                     regionCode=country_code
                 )
                 response = request.execute()
-
-                video_status = response.get("items", [])[0]["status"]
+                video_status = response["items"][0]["status"]
                 is_available = video_status["uploadStatus"] == "processed" and video_status["privacyStatus"] == "public"
-
                 return is_available
-
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
                 return None
 
-        def search_videos_by_location(self, query, location, location_radius, max_results=10):
+        def search_videos_by_location(self, query: str, location: str, location_radius: float, max_results: int=10) -> (list[dict] | None):
             service = self.service
             try:
                 request = service.search().list(
@@ -17352,12 +17339,24 @@ class YouTubeDataAPIv3Tools:
                     maxResults=max_results
                 )
                 response = request.execute()
+                videos = []
                 for item in response["items"]:
-                    print(item["snippet"]["title"])
+                    videos.append(item["snippet"]["title"])
+                return videos
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"IndexError: No data.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
 
-        def search_videos_by_language(self, query, language_code, max_results=10):
+        def search_videos_by_language(self, query: str, language_code: str, max_results: int=10) -> (list[dict] | None):
             service = self.service
             try:
                 request = service.search().list(
@@ -17368,12 +17367,24 @@ class YouTubeDataAPIv3Tools:
                     maxResults=max_results
                 )
                 response = request.execute()
+                videos = []
                 for item in response["items"]:
-                    print(item["snippet"]["title"])
+                    videos.append(item["snippet"]["title"])
+                return videos
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"IndexError: No data .\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
 
-        def get_video_details_in_languages(self, video_id, languages):
+        def get_video_details_in_languages(self, video_id: str, languages: str ) -> (dict | None):
             """
             This method allows you to retrieve video details (title and description) in 
             different languages for a specific video identified by its video_id.
@@ -17388,17 +17399,17 @@ class YouTubeDataAPIv3Tools:
                         hl=language
                     )
                     response = request.execute()
-
+                    details = {}
                     if "items" in response:
                         video = response["items"][0]
-                        video_title = video["snippet"]["title"]
-                        video_description = video["snippet"]["description"]
-                        print(f"Language: {language}, Title: {video_title}, Description: {video_description}")
+                        details["title"] = video["snippet"]["title"]
+                        details["description"] = video["snippet"]["description"]
+                    return details
 
             except googleapiclient.errors.HttpError as e:
                 print(f"An error occurred: {e}")
 
-        def get_videos_by_language(self, language_code, region_code="US", max_results=10):
+        def get_videos_by_language(self, language_code: str, region_code: str="US", max_results: int=10) -> (list[str] | None):
             service = self.service
             try:
                 request = service.search().list(
@@ -17409,12 +17420,24 @@ class YouTubeDataAPIv3Tools:
                     maxResults=max_results
                 )
                 response = request.execute()
+                titles = []
                 for item in response["items"]:
-                    print(item["snippet"]["title"])
+                    titles.append(item["snippet"]["title"])
+                return titles
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
         
-        def get_video_category_by_region_and_language(self, region_code, language_code):
+        def get_video_category_by_region_and_language(self, region_code , language_code):
             """
             This method retrieves video categories available in a specific region_code and 
             language_code. It prints information about each category, including its ID and title.
