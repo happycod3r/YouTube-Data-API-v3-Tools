@@ -2455,7 +2455,6 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        
     #//////////// CHANNEL SECTION ////////////
     class ChannelSection:
         """
@@ -13169,7 +13168,7 @@ class YouTubeDataAPIv3Tools:
         def __init__(self, ytd_api_tools: object) -> None:
             self.service = ytd_api_tools.service
     
-        def subscribe_to_channel(self, channel_id):
+        def subscribe_to_channel(self, channel_id: str) -> (bool | None):
             service = self.service
 
             try:
@@ -13189,58 +13188,40 @@ class YouTubeDataAPIv3Tools:
                 return True
 
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
-        def unsubscribe_from_channel(self, channel_id):
+        def unsubscribe_from_channel(self, channel_id: str) -> (bool | None):
             service = self.service
-
             try:
                 request = service.subscriptions().delete(
                     id=channel_id
                 )
                 response = request.execute()
-
-                print("Unsubscribed successfully!")
-
+                return True
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-    
-        def get_channels_subscribed_to(self):
-            """
-            Retrieve information about channels that the authenticated user is 
-            subscribed to:
-            """
-            service = self.service
-
-            try:
-                channels = []
-
-                request = service.subscriptions().list(
-                    part="snippet",
-                    mine=True,
-                    maxResults=50
-                )
-
-                while request is not None:
-                    response = request.execute()
-
-                    for item in response.get("items", []):
-                        channel_id = item["snippet"]["resourceId"]["channelId"]
-                        channel_title = item["snippet"]["title"]
-                        channels.append({
-                            "channel_id": channel_id,
-                            "channel_title": channel_title
-                        })
-
-                    request = service.subscriptions().list_next(request, response)
-
-                return channels
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
                 return None
-
-        def iterate_subscriptions_in_channel(self, channel_id, func):
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+    
+        def iterate_subscriptions_in_channel(self, channel_id: str, func: object):
             """
             Iterate over the subscriptions in a channel.
             """
@@ -13276,42 +13257,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_subscriptions_channel_ids(self):
-            """
-            retrieves the channel IDs of the channels to which the authenticated 
-            user is subscribed. The function uses pagination to handle cases 
-            where the user has more than 50 subscriptions (the default API result limit).
-            """
-            service = self.service
-
-            try:
-                channel_ids = []
-
-                # Set the 'mine' parameter to True to get subscriptions of the authenticated user
-                request = service.subscriptions().list(
-                    part="snippet",
-                    mine=True,
-                    maxResults=50  # Adjust the number of results as needed
-                )
-
-                while request is not None:
-                    response = request.execute()
-
-                    # Extract channel IDs from the response
-                    for item in response.get("items", []):
-                        channel_id = item["snippet"]["resourceId"]["channelId"]
-                        channel_ids.append(channel_id)
-
-                    # Check if there are more subscriptions to fetch
-                    request = service.subscriptions().list_next(request, response)
-
-                return channel_ids
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return None
-
-        def get_latest_subscriptions(self, max_results=10):
+        def get_latest_subscriptions(self, max_results=10) -> (dict | None):
             service = self.service
             try:
                 request = service.subscriptions().list(
@@ -13322,15 +13268,27 @@ class YouTubeDataAPIv3Tools:
                 )
                 response = request.execute()
 
+                subscriptions = {}
                 for subscription in response["items"]:
                     channel_title = subscription["snippet"]["title"]
                     channel_id = subscription["snippet"]["resourceId"]["channelId"]
-                    print(f"Subscribed Channel: {channel_title} (Channel ID: {channel_id})")
-
+                    subscriptions["title"] = channel_title
+                    subscriptions["id"] = channel_id
+                return subscriptions
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
-        def get_subscribed_channels(self, max_results=10):
+        def get_subscribed_channels(self, max_results: int=10) -> (dict | None):
             service = self.service
             try:
                 request = service.subscriptions().list(
@@ -13339,16 +13297,28 @@ class YouTubeDataAPIv3Tools:
                     maxResults=max_results
                 )
                 response = request.execute()
-
+                subscribed = {}
                 for subscription in response["items"]:
                     channel_title = subscription["snippet"]["title"]
                     channel_id = subscription["snippet"]["resourceId"]["channelId"]
-                    print(f"Subscribed Channel: {channel_title} (Channel ID: {channel_id})")
+                    subscribed["title"] = channel_title
+                    subscribed["id"] = channel_id
+                return subscribed
 
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
-        def is_subscribed_to_channel(self, channel_id):
+        def is_subscribed_to_channel(self, channel_id: str) -> (bool | None):
             service = self.service
 
             try:
@@ -13365,10 +13335,19 @@ class YouTubeDataAPIv3Tools:
                     return False
 
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-                return False
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
-        def get_my_subscription_count(self):
+        def get_my_subscription_count(self) -> (int | None):
             service = self.service
 
             try:
@@ -13382,9 +13361,17 @@ class YouTubeDataAPIv3Tools:
                 return int(subscription_count)
 
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-            return 0
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
         #////// ENTIRE SUBSCRIPTION RESOURCE //////
         def get_all_subscriptions(self) -> (list[dict] | None):
@@ -14681,8 +14668,7 @@ class YouTubeDataAPIv3Tools:
             except KeyError as ke:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
-           
-        
+             
     #//////////// MEMBERS ////////////
     class Members:
         def __init__(self, ytd_api_tools: object) -> None:
@@ -14692,6 +14678,24 @@ class YouTubeDataAPIv3Tools:
     class MembershipLevel:
         def __init__(self, ytd_api_tools: object) -> None:
             self.service = ytd_api_tools.service
+            
+        def get_membership_level_snippet(self, channel_id, membership_level_id):
+            try:
+                request = self.service.members().list(
+                    part="snippet",
+                    channelId=channel_id,
+                    id=membership_level_id
+                )
+                response = request.execute()
+                
+                if "items" in response:
+                    return response["items"][0]["snippet"]
+                else:
+                    print("Membership level not found.")
+                    return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
     
     #//////////// COMMENT ////////////
     class Comment:
