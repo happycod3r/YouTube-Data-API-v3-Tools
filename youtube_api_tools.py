@@ -14900,6 +14900,89 @@ class YouTubeDataAPIv3Tools:
         def __init__(self, ytd_api_tools: object) -> None:
             self.service = ytd_api_tools.service
         
+        #////// UTILITY METHODS //////
+        def get_comment_replies(self, comment_id: str, max_results: int=10) -> (list[dict] | None):
+            service = self.service
+            try:
+                request = service.comments().list(
+                    part="snippet",
+                    parentId=comment_id,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                replies = []
+                for item in response["items"]:
+                    replies.append(item)
+                return replies
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+
+        def get_comment_replies_text(self, comment_id: str, max_results: int=10) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.comments().list(
+                    part="snippet",
+                    parentId=comment_id,
+                    maxResults=max_results
+                )
+                response = request.execute()
+                replies = []
+                for item in response["items"]:
+                    replies.append(item["snippet"]["textDisplay"])
+                return replies
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+
+        def reply_to_comment(self, parent_comment_id: str, reply_text: str) -> (bool | None):
+            service = self.service
+            try:
+                request = service.comments().insert(
+                    part="snippet",
+                    body={
+                        "snippet": {
+                            "parentId": parent_comment_id,
+                            "textOriginal": reply_text
+                        }
+                    }
+                )
+                response = request.execute()
+                return True
+            except OSError as e:
+                print(f"An OS error occurred: {e}")
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no comments with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+        
         #////// ENTIRE COMMENT RESOURCE //////
         def get_comment(self, comment_id) -> (dict | None):
             service = self.service
@@ -14924,6 +15007,60 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
     
+        def edit_comment(self, comment_id: str, updated_text: str) -> (bool | None):
+            service = self.service
+            try:
+                request = service.comments().update(
+                    part="snippet",
+                    body={
+                        "id": comment_id,
+                        "snippet": {
+                            "textOriginal": updated_text
+                        }
+                    }
+                )
+                response = request.execute()
+                return True
+            except OSError as e:
+                print(f"An OS error occurred: {e}")
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no comments with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+        
+        def delete_comment(self, comment_id: str) -> (bool | None): 
+            service = self.service
+            try:
+                service.comments().delete(
+                    id=comment_id
+                ).execute()
+
+                return True
+            except OSError as e:
+                print(f"An OS error occurred: {e}")
+                return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no comments with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+        
         #////// COMMENT KIND //////
         def get_comment_kind(self, comment_id) -> (str | None):
             service = self.service
@@ -15389,7 +15526,7 @@ class YouTubeDataAPIv3Tools:
         def __init__(self, ytd_api_tools: object) -> None:
             self.service = ytd_api_tools.service
     
-        def get_video_comments(self, video_id, max_results=10):
+        def get_video_comments(self, video_id: str, max_results: int=10) -> (list[dict] | None):
             service = self.service
 
             try:
@@ -15400,29 +15537,52 @@ class YouTubeDataAPIv3Tools:
                 )
                 response = request.execute()
 
+                comments = []
                 for item in response["items"]:
-                    print(item["snippet"]["topLevelComment"]["snippet"]["textDisplay"])
+                    comments.append(item["snippet"]["topLevelComment"])
 
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def get_comment_replies(self, comment_id, max_results=10):
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+    
+        def get_video_comments_text(self, video_id: str, max_results: int=10) -> (list[str] | None):
             service = self.service
+
             try:
-                request = service.comments().list(
+                request = service.commentThreads().list(
                     part="snippet",
-                    parentId=comment_id,
+                    videoId=video_id,
                     maxResults=max_results
                 )
                 response = request.execute()
 
+                comments = []
                 for item in response["items"]:
-                    print(item["snippet"]["textDisplay"])
+                    comments.append(item["snippet"]["topLevelComment"]["snippet"]["textDisplay"])
 
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
 
-        def post_video_comment(self, video_id, comment_text):
+        def post_video_comment(self, video_id: str, comment_text: str) -> (bool | None):
             service = self.service
             try:
                 request = service.commentThreads().insert(
@@ -15439,62 +15599,489 @@ class YouTubeDataAPIv3Tools:
                     }
                 )
                 response = request.execute()
-
-                print("Comment posted successfully!")
-
+                return True
+            except OSError as e:
+                print(f"An OS error occurred: {e}")
+                return None
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")    
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no videos with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None    
 
-        def reply_to_comment(self, parent_comment_id, reply_text):
+        def get_comment_thread_kind(self, thread_id: str, video_id: str=None) -> (str | None):
             service = self.service
+            
             try:
-                request = service.comments().insert(
+                request = service.commentThreads().list(
                     part="snippet",
-                    body={
-                        "snippet": {
-                            "parentId": parent_comment_id,
-                            "textOriginal": reply_text
-                        }
-                    }
+                    id=thread_id,
+                    videoId=video_id,
                 )
                 response = request.execute()
 
-                print("Reply posted successfully!")
-
+                resource = response["items"][0]
+                return resource["kind"]            
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no comments with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
                 
-        def update_comment(self, comment_id, updated_text):
+        def get_comment_thread_etag(self, thread_id: str, video_id: str=None) -> (str | None):
             service = self.service
+            
             try:
-                request = service.comments().update(
+                request = service.commentThreads().list(
                     part="snippet",
-                    body={
-                        "id": comment_id,
-                        "snippet": {
-                            "textOriginal": updated_text
-                        }
-                    }
+                    id=thread_id,
+                    videoId=video_id,
                 )
                 response = request.execute()
 
-                print("Comment updated successfully!")
-
+                resource = response["items"][0]
+                return resource["etag"]            
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-        
-        def delete_comment(self, comment_id):
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no comments with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+           
+        def get_comment_thread_snippet(self, thread_id: str, video_id: str=None) -> (str | None):
             service = self.service
+            
             try:
-                service.comments().delete(
-                    id=comment_id
-                ).execute()
+                request = service.commentThreads().list(
+                    part="snippet",
+                    id=thread_id,
+                    videoId=video_id,
+                )
+                response = request.execute()
 
-                print("Comment deleted successfully!")
-
+                resource = response["items"][0]
+                return resource["snippet"]            
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no comments with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+               
+        def get_comment_thread_author_display_name(self, thread_id: str, video_id: str=None) -> (str | None):
+            service = self.service
+            
+            try:
+                request = service.commentThreads().list(
+                    part="snippet",
+                    id=thread_id,
+                    videoId=video_id,
+                )
+                response = request.execute()
+
+                resource = response["items"][0]
+                return resource["snippet"]["authorDisplayName"]           
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no comments with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+          
+        def get_comment_thread_author_profile_image_url(self, thread_id: str, video_id: str=None) -> (str | None):
+            service = self.service
+            
+            try:
+                request = service.commentThreads().list(
+                    part="snippet",
+                    id=thread_id,
+                    videoId=video_id,
+                )
+                response = request.execute()
+
+                resource = response["items"][0]
+                return resource["snippet"]["authorProfileImageUrl"]           
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no comments with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+          
+        def get_comment_thread_author_channel_id(self, thread_id: str, video_id: str=None) -> (str | None):
+            service = self.service
+            
+            try:
+                request = service.commentThreads().list(
+                    part="snippet",
+                    id=thread_id,
+                    videoId=video_id,
+                )
+                response = request.execute()
+
+                resource = response["items"][0]
+                return resource["snippet"]["authorChannelId"]           
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no comments with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+          
+        def get_comment_thread_value(self, thread_id: str, video_id: str=None) -> (str | None):
+            service = self.service
+            
+            try:
+                request = service.commentThreads().list(
+                    part="snippet",
+                    id=thread_id,
+                    videoId=video_id,
+                )
+                response = request.execute()
+
+                resource = response["items"][0]
+                return resource["snippet"]["value"]           
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no comments with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+          
+        def get_comment_thread_channel_id(self, thread_id: str, video_id: str=None) -> (str | None):
+            service = self.service
+            
+            try:
+                request = service.commentThreads().list(
+                    part="snippet",
+                    id=thread_id,
+                    videoId=video_id,
+                )
+                response = request.execute()
+
+                resource = response["items"][0]
+                return resource["snippet"]["channelId"]           
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no comments with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+          
+        def get_comment_thread_video_id(self, thread_id: str, video_id: str=None) -> (str | None):
+            service = self.service
+            
+            try:
+                request = service.commentThreads().list(
+                    part="snippet",
+                    id=thread_id,
+                    videoId=video_id,
+                )
+                response = request.execute()
+
+                resource = response["items"][0]
+                return resource["snippet"]["videoId"]           
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no comments with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+          
+        def get_comment_thread_text_display(self, thread_id: str, video_id: str=None) -> (str | None):
+            service = self.service
+            
+            try:
+                request = service.commentThreads().list(
+                    part="snippet",
+                    id=thread_id,
+                    videoId=video_id,
+                )
+                response = request.execute()
+
+                resource = response["items"][0]
+                return resource["snippet"]["textDisplay"]           
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no comments with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
         
+        def get_comment_thread_text_original(self, thread_id: str, video_id: str=None) -> (str | None):
+            service = self.service
+            
+            try:
+                request = service.commentThreads().list(
+                    part="snippet",
+                    id=thread_id,
+                    videoId=video_id,
+                )
+                response = request.execute()
+
+                resource = response["items"][0]
+                return resource["snippet"]["textOriginal"]           
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no comments with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+         
+        def get_comment_thread_parent_id(self, thread_id: str, video_id: str=None) -> (str | None):
+            service = self.service
+            
+            try:
+                request = service.commentThreads().list(
+                    part="snippet",
+                    id=thread_id,
+                    videoId=video_id,
+                )
+                response = request.execute()
+
+                resource = response["items"][0]
+                return resource["snippet"]["parentId"]           
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no comments with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+             
+        def comment_thread_can_rate(self, thread_id: str, video_id: str=None) -> (bool | None):
+            service = self.service 
+            try:
+                request = service.commentThreads().list(
+                    part="snippet",
+                    id=thread_id,
+                    videoId=video_id,
+                )
+                response = request.execute()
+                resource = response["items"][0]
+                return bool(resource["snippet"]["canRate"])           
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no comments with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+          
+        def get_comment_thread_viewer_rating(self, thread_id: str, video_id: str=None) -> (str | None):
+            service = self.service
+            
+            try:
+                request = service.commentThreads().list(
+                    part="snippet",
+                    id=thread_id,
+                    videoId=video_id,
+                )
+                response = request.execute()
+
+                resource = response["items"][0]
+                return resource["snippet"]["viewerRating"]           
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no comments with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+          
+        def get_comment_thread_like_count(self, thread_id: str, video_id: str=None) -> (int | None):
+            service = self.service
+            
+            try:
+                request = service.commentThreads().list(
+                    part="snippet",
+                    id=thread_id,
+                    videoId=video_id,
+                )
+                response = request.execute()
+
+                resource = response["items"][0]
+                return int(resource["snippet"]["likeCount"])           
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no comments with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+          
+        def get_comment_thread_moderation_status(self, thread_id: str, video_id: str=None) -> (str | None):
+            service = self.service
+            
+            try:
+                request = service.commentThreads().list(
+                    part="snippet",
+                    id=thread_id,
+                    videoId=video_id,
+                )
+                response = request.execute()
+
+                resource = response["items"][0]
+                return resource["snippet"]["moderationStatus"]           
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no comments with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+         
+        def get_time_comment_thread_published_at(self, thread_id: str, video_id: str=None) -> (str | None):
+            service = self.service
+            
+            try:
+                request = service.commentThreads().list(
+                    part="snippet",
+                    id=thread_id,
+                    videoId=video_id,
+                )
+                response = request.execute()
+
+                resource = response["items"][0]
+                return resource["snippet"]["publishedAt"]           
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no comments with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+          
+        def get_time_comment_thread_updated_at(self, thread_id: str, video_id: str=None) -> (str | None):
+            service = self.service
+            
+            try:
+                request = service.commentThreads().list(
+                    part="snippet",
+                    id=thread_id,
+                    videoId=video_id,
+                )
+                response = request.execute()
+
+                resource = response["items"][0]
+                return resource["snippet"]["updatedAt"]           
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no comments with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
+          
     #//////////// THUMBNAIL ////////////
     class Thumbnail:
         def __init__(self, ytd_api_tools: object) -> None:
