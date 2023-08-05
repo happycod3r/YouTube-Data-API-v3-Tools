@@ -21,7 +21,7 @@ Or should I say ... classy ....
 - google-api-python-client
       
 Keep in mind that you need to have the proper **OAuth 2.0** authentication set up and the 
-permissions to manage an account. Below is a step-by-step guide on how to
+permissions to manage a YouTube account. Below is a step-by-step guide on how to
 obtain a ***client_secret.json*** file. 
 
 *Please also note that the steps for setting up OAuth 2.0 authentication and using the 
