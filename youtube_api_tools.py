@@ -74,7 +74,8 @@ class YouTubeDataAPIv3Tools:
         self, 
         _client_secrets_json_path: str,
         _scopes: list, 
-        _token_file: str="token.pickle", 
+        _token_file: str="token.pickle",
+        _dev_key: str=None, 
         _channel_id: str=None
     ) -> None:
         
@@ -89,6 +90,7 @@ class YouTubeDataAPIv3Tools:
                 self.api_scopes.append(_scopes[i])
         
         self.CLIENT_SECRETS_JSON_FILE = _client_secrets_json_path
+        self.DEV_KEY = _dev_key
         self.CHANNEL_ID = _channel_id
         
         if _channel_id is not None:
@@ -204,7 +206,6 @@ class YouTubeDataAPIv3Tools:
     #//////////// AUTHENTICATION ////////////
     
     def _get_authenticated_service(self, credentials) -> object:
-        from api_key import api_key
         """
         This method is a wrapper around the 'googleapiclient.discovery.build' method.
         It returns the resource needed for interacting with the YouTube API.
@@ -214,7 +215,7 @@ class YouTubeDataAPIv3Tools:
             "youtube", 
             "v3", 
             credentials=_credentials,
-            developerKey=api_key()
+            developerKey=self.DEV_KEY
         )
 
     def get_authenticated_service(self) -> (object | None):
@@ -245,8 +246,6 @@ class YouTubeDataAPIv3Tools:
             
                 with open(self.TOKEN_FILE, "wb") as token_file:
                     pickle.dump(credentials, token_file)
-
-            from googleapiclient.discovery import build
             youtube_service = self._get_authenticated_service(credentials)
             return youtube_service
         except googleapiclient.errors.HttpError as e:
