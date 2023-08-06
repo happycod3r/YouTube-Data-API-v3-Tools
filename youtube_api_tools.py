@@ -102,11 +102,20 @@ class YouTubeDataAPIv3Tools:
         self.TOKEN_FILE = _token_file
         
         self.service = self.get_authenticated_service()
-        
+    
+    #////// UTILITY METHODS //////
+    
+    def _dict_to_arr(self, dictionary: dict):
+        if isinstance(dictionary, dict):
+            array = []
+            for key in dictionary.keys():
+                array.append(dictionary[key])
+            return array
+            
     def add_scope(self, scope: str) -> (list | None):
         """
-        This method will add the given scope to the list of scopes held
-        in the SCOPES list.
+        Adds the given scope to the list of scopes held in the api_scopes list.
+        Returns the new list of scopes if successful and None otherwise. 
         """
         try:
             for i in range(len(self.api_scopes)):
@@ -122,10 +131,10 @@ class YouTubeDataAPIv3Tools:
             print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
             return None
         
-    def add_scopes(self, scopes: list[str]) -> (list | None):
+    def add_scopes(self, scopes: list[str]) -> (list | None): 
         """
-        Adds API scopes to the list of scopes that you want to use and
-        returns the new list.
+        Adds one or more API scopes to the list of scopes.
+        returns the new list if successful and None otherwise.
         """
         try:
             for i in range(len(scopes)):
@@ -141,7 +150,7 @@ class YouTubeDataAPIv3Tools:
     def remove_scope(self, scope: str) -> (list | None):
         """
         Removes the given scope from the list of scopes being used and
-        returns the new list.
+        returns the new list. Returns None otherwise.
         """
         try:
             for _scope in range(len(self.api_scopes)):
@@ -154,8 +163,12 @@ class YouTubeDataAPIv3Tools:
         except TypeError as te:
             print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
             return None
-     
+      
     def remove_scopes(self, scopes: list) -> (list | None):
+        """
+        Removes one or more scopes from the list of scopes being used and
+        returns the new list. Returns None otherwise.
+        """
         try:
             for i in range(len(scopes)):
                 for j in range(len(self.api_scopes)):
@@ -168,10 +181,11 @@ class YouTubeDataAPIv3Tools:
         except TypeError as te:
             print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
             return None
-        
+    
     def set_client_secrets_json(self, client_secrets_json: str) -> bool:
         """
-        Sets the path to the client_secrets.json file.
+        Sets the path to the client_secrets.json file. Returns True if file 
+        passed has is the correct file type and False otherwise.
         """
         if client_secrets_json.endswith(".json"):
             self.CLIENT_SECRETS_JSON_FILE = client_secrets_json
@@ -179,22 +193,29 @@ class YouTubeDataAPIv3Tools:
         return False    
     
     def get_client_secrets_json(self) -> (str | None):
+        """
+        Returns the path to the client_secrets.json file or None if no file is stored.
+        """
         if len(self.CLIENT_SECRETS_JSON_FILE) != 0:
             return self.CLIENT_SECRETS_JSON_FILE
         return None
     
+    
     #//////////// AUTHENTICATION ////////////
     
     def _get_authenticated_service(self, credentials) -> object:
+        from api_key import api_key
         """
         This method is a wrapper around the 'googleapiclient.discovery.build' method.
         It returns the resource needed for interacting with the YouTube API.
         """
-        #scopes = ["https://www.googleapis.com/auth/youtube.readonly"]
-        #flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file("client_secret_671382908634-hudnrlsnhr3gqresomjga29a33s0chml.apps.googleusercontent.com.json", scopes)
-        #credentials = flow.run_local_server(port=8080)
         _credentials = credentials
-        return googleapiclient.discovery.build("youtube", "v3", credentials=_credentials)
+        return googleapiclient.discovery.build(
+            "youtube", 
+            "v3", 
+            credentials=_credentials,
+            developerKey=api_key()
+        )
 
     def get_authenticated_service(self) -> (object | None):
         """
@@ -215,13 +236,13 @@ class YouTubeDataAPIv3Tools:
             if os.path.exists(self.TOKEN_FILE):
                 with open(self.TOKEN_FILE, "rb") as token_file:
                     credentials = pickle.load(token_file)
-                    
+
             # If no credentials found, perform the OAuth 2.0 flow
             if not credentials or not credentials.valid:
                 flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
                     self.CLIENT_SECRETS_JSON_FILE, self.api_scopes)
                 credentials = flow.run_local_server(port=0)
-
+            
                 with open(self.TOKEN_FILE, "wb") as token_file:
                     pickle.dump(credentials, token_file)
 
@@ -238,130 +259,47 @@ class YouTubeDataAPIv3Tools:
             self.service = ytd_api_tools.service
         
         #////// UTILITY METHODS //////
-        def get_channel_numbers(self, channel_id: str) -> (dict | None):
-            service = self.service
-
-            try:
-                request = service.channels().list(
-                    part="snippet,statistics",
-                    id=channel_id
-                )
-                response = request.execute()
-
-                channel = response["items"][0]
-                numbers = {
-                    "viewCount": channel['statistics']['viewCount'],
-                    "videoCount": channel['statistics']['videoCount'],
-                    "subscriberCount": channel['statistics']['subscriberCount'] 
-                }
-                return numbers
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as ie:
-                print(f"There are no channels with the given ID.\n{ie}")
-                return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                return None
-
-        def get_channel_videos(self, channel_id: str, max_results: int=100) -> (list[dict] | None):
+        def get_channel_numbers(self, your_channel: bool=True, channel_id: str=None) -> (dict | None):
+            """
+            Gets channel statistics for either your channel or a channel 
+            specified by channel_id. Returns a dictionary containing the channels 
+            view count, subscriber count and video count if successful and None otherwise.
+            """
             service = self.service
             try:
-                request = service.search().list(
-                part="snippet",
-                channelId=channel_id,
-                type="video",
-                maxResults=max_results
-                )
-                response = request.execute()
-                videos = []
-                for item in response["items"]:
-                    videos.append(item)
-                return videos
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as ie:
-                print(f"There are no channels with the given ID.\n{ie}")
-                return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                return None
-            
-        def get_channel_sections(self, channel_id: str) -> (list[str] | None):
-            service = self.service
-
-            try:
-                request = service.channelSections().list(
-                    part="snippet",
-                    channelId=channel_id
-                )
-                response = request.execute()
-
-                sections = []
-                for item in response["items"]:
-                    sections.append(item)
-                return sections
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as ie:
-                print(f"There are no channels with the given ID.\n{ie}")
-                return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                return None
-
-        def get_channel_section_ids(self, channel_id: str) -> (list[str] | None):
-            service = self.service
-
-            try:
-                request = service.channelSections().list(
-                    part="snippet",
-                    channelId=channel_id
-                )
-                response = request.execute()
-
-                ids = []
-                for item in response["items"]:
-                    ids.append(item["id"])
-                return ids
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as ie:
-                print(f"There are no channels with the given ID.\n{ie}")
-                return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                return None
-
-        def iterate_channel_sections(self, channel_id: str, func: object) -> (list[str] | None):
-            service = self.service
-
-            try:
-                request = service.channelSections().list(
-                    part="snippet",
-                    channelId=channel_id
-                )
-                response = request.execute()
-
-                for item in response["items"]:
-                    func(item)
-                return True
+                if not your_channel:
+                    request = service.channels().list(
+                        part="snippet,statistics",
+                        id=channel_id
+                    )
+                    response = request.execute()
+                    if "items" in response:
+                        channel = response["items"][0]
+                        numbers = {
+                            "viewCount": channel['statistics']['viewCount'],
+                            "videoCount": channel['statistics']['videoCount'],
+                            "subscriberCount": channel['statistics']['subscriberCount'] 
+                        }
+                        return numbers
+                    else:
+                        None
+                else:
+                    request = service.channels().list(
+                        part="snippet,statistics",
+                        mine=your_channel
+                    )
+                    response = request.execute()
+                    if "items" in response:
+                        channel = response["items"][0]
+                        numbers = {
+                            "viewCount": channel['statistics']['viewCount'],
+                            "videoCount": channel['statistics']['videoCount'],
+                            "subscriberCount": channel['statistics']['subscriberCount'] 
+                        }
+                        return numbers
+                    else:
+                        None
+                    
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -376,131 +314,163 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// ENTIRE CHANNEL RESOURCE //////
-        def get_channel(self, channel_id: str) -> (dict | None):
+        def get_channel(self, your_channel: bool=True, channel_id: str=None) -> (dict | None):
+            """
+            Gets the resource json for either your channel or a channel specified by 
+            channel_id. Returns the entire Channel resource as a dictionary if successful 
+            and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                channel = channel["items"][0]
-                return channel
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        channel = channel["items"][0]
+                        return channel
+                    else:
+                        return None
+                else:
+                    channel = service.channels().list(
+                            part="snippet",
+                            mine=your_channel
+                        ).execute()
+                    if "items" in channel:
+                        channel = channel["items"][0]
+                        return channel
+                    else:
+                        return None
+                    
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
-            except IndexError as ie:
-                print(f"There are no channels with the given ID.\n{ie}")
+            except IndexError as e:
+                print(f"There are no channels with the given ID.\n{e}")
                 return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
                 return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
                 return None
 
         #////// CHANNEL KIND //////
-        def get_channel_kind(self, channel_id: str) -> (str | None):
+        def get_channel_kind(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the kind of channel for either your channel or a channel specified 
+            by channel_id. Returns the kind of channel if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                kind = channel["items"][0]["kind"]
-                return kind
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        kind = channel["items"][0]["kind"]
+                        return kind
+                    else:
+                        return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        kind = channel["items"][0]["kind"]
+                        return kind
+                    else:
+                        return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
-            except IndexError as ie:
-                print(f"There are no channels with the given ID.\n{ie}")
+            except IndexError as e:
+                print(f"There are no channels with the given ID.\n{e}")
                 return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
                 return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
                 return None
     
         #////// CHANNEL ETAG //////
-        def get_channel_etag(self, channel_id: str) -> (str | None):
-            service = self.service
-            try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                etag = channel["items"][0]["etag"]
-                return etag
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as ie:
-                print(f"There are no channels with the given ID.\n{ie}")
-                return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                return None
-    
-        #////// CHANNEL ID //////
-        def get_channel_id(self, channel_id: str) -> (str | None):
-            service = self.service
-            try:
-                channel = service.channels().list(
-                    part="id",
-                    id=channel_id
-                ).execute()
-
-                id = channel["items"][0]["id"]
-                return id
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as ie:
-                print(f"There are no channels with the given ID.\n{ie}")
-                return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                return None
-
-        def get_channel_id_by_name(self, channel_name: str) -> (str | None):
-            """ 
-            This method takes the channel_name as input and returns 
-            the corresponding channel ID. It uses the search.list method 
-            with the type="channel" parameter to filter the results and
-            fetches the first channel ID that matches the search query.
+        def get_etag(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the etag for either your channel or a channel specified by channel_id.
+            Returns the etag of the channel if successful and None otherwise.
             """
             service = self.service
-
             try:
-                request = service.search().list(
-                    part="id",
-                    q=channel_name,
-                    type="channel",
-                    maxResults=1
-                )
-                response = request.execute()
-
-                if "items" in response:
-                    channel_id = response["items"][0]["id"]["channelId"]
-                    return channel_id
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        etag = channel["items"][0]["etag"]
+                        return etag
+                    else:
+                        return None
                 else:
-                    print("Channel not found.")
-                    return None
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        etag = channel["items"][0]["etag"]
+                        return etag
+                    else:
+                        return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no channels with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
 
+        #////// CHANNEL ID //////
+        def get_id(self, your_channel: bool=True, channel_name: str=None) -> (str | None):
+            """
+            Gets the ID for either your channel or a channel specified by channel_name.
+            This method returns the channel ID if successful and None otherwise.
+            """
+            service = self.service
+            try:
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="id",
+                        forUsername=channel_name
+                    ).execute()
+                    if "items" in channel:
+                        id = channel["items"][0]["id"]
+                        return id
+                    else:
+                        return None
+                else:
+                    channel = service.channels().list(
+                        part="id",
+                        mine=True
+                    ).execute()
+                    if "items" in channel:
+                        id = channel["items"][0]["id"]
+                        return id
+                    else:
+                        return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
             except IndexError as ie:
-                print(f"There are no channels with the given ID.\n{ie}")
+                print(f"No channel ID.\n{ie}")
                 return None
             except TypeError as te:
                 print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
@@ -510,18 +480,34 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// CHANNEL SNIPPET //////
-        def get_channel_snippet(self, channel_id) -> (dict | None):
+        def get_snippet(self, your_channel: bool=True, channel_id: str=None) -> (dict | None):
+            """
+            Gets the snippet part for either your channel or a channel specified by channel_id.
+            Returns the snippet part of the channel resource json if successful and
+            None otherwise.
+            """
             service = self.service
-
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                snippet = channel["items"][0]["snippet"]
-                return snippet
-
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        snippet = channel["items"][0]["snippet"]
+                        return snippet
+                    else:
+                        return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        snippet = channel["items"][0]["snippet"]
+                        return snippet
+                    else:
+                        return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -536,18 +522,31 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// CHANNEL TITLE //////
-        def get_channel_title(self, channel_id) -> (str | None):
+        def get_channel_name(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the title for either your channel or a channel specified by channel_id.
+            Returns the channel title if successful and None otherwise.
+            """
             service = self.service
-
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                title = channel["items"][0]["snippet"]["title"]
-                return title
-
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        title = channel["items"][0]["snippet"]["title"]
+                        return title
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        title = channel["items"][0]["snippet"]["title"]
+                        return title
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -560,29 +559,51 @@ class YouTubeDataAPIv3Tools:
             except KeyError as ke:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
-
-        def change_channel_title(self, channel_id, new_name) -> (str | None):
+        
+        def set_channel_name(self, new_name: str, your_channel: bool=True, channel_id: str=None) -> (bool | None):
+            """
+            Sets the title of either your channel or the channel specified by channel_id.
+            Returns True if it was set successfully and False otherwise.
+            """
             service = self.service
 
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        snippet = channel["items"][0]["snippet"]
+                        snippet["title"] = new_name
 
-                snippet = channel["items"][0]["snippet"]
-                snippet["title"] = new_name
+                        service.channels().update(
+                            part="snippet",
+                            body={
+                                "id": channel_id,
+                                "snippet": snippet
+                            }
+                        ).execute()
+                        return True
+                    else: return False
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        snippet = channel["items"][0]["snippet"]
+                        snippet["title"] = new_name
 
-                service.channels().update(
-                    part="snippet",
-                    body={
-                        "id": channel_id,
-                        "snippet": snippet
-                    }
-                ).execute()
-
-                return self.get_channel_title(channel_id)
-
+                        service.channels().update(
+                            part="snippet",
+                            body={
+                                "id": channel_id,
+                                "snippet": snippet
+                            }
+                        ).execute()
+                        return True
+                    else: return False
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -597,17 +618,90 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// CHANNEL DESCRIPTION //////
-        def get_channel_description(self, channel_id) -> (str | None):
+        def get_description(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the description for either your channel or a channel specified by 
+            channel_id.
+            Returns the channel description if successful and None otherwise.
+            """
             service = self.service
-
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        desc = channel["items"][0]["snippet"]["description"]
+                        return desc
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        desc = channel["items"][0]["snippet"]["description"]
+                        return desc
+                    else: return None
 
-                desc = channel["items"][0]["snippet"]["description"]
-                return desc
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        def set_description(self, new_description: str, your_channel: bool=True, channel_id: str=None) -> (bool | None):
+            """
+            Sets the channel description of the channel specified by channel_id.
+            Returns True if it was set successfully and False otherwise.
+            """
+            service = self.service
+            try:
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        snippet = channel["items"][0]["snippet"]
+                        snippet["description"] = new_description
+
+                        service.channels().update(
+                            part="snippet",
+                            body={
+                                "id": channel_id,
+                                "snippet": snippet
+                            }
+                        ).execute()
+                        return True
+                    else: return False
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        snippet = channel["items"][0]["snippet"]
+                        snippet["description"] = new_description
+
+                        service.channels().update(
+                            part="snippet",
+                            body={
+                                "id": channel_id,
+                                "snippet": snippet
+                            }
+                        ).execute()
+                        return True
+                    else: return False
+                    
 
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
@@ -623,18 +717,32 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// CHANNEL CUSTOM URL //////
-        def get_channel_custom_url(self, channel_id) -> (str | None):
+        def get_custom_url(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the custom URL for either your channel or a channel specified by 
+            channel_id.
+            Returns the channels custom URL if successful and None otherwise.
+            """
             service = self.service
-
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                url = channel["items"][0]["snippet"]["customUrl"]
-                return url
-
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        url = channel["items"][0]["snippet"]["customUrl"]
+                        return url
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        url = channel["items"][0]["snippet"]["customUrl"]
+                        return url
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -649,18 +757,32 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL PUBLISHED DATE //////
-        def get_channel_published_date(self, channel_id) -> (str | None):
+        def get_time_published_at(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the datetime either your channel or a channel specified by channel_id was
+            published at.
+            Returns the datetime the channel was published at if successful and None otherwise.
+            """
             service = self.service
-
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                date = channel["items"][0]["snippet"]["publishedAt"]
-                return date
-
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        date = channel["items"][0]["snippet"]["publishedAt"]
+                        return date
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        date = channel["items"][0]["snippet"]["publishedAt"]
+                        return date
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -675,16 +797,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL THUMBNAILS //////
-        def get_channel_thumbnails(self, channel_id) -> (dict | None):
+        def get_thumbnails(self, your_channel: bool=True, channel_id: str=None) -> (dict | None):
+            """
+            Gets the thumbnails for either your channel or a channel specified by channel_id.
+            Returns a dictionary containing the thumbnails if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                thumbnails = channel["items"][0]["snippet"]["thumbnails"]
-                return thumbnails
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        thumbnails = channel["items"][0]["snippet"]["thumbnails"]
+                        return thumbnails
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        thumbnails = channel["items"][0]["snippet"]["thumbnails"]
+                        return thumbnails
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -699,16 +836,31 @@ class YouTubeDataAPIv3Tools:
                 return None
            
         #////// CHANNEL DEFAULT RES THUMBNAIL //////
-        def get_channel_default_res_thumbnail(self, channel_id) -> (dict | None):
+        def get_default_res_thumbnail(self, your_channel: bool=True, channel_id: str=None) -> (dict | None):
+            """
+            Get the default res thumbnail for either your channel or a channel specified by channel_id.
+            Returns a dictionary containing the default thumbnail if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                thumbnail = channel["items"][0]["snippet"]["thumbnails"]["default"]
-                return thumbnail
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        thumbnail = channel["items"][0]["snippet"]["thumbnails"]["default"]
+                        return thumbnail
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        thumbnail = channel["items"][0]["snippet"]["thumbnails"]["default"]
+                        return thumbnail
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -722,16 +874,31 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
          
-        def get_channel_default_res_thumbnail_url(self, channel_id) -> (str | None):
+        def get_default_res_thumbnail_url(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Get thedefault res thumbnail URL for either your channel or a channel specified by channel_id.
+            Returns the default res thumbnail URL if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                url = channel["items"][0]["snippet"]["thumbnails"]["default"]["url"]
-                return url
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        url = channel["items"][0]["snippet"]["thumbnails"]["default"]["url"]
+                        return url
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        url = channel["items"][0]["snippet"]["thumbnails"]["default"]["url"]
+                        return url
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -745,16 +912,32 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
          
-        def get_channel_default_res_thumbnail_width(self, channel_id) -> (int | None):
+        def get_default_res_thumbnail_width(self, your_channel: bool=True, channel_id: str=None) -> (int | None):
+            """
+            Gets the default res thumbnail width for either your channel or a channel specified 
+            by channel_id.
+            Returns the default thumbnail width if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                width = channel["items"][0]["snippet"]["thumbnails"]["default"]["width"]
-                return int(width)
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        width = channel["items"][0]["snippet"]["thumbnails"]["default"]["width"]
+                        return int(width)
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        width = channel["items"][0]["snippet"]["thumbnails"]["default"]["width"]
+                        return int(width)
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -768,16 +951,32 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
           
-        def get_channel_default_res_thumbnail_height(self, channel_id) -> (int | None):
+        def get_default_res_thumbnail_height(self, your_channel: bool=True, channel_id: str=None) -> (int | None):
+            """
+            Gets the default res thumbnail height for either your channel or a channel specified 
+            by channel_id.
+            Returns the default thumbnail height if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                height = channel["items"][0]["snippet"]["thumbnails"]["default"]["height"]
-                return int(height)
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        height = channel["items"][0]["snippet"]["thumbnails"]["default"]["height"]
+                        return int(height)
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        height = channel["items"][0]["snippet"]["thumbnails"]["default"]["height"]
+                        return int(height)
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -792,16 +991,33 @@ class YouTubeDataAPIv3Tools:
                 return None
           
         #////// CHANNEL MEDIUM RES THUMBNAIL //////
-        def get_channel_medium_res_thumbnail(self, channel_id) -> (dict | None):
+        def get_medium_res_thumbnail(self, your_channel: bool=True, channel_id: str=None) -> (dict | None):
+            """
+            Gets the medium res thumbnail for either your channel or a channel specified by 
+            channel_id.
+            Returns a dictionary containing the medium res thumbnail if successful and None 
+            otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                thumbnail = channel["items"][0]["snippet"]["thumbnails"]["medium"]
-                return thumbnail
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        thumbnail = channel["items"][0]["snippet"]["thumbnails"]["medium"]
+                        return thumbnail
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        thumbnail = channel["items"][0]["snippet"]["thumbnails"]["medium"]
+                        return thumbnail
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -815,16 +1031,32 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_channel_medium_res_thumbnail_url(self, channel_id) -> (str | None):
+        def get_medium_res_thumbnail_url(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the medium res thumbnail URL for either your channel or a channel specified 
+            by channel_id.
+            Returns the medium res thumbnail URL if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                url = channel["items"][0]["snippet"]["thumbnails"]["medium"]["url"]
-                return url
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        url = channel["items"][0]["snippet"]["thumbnails"]["medium"]["url"]
+                        return url
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        url = channel["items"][0]["snippet"]["thumbnails"]["medium"]["url"]
+                        return url
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -838,16 +1070,32 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
          
-        def get_channel_medium_res_thumbnail_width(self, channel_id) -> (int | None):
+        def get_medium_res_thumbnail_width(self, your_channel: bool=True, channel_id: str=None) -> (int | None):
+            """
+            Gets a the medium res thumbnail width for either your channel or a channel specified 
+            by channel_id.
+            Returns the medium res thumbnail width if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                width = channel["items"][0]["snippet"]["thumbnails"]["medium"]["width"]
-                return int(width)
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        width = channel["items"][0]["snippet"]["thumbnails"]["medium"]["width"]
+                        return int(width)
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        width = channel["items"][0]["snippet"]["thumbnails"]["medium"]["width"]
+                        return int(width)
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -861,16 +1109,32 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
           
-        def get_channel_medium_res_thumbnail_height(self, channel_id) -> (int | None):
+        def get_medium_res_thumbnail_height(self, your_channel: bool=True, channel_id: str=None) -> (int | None):
+            """
+            Gets the medium res thumbnail height for either your channel or a channel specified 
+            by channel_id.
+            Returns the medium res thumbnail height if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                height = channel["items"][0]["snippet"]["thumbnails"]["medium"]["height"]
-                return int(height)
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        height = channel["items"][0]["snippet"]["thumbnails"]["medium"]["height"]
+                        return int(height)
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        height = channel["items"][0]["snippet"]["thumbnails"]["medium"]["height"]
+                        return int(height)
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -885,16 +1149,33 @@ class YouTubeDataAPIv3Tools:
                 return None
           
         #////// CHANNEL HIGH RES THUMBNAIL //////
-        def get_channel_high_res_thumbnail(self, channel_id) -> (dict | None):
+        def get_high_res_thumbnail(self, your_channel: bool=True, channel_id: str=None) -> (dict | None):
+            """
+            Gets the high res thumbnail for either your channel or a channel specified 
+            by channel_id.
+            Returns a dictionary containing the high res thumbnail if successful and None 
+            otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                thumbnail = channel["items"][0]["snippet"]["thumbnails"]["high"]
-                return thumbnail
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        thumbnail = channel["items"][0]["snippet"]["thumbnails"]["high"]
+                        return thumbnail
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        thumbnail = channel["items"][0]["snippet"]["thumbnails"]["high"]
+                        return thumbnail
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -908,16 +1189,32 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_channel_high_res_thumbnail_url(self, channel_id) -> (str | None):
+        def get_high_res_thumbnail_url(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the high res thumbnail URL for either your channel or a channel specified 
+            by channel_id.
+            Returns the high res thumbnail URL if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                url = channel["items"][0]["snippet"]["thumbnails"]["high"]["url"]
-                return url
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        url = channel["items"][0]["snippet"]["thumbnails"]["high"]["url"]
+                        return url
+                    return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        url = channel["items"][0]["snippet"]["thumbnails"]["high"]["url"]
+                        return url
+                    return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -931,16 +1228,32 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
          
-        def get_channel_high_res_thumbnail_width(self, channel_id) -> (int | None):
+        def get_high_res_thumbnail_width(self, your_channel: bool=True, channel_id: str=None) -> (int | None):
+            """
+            Gets the high res thumbnail width for either your channel or a channel specified 
+            by channel_id.
+            Returns the high res thumbnail width if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                width = channel["items"][0]["snippet"]["thumbnails"]["high"]["width"]
-                return int(width)
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        width = channel["items"][0]["snippet"]["thumbnails"]["high"]["width"]
+                        return int(width)
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        width = channel["items"][0]["snippet"]["thumbnails"]["high"]["width"]
+                        return int(width)
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -954,16 +1267,32 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
           
-        def get_channel_high_res_thumbnail_height(self, channel_id) -> (int | None):
+        def get_high_res_thumbnail_height(self, your_channel: bool=True, channel_id: str=None) -> (int | None):
+            """
+            Gets the high res thumbnail height for either your channel or a channel specified 
+            by channel_id.
+            Returns the high res thumbnail height if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                height = channel["items"][0]["snippet"]["thumbnails"]["high"]["height"]
-                return int(height)
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        height = channel["items"][0]["snippet"]["thumbnails"]["high"]["height"]
+                        return int(height)
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        height = channel["items"][0]["snippet"]["thumbnails"]["high"]["height"]
+                        return int(height)
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -978,16 +1307,33 @@ class YouTubeDataAPIv3Tools:
                 return None
           
         #////// CHANNEL STANDARD RES THUMBNAIL //////
-        def get_channel_standard_res_thumbnail(self, channel_id) -> (dict | None):
+        def get_standard_res_thumbnail(self, your_channel: bool=True, channel_id: str=None) -> (dict | None):
+            """
+            Gets the standard res thumbnail for either your channel or a channel specified 
+            by channel_id.
+            Returns a dictionary containing the standard res thumbnail if successful and None 
+            otherwise.
+            """
             service = self.service
             try:
-                channel = service.videos().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                thumbnail = channel["items"][0]["snippet"]["thumbnails"]["standard"]
-                return thumbnail
+                if not your_channel:
+                    channel = service.videos().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        thumbnail = channel["items"][0]["snippet"]["thumbnails"]["standard"]
+                        return thumbnail
+                    else: return None
+                else:
+                    channel = service.videos().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        thumbnail = channel["items"][0]["snippet"]["thumbnails"]["standard"]
+                        return thumbnail
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1001,16 +1347,32 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_channel_standard_res_thumbnail_url(self, channel_id) -> (str | None):
+        def get_standard_res_thumbnail_url(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the standard res thumbnail URL for either your channel or a channel specified 
+            by channel_id.
+            Returns the standard res thumbnail URL if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                thumbnail = channel["items"][0]["snippet"]["thumbnails"]["standard"]["url"]
-                return thumbnail
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        thumbnail = channel["items"][0]["snippet"]["thumbnails"]["standard"]["url"]
+                        return thumbnail
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        thumbnail = channel["items"][0]["snippet"]["thumbnails"]["standard"]["url"]
+                        return thumbnail
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1024,16 +1386,32 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
          
-        def get_channel_standard_res_thumbnail_width(self, channel_id) -> (int | None):
+        def get_standard_res_thumbnail_width(self, your_channel: bool=True, channel_id: str=None) -> (int | None):
+            """
+            Gets the standard res thumbnail width for either your channel or a channel specified 
+            by channel_id.
+            Returns the standard res thumbnail width if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                width = channel["items"][0]["snippet"]["thumbnails"]["standard"]["width"]
-                return int(width)
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        width = channel["items"][0]["snippet"]["thumbnails"]["standard"]["width"]
+                        return int(width)
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        width = channel["items"][0]["snippet"]["thumbnails"]["standard"]["width"]
+                        return int(width)
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1047,16 +1425,32 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
           
-        def get_channel_standard_res_thumbnail_height(self, channel_id) -> (int | None):
+        def get_standard_res_thumbnail_height(self, your_channel: bool=True, channel_id: str=None) -> (int | None):
+            """
+            Gets the standard res thumbnail height for either your channel or a channel specified 
+            by channel_id.
+            Returns the standard res thumbnail height if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                height = channel["items"][0]["snippet"]["thumbnails"]["standard"]["height"]
-                return int(height)
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        height = channel["items"][0]["snippet"]["thumbnails"]["standard"]["height"]
+                        return int(height)
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        height = channel["items"][0]["snippet"]["thumbnails"]["standard"]["height"]
+                        return int(height)
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1071,16 +1465,31 @@ class YouTubeDataAPIv3Tools:
                 return None
          
         #////// CHANNEL MAX RES THUMBNAIL //////
-        def get_channel_max_res_thumbnail(self, channel_id) -> (dict | None):
+        def get_max_res_thumbnail(self, your_channel: bool=True, channel_id: str=None) -> (dict | None):
+            """
+            Gets the max res thumbnail for either your channel or a channel specified by channel_id.
+            Returns a dictionary containing the max res thumbnail if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                thumbnail = channel["items"][0]["snippet"]["thumbnails"]["maxres"]
-                return thumbnail
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        thumbnail = channel["items"][0]["snippet"]["thumbnails"]["maxres"]
+                        return thumbnail
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        thumbnail = channel["items"][0]["snippet"]["thumbnails"]["maxres"]
+                        return thumbnail
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1094,16 +1503,32 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_channel_max_res_thumbnail_url(self, channel_id) -> (str | None):
+        def get_max_res_thumbnail_url(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the max res thumbnail URL for either your channel or a channel specified 
+            by channel_id.
+            Returns the max res thumbnail URL if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                thumbnail = channel["items"][0]["snippet"]["thumbnails"]["maxres"]["url"]
-                return thumbnail
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        thumbnail = channel["items"][0]["snippet"]["thumbnails"]["maxres"]["url"]
+                        return thumbnail
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        thumbnail = channel["items"][0]["snippet"]["thumbnails"]["maxres"]["url"]
+                        return thumbnail
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1117,16 +1542,32 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
          
-        def get_channel_max_res_thumbnail_width(self, channel_id) -> (int | None):
+        def get_max_res_thumbnail_width(self, your_channel: bool=True, channel_id: str=None) -> (int | None):
+            """
+            Gets the max res thumbnail width for either your channel or a channel specified 
+            by channel_id.
+            Returns the max res thumbnail width if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                width = channel["items"][0]["snippet"]["thumbnails"]["maxres"]["width"]
-                return int(width)
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        width = channel["items"][0]["snippet"]["thumbnails"]["maxres"]["width"]
+                        return int(width)
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        width = channel["items"][0]["snippet"]["thumbnails"]["maxres"]["width"]
+                        return int(width)
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1140,16 +1581,32 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
           
-        def get_channel_max_res_thumbnail_height(self, channel_id) -> (int | None):
+        def get_max_res_thumbnail_height(self, your_channel: bool=True, channel_id: str=None) -> (int | None):
+            """
+            Gets teh max res thumbnail height for either your channel or a channel specified 
+            by channel_id.
+            Returns the max res thumbnail height if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                height = channel["items"][0]["snippet"]["thumbnails"]["maxres"]["height"]
-                return int(height)
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        height = channel["items"][0]["snippet"]["thumbnails"]["maxres"]["height"]
+                        return int(height)
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        height = channel["items"][0]["snippet"]["thumbnails"]["maxres"]["height"]
+                        return int(height)
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1164,16 +1621,32 @@ class YouTubeDataAPIv3Tools:
                 return None
                 
         #////// CHANNEL DEFAULT LANGUAGE //////
-        def get_channel_default_language(self, channel_id) -> (str | None):
+        def get_default_language(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the default language for either your channel or a channel specified 
+            by channel_id.
+            Returns the default language if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                lang = channel["items"][0]["snippet"]["defaultLanguage"]
-                return lang
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        lang = channel["items"][0]["snippet"]["defaultLanguage"]
+                        return lang
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        lang = channel["items"][0]["snippet"]["defaultLanguage"]
+                        return lang
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1188,16 +1661,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL LOCALIZED DATA //////
-        def get_channel_localized_data(self, channel_id) -> (dict | None):
+        def get_localized_data(self, your_channel: bool=True, channel_id: str=None) -> (dict | None):
+            """
+            Gets the localized data for either your channel or a channel specified by channel_id.
+            Returns the localized data in a dictionary if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                data = channel["items"][0]["snippet"]["localized"]
-                return data
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        data = channel["items"][0]["snippet"]["localized"]
+                        return data
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        data = channel["items"][0]["snippet"]["localized"]
+                        return data
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1212,16 +1700,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL LOCALIZED TITLE //////
-        def get_channel_localized_title(self, channel_id) -> (str | None):
+        def get_localized_title(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the localized title for either your channel or a channel specified by channel_id.
+            Returns the localized title if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                title = channel["items"][0]["snippet"]["localized"]["title"]
-                return title
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        title = channel["items"][0]["snippet"]["localized"]["title"]
+                        return title
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        title = channel["items"][0]["snippet"]["localized"]["title"]
+                        return title
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1236,16 +1739,31 @@ class YouTubeDataAPIv3Tools:
                 return None
     
         #////// CHANNEL LOCALIZED DESCRIPTION //////
-        def get_channel_localized_description(self, channel_id) -> (str | None):
+        def get_localized_description(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the localized description for either your channel or a channel specified by channel_id.
+            Returns the localized description if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                description = channel["items"][0]["snippet"]["localized"]["description"]
-                return description
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        description = channel["items"][0]["snippet"]["localized"]["description"]
+                        return description
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        description = channel["items"][0]["snippet"]["localized"]["description"]
+                        return description
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1260,16 +1778,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL COUNTRY //////
-        def get_channel_country(self, channel_id) -> (str | None):
+        def get_origin_country(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the country for either your channel or a channel specified by channel_id.
+            Returns the country code if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="snippet",
-                    id=channel_id
-                ).execute()
-
-                country = channel["items"][0]["snippet"]["country"]
-                return country
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="snippet",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        country = channel["items"][0]["snippet"]["country"]
+                        return country
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        country = channel["items"][0]["snippet"]["country"]
+                        return country
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1284,16 +1817,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL CONTENT DETAILS //////
-        def get_channel_content_details(self, channel_id) -> (dict | None):
+        def get_content_details(self, your_channel: bool=True, channel_id: str=None) -> (dict | None):
+            """
+            Gets the content details for either your channel or a channel specified by channel_id.
+            Returns the content details part in a dictionary if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="contentDetails",
-                    id=channel_id
-                ).execute()
-
-                details = channel["items"][0]["contentDetails"]
-                return details
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="contentDetails",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        details = channel["items"][0]["contentDetails"]
+                        return details
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="contentDetails",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        details = channel["items"][0]["contentDetails"]
+                        return details
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1308,16 +1856,31 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// CHANNEL RELATED PLAYLISTS //////
-        def get_channel_related_playlists(self, channel_id) -> (dict | None):
+        def get_related_playlists(self, your_channel: bool=True, channel_id: str=None) -> (dict | None):
+            """
+            Gets the related playlists for either your channel or a channel specified by channel_id.
+            Returns the playlists if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="contentDetails",
-                    id=channel_id
-                ).execute()
-
-                playlists = channel["items"][0]["contentDetails"]["relatedPlaylists"]
-                return playlists
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="contentDetails",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        playlists = channel["items"][0]["contentDetails"]["relatedPlaylists"]
+                        return playlists
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="contentDetails",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        playlists = channel["items"][0]["contentDetails"]["relatedPlaylists"]
+                        return playlists
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1332,16 +1895,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL LIKES //////
-        def get_channel_likes(self, channel_id) -> (str | None):
+        def get_likes(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the likes for either your channel or a channel specified by channel_id.
+            Returns the likes if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="contentDetails",
-                    id=channel_id
-                ).execute()
-
-                likes = channel["items"][0]["contentDetails"]["relatedPlaylists"]["likes"]
-                return likes
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="contentDetails",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        likes = channel["items"][0]["contentDetails"]["relatedPlaylists"]["likes"]
+                        return likes
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="contentDetails",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        likes = channel["items"][0]["contentDetails"]["relatedPlaylists"]["likes"]
+                        return likes
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1356,16 +1934,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL FAVORITES //////
-        def get_channel_likes(self, channel_id) -> (str | None):
+        def get_favorites(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the favorites for either your channel or a channel specified by channel_id.
+            Returns the favorites if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="contentDetails",
-                    id=channel_id
-                ).execute()
-
-                favs = channel["items"][0]["contentDetails"]["relatedPlaylists"]["favorites"]
-                return favs
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="contentDetails",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        favs = channel["items"][0]["contentDetails"]["relatedPlaylists"]["favorites"]
+                        return favs
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="contentDetails",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        favs = channel["items"][0]["contentDetails"]["relatedPlaylists"]["favorites"]
+                        return favs
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1380,16 +1973,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL UPLOADS //////
-        def get_channel_uploads(self, channel_id) -> (str | None):
+        def get_uploads(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the uploads for either your channel or a channel specified by channel_id.
+            Returns the uploads if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="contentDetails",
-                    id=channel_id
-                ).execute()
-
-                uploads = channel["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
-                return uploads
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="contentDetails",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        uploads = channel["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
+                        return uploads
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="contentDetails",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        uploads = channel["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
+                        return uploads
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1404,16 +2012,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL STATISTICS //////
-        def get_channel_statistics(self, channel_id) -> (dict | None):
+        def get_statistics(self, your_channel: bool=True, channel_id: str=None) -> (dict | None):
+            """
+            Gets the statistics for either your channel or a channel specified by channel_id.
+            Returns the statistics part in a dictionary if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="statistics",
-                    id=channel_id
-                ).execute()
-
-                statistics = channel["items"][0]["statistics"]
-                return statistics
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="statistics",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        statistics = channel["items"][0]["statistics"]
+                        return statistics
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="statistics",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        statistics = channel["items"][0]["statistics"]
+                        return statistics
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1428,16 +2051,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL VIEW COUNT //////
-        def get_channel_view_count(self, channel_id) -> (int | None):
+        def get_view_count(self, your_channel: bool=True, channel_id: str=None) -> (int | None):
+            """
+            Gets the view count for either your channel or a channel specified by channel_id.
+            Returns the count if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="statistics",
-                    id=channel_id
-                ).execute()
-
-                count = channel["items"][0]["statistics"]["viewCount"]
-                return int(count)
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="statistics",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        count = channel["items"][0]["statistics"]["viewCount"]
+                        return int(count)
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="statistics",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        count = channel["items"][0]["statistics"]["viewCount"]
+                        return int(count)
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1452,16 +2090,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL SUBSCRIBER COUNT //////
-        def get_channel_subscriber_count(self, channel_id) -> (int | None):
+        def get_subscriber_count(self, your_channel: bool=True, channel_id: str=None) -> (int | None):
+            """
+            Gets the subscriber count for either your channel or a channel specified by channel_id.
+            Returns the count if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="statistics",
-                    id=channel_id
-                ).execute()
-
-                count = channel["items"][0]["statistics"]["subscriberCount"]
-                return int(count)
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="statistics",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        count = channel["items"][0]["statistics"]["subscriberCount"]
+                        return int(count)
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="statistics",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        count = channel["items"][0]["statistics"]["subscriberCount"]
+                        return int(count)
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1476,16 +2129,32 @@ class YouTubeDataAPIv3Tools:
                 return None
     
         #////// CHANNEL HIDDEN SUBSCRIBER COUNT //////
-        def channel_has_hidden_subscriber_count(self, channel_id) -> (bool | None):
+        def has_hidden_subscriber_count(self, your_channel: bool=True, channel_id: str=None) -> (bool | None):
+            """
+            Returns True if either your channel or a channel specified by channel_id has a 
+            hidden subscriber count and False otherwise. Returns None if field doesn't exist
+            and upon error.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="statistics",
-                    id=channel_id
-                ).execute()
-
-                has = channel["items"][0]["statistics"]["hidenSubscriberCount"]
-                return bool(has)
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="statistics",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        has = channel["items"][0]["statistics"]["hidenSubscriberCount"]
+                        return bool(has)
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="statistics",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        has = channel["items"][0]["statistics"]["hidenSubscriberCount"]
+                        return bool(has)
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1500,16 +2169,31 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// CHANNEL VIDEO COUNT //////
-        def get_channel_video_count(self, channel_id) -> (int | None):
+        def get_video_count(self, your_channel: bool=True, channel_id: str=None) -> (int | None):
+            """
+            Gets the video count for either your channel or a channel specified by channel_id.
+            Returns the count if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="statistics",
-                    id=channel_id
-                ).execute()
-
-                count = channel["items"][0]["statistics"]["videoCount"]
-                return int(count)
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="statistics",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        count = channel["items"][0]["statistics"]["videoCount"]
+                        return int(count)
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="statistics",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        count = channel["items"][0]["statistics"]["videoCount"]
+                        return int(count)
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1524,16 +2208,31 @@ class YouTubeDataAPIv3Tools:
                 return None
     
         #////// CHANNEL TOPIC DETAILS //////
-        def get_channel_topic_details(self, channel_id) -> (dict | None):
+        def get_topic_details(self, your_channel: bool=True, channel_id: str=None) -> (dict | None):
+            """
+            Gets the topic details for either your channel or a channel specified by channel_id.
+            Returns the topic details part in a dictionary if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="topicDetails",
-                    id=channel_id
-                ).execute()
-
-                details = channel["items"][0]["topicDetails"]
-                return details
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="topicDetails",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        details = channel["items"][0]["topicDetails"]
+                        return details
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="topicDetails",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        details = channel["items"][0]["topicDetails"]
+                        return details
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1548,16 +2247,31 @@ class YouTubeDataAPIv3Tools:
                 return None
     
         #////// CHANNEL TOPIC IDS //////
-        def get_channel_topic_ids(self, channel_id) -> (list[str] | None):
+        def get_topic_ids(self, your_channel: bool=True, channel_id: str=None) -> (list[str] | None):
+            """
+            Gets the topic IDs for either your channel or a channel specified by channel_id.
+            Returns the IDs in a list if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="topicDetails",
-                    id=channel_id
-                ).execute()
-
-                ids = channel["items"][0]["topicDetails"]["topicIds"]
-                return ids
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="topicDetails",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        ids = channel["items"][0]["topicDetails"]["topicIds"]
+                        return ids
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="topicDetails",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        ids = channel["items"][0]["topicDetails"]["topicIds"]
+                        return ids
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1572,16 +2286,31 @@ class YouTubeDataAPIv3Tools:
                 return None
     
         #////// CHANNEL TOPIC CATEGORIES //////
-        def get_channel_topic_categories(self, channel_id) -> (list[str] | None):
+        def get_topic_categories(self, your_channel: bool=True, channel_id: str=None) -> (list[str] | None):
+            """
+            Gets the topic categories for either your channel or a channel specified by channel_id.
+            Returns the categories in a list if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="topicDetails",
-                    id=channel_id
-                ).execute()
-
-                cats = channel["items"][0]["topicDetails"]["topicCategories"]
-                return cats
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="topicDetails",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        cats = channel["items"][0]["topicDetails"]["topicCategories"]
+                        return cats
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="topicDetails",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        cats = channel["items"][0]["topicDetails"]["topicCategories"]
+                        return cats
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1596,16 +2325,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL STATUS //////
-        def get_channel_status(self, channel_id) -> (dict | None):
+        def get_status(self, your_channel: bool=True, channel_id: str=None) -> (dict | None):
+            """
+            Gets the status part for either your channel or a channel specified by channel_id.
+            Returns the status part in a dictionary if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="status",
-                    id=channel_id
-                ).execute()
-
-                status = channel["items"][0]["status"]
-                return status
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="status",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        status = channel["items"][0]["status"]
+                        return status
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="status",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        status = channel["items"][0]["status"]
+                        return status
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1620,16 +2364,31 @@ class YouTubeDataAPIv3Tools:
                 return None
     
         #////// CHANNEL PRIVACY STATUS //////
-        def get_channel_privacy_status(self, channel_id) -> (str | None):
+        def get_privacy_status(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the privacy status for either your channel or a channel specified by channel_id.
+            Returns the status if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="status",
-                    id=channel_id
-                ).execute()
-
-                status = channel["items"][0]["status"]["privacyStatus"]
-                return status
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="status",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        status = channel["items"][0]["status"]["privacyStatus"]
+                        return status
+                    else: return None
+                else: 
+                    channel = service.channels().list(
+                        part="status",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        status = channel["items"][0]["status"]["privacyStatus"]
+                        return status
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1644,16 +2403,34 @@ class YouTubeDataAPIv3Tools:
                 return None
     
         #////// CHANNEL IS LINKED //////
-        def channel_is_linked(self, channel_id) -> (bool | None):
+        def is_linked(self, your_channel: bool=True, channel_id: str=None) -> (bool | None):
+            """
+            Returns True if either your channel or a channel specified by channel_id is 
+            linked and False otherwise. Returns None if field doesn't exist
+            and upon error.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="status",
-                    id=channel_id
-                ).execute()
-
-                linked = channel["items"][0]["status"]["isLinked"]
-                return bool(linked) 
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="status",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        linked = channel["items"][0]["status"]["isLinked"]
+                        return bool(linked) 
+                    else:
+                        return None
+                else:
+                    channel = service.channels().list(
+                        part="status",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        linked = channel["items"][0]["status"]["isLinked"]
+                        return bool(linked) 
+                    else:
+                        return None 
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1668,16 +2445,31 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// CHANNEL LONG UPLOADS STATUS //////
-        def get_channel_long_uploads_status(self, channel_id) -> (str | None):
+        def get_long_uploads_status(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the long upload status for either your channel or a channel specified by channel_id.
+            Returns the status if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="status",
-                    id=channel_id
-                ).execute()
-
-                status = channel["items"][0]["status"]["longUploadsStatus"]
-                return status
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="status",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        status = channel["items"][0]["status"]["longUploadsStatus"]
+                        return status
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="status",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        status = channel["items"][0]["status"]["longUploadsStatus"]
+                        return status
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1692,16 +2484,34 @@ class YouTubeDataAPIv3Tools:
                 return None
     
         #////// CHANNEL MADE FOR KIDS //////
-        def channel_is_made_for_kids(self, channel_id) -> (bool | None):
+        def is_made_for_kids(self, your_channel: bool=True, channel_id: str=None) -> (bool | None):
+            """
+            Returns True if either your channel or a channel specified by channel_id is 
+            made for kids and False otherwise. Returns None if field doesn't exist
+            and upon error.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="status",
-                    id=channel_id
-                ).execute()
-
-                kids = channel["items"][0]["status"]["madeForKids"]
-                return bool(kids) 
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="status",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        kids = channel["items"][0]["status"]["madeForKids"]
+                        return bool(kids) 
+                    else:
+                        return None
+                else:
+                    channel = service.channels().list(
+                        part="status",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        kids = channel["items"][0]["status"]["madeForKids"]
+                        return bool(kids) 
+                    else:
+                        return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1716,16 +2526,32 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// CHANNEL SELF DECLARED MADE FOR KIDS //////
-        def channel_is_self_declared_made_for_kids(self, channel_id) -> (bool | None):
+        def is_self_declared_made_for_kids(self, your_channel: bool=True, channel_id: str=None) -> (bool | None):
+            """
+            Returns True if either your channel or a channel specified by channel_id is self 
+            declared made for kids and False otherwise. Returns None if field doesn't exist
+            and upon error.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="status",
-                    id=channel_id
-                ).execute()
-
-                kids = channel["items"][0]["status"]["selfDeclaredMadeForKids"]
-                return bool(kids) 
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="status",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        kids = channel["items"][0]["status"]["selfDeclaredMadeForKids"]
+                        return bool(kids) 
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="status",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        kids = channel["items"][0]["status"]["selfDeclaredMadeForKids"]
+                        return bool(kids) 
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1740,16 +2566,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL BRANDING SETTINGS //////
-        def get_channel_branding_settings(self, channel_id) -> (dict | None):
+        def get_branding_settings(self, your_channel: bool=True, channel_id: str=None) -> (dict | None):
+            """
+            Gets the branding settings for either your channel or a channel specified by channel_id.
+            Returns the settings part in a dictionary if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="brandingSettings",
-                    id=channel_id
-                ).execute()
-
-                settings = channel["items"][0]["brandingSettings"]
-                return settings
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="brandingSettings",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        settings = channel["items"][0]["brandingSettings"]
+                        return settings
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="brandingSettings",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        settings = channel["items"][0]["brandingSettings"]
+                        return settings
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1764,16 +2605,31 @@ class YouTubeDataAPIv3Tools:
                 return None
     
         #////// CHANNEL BRANDING //////
-        def get_channel_branding(self, channel_id) -> (dict | None):
+        def get_branding(self, your_channel: bool=True, channel_id: str=None) -> (dict | None):
+            """
+            Gets the branding for either your channel or a channel specified by channel_id.
+            Returns the branding part in a dictionary if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="brandingSettings",
-                    id=channel_id
-                ).execute()
-
-                branding = channel["items"][0]["brandingSettings"]["channel"]
-                return branding
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="brandingSettings",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        branding = channel["items"][0]["brandingSettings"]["channel"]
+                        return branding
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="brandingSettings",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        branding = channel["items"][0]["brandingSettings"]["channel"]
+                        return branding
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1788,16 +2644,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL BRAND TITLE //////
-        def get_channel_brand_title(self, channel_id) -> (str | None):
+        def get_brand_name(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the channel brand title for either your channel or a channel specified by channel_id.
+            Returns the title if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="brandingSettings",
-                    id=channel_id
-                ).execute()
-
-                title = channel["items"][0]["brandingSettings"]["channel"]["title"]
-                return title
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="brandingSettings",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        title = channel["items"][0]["brandingSettings"]["channel"]["title"]
+                        return title
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="brandingSettings",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        title = channel["items"][0]["brandingSettings"]["channel"]["title"]
+                        return title
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1812,16 +2683,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL BRAND DESCRIPTION //////
-        def get_channel_brand_description(self, channel_id) -> (str | None):
+        def get_brand_description(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the channel brand description for either your channel or a channel specified by channel_id.
+            Returns the description if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="brandingSettings",
-                    id=channel_id
-                ).execute()
-
-                description = channel["items"][0]["brandingSettings"]["channel"]["description"]
-                return description
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="brandingSettings",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        description = channel["items"][0]["brandingSettings"]["channel"]["description"]
+                        return description
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="brandingSettings",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        description = channel["items"][0]["brandingSettings"]["channel"]["description"]
+                        return description
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1836,16 +2722,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL KEYWORDS //////
-        def get_channel_keywords(self, channel_id) -> (str | None):
+        def get_channel_hashtags(self, your_channel: bool=True, channel_id: str=None) -> (list[str] | None):
+            """
+            Gets the keywrds for either your channel or a channel specified by channel_id.
+            Returns the keywords in a list if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="brandingSettings",
-                    id=channel_id
-                ).execute()
-
-                keywords = channel["items"][0]["brandingSettings"]["channel"]["keywords"]
-                return keywords
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="brandingSettings",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        keywords = channel["items"][0]["brandingSettings"]["channel"]["keywords"]
+                        return keywords
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="brandingSettings",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        keywords = channel["items"][0]["brandingSettings"]["channel"]["keywords"]
+                        return keywords
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1860,16 +2761,32 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL TRACKING ANALYTICS ACCOUNT ID //////
-        def get_channel_tracking_analytics_account_id(self, channel_id) -> (str | None):
+        def get_tracking_analytics_account_id(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the tracking analytics account ID for either your channel or a channel 
+            specified by channel_id.
+            Returns the ID if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="brandingSettings",
-                    id=channel_id
-                ).execute()
-
-                id = channel["items"][0]["brandingSettings"]["channel"]["trackingAnalyticsAccountId"]
-                return id
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="brandingSettings",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        id = channel["items"][0]["brandingSettings"]["channel"]["trackingAnalyticsAccountId"]
+                        return id
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="brandingSettings",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        id = channel["items"][0]["brandingSettings"]["channel"]["trackingAnalyticsAccountId"]
+                        return id
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1884,16 +2801,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL HAS MODERATE COMMENTS //////
-        def channel_has_moderate_comments(self, channel_id) -> (bool | None):
+        def has_moderate_comments(self, your_channel: bool=True, channel_id: str=None) -> (bool | None):
+            """
+            Returns True if either your channel or the channel specified by channel_id has 
+            moderate comments and False otherwise. Returns None upon error.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="brandingSettings",
-                    id=channel_id
-                ).execute()
-
-                moderate = channel["items"][0]["brandingSettings"]["channel"]["moderateComments"]
-                return bool(moderate)
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="brandingSettings",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        moderate = channel["items"][0]["brandingSettings"]["channel"]["moderateComments"]
+                        return bool(moderate)
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="brandingSettings",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        moderate = channel["items"][0]["brandingSettings"]["channel"]["moderateComments"]
+                        return bool(moderate)
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1908,16 +2840,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL UNSUBSCRIBED TRAILER //////
-        def get_channel_unsubscribed_trailer(self, channel_id) -> (str | None):
+        def get_unsubscribed_trailer(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the unsubscribed trailer for either your channel or a channel specified by channel_id.
+            Returns the trailer if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="brandingSettings",
-                    id=channel_id
-                ).execute()
-
-                trailer = channel["items"][0]["brandingSettings"]["channel"]["unsubscribedTrailer"]
-                return trailer
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="brandingSettings",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        trailer = channel["items"][0]["brandingSettings"]["channel"]["unsubscribedTrailer"]
+                        return trailer
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="brandingSettings",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        trailer = channel["items"][0]["brandingSettings"]["channel"]["unsubscribedTrailer"]
+                        return trailer
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1932,16 +2879,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL BRAND DEFAULT LANGUAGE //////
-        def get_channel_brand_default_language(self, channel_id) -> (str | None):
+        def get_brand_default_language(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the channel brands default language for either your channel or a channel specified by channel_id.
+            Returns the default lnguage if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="brandingSettings",
-                    id=channel_id
-                ).execute()
-
-                lang = channel["items"][0]["brandingSettings"]["channel"]["defaultLanguage"]
-                return lang
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="brandingSettings",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        lang = channel["items"][0]["brandingSettings"]["channel"]["defaultLanguage"]
+                        return lang
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="brandingSettings",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        lang = channel["items"][0]["brandingSettings"]["channel"]["defaultLanguage"]
+                        return lang
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1956,16 +2918,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL BRAND COUNTRY //////
-        def get_channel_brand_country(self, channel_id) -> (str | None):
+        def get_brand_origin_country(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the channel brands country for either your channel or a channel specified by channel_id.
+            Returns the country if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="brandingSettings",
-                    id=channel_id
-                ).execute()
-
-                country = channel["items"][0]["brandingSettings"]["channel"]["country"]
-                return country
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="brandingSettings",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        country = channel["items"][0]["brandingSettings"]["channel"]["country"]
+                        return country
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="brandingSettings",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        country = channel["items"][0]["brandingSettings"]["channel"]["country"]
+                        return country
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -1980,16 +2957,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL WATCH DATA //////
-        def get_channel_watch_data(self, channel_id) -> (dict | None):
+        def get_watch_data(self, your_channel: bool=True, channel_id: str=None) -> (dict | None):
+            """
+            Gets the channel watch data for either your channel or a channel specified by channel_id.
+            Returns the channel watch data part in a dictionary if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="brandingSettings",
-                    id=channel_id
-                ).execute()
-
-                watch = channel["items"][0]["brandingSettings"]["watch"]
-                return watch
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="brandingSettings",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        watch = channel["items"][0]["brandingSettings"]["watch"]
+                        return watch
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="brandingSettings",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        watch = channel["items"][0]["brandingSettings"]["watch"]
+                        return watch
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -2004,16 +2996,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL WATCH TEXT COLOR //////
-        def get_channel_watch_text_color(self, channel_id) -> (str | None):
+        def get_watch_text_color(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the watch text color for either your channel or a channel specified by channel_id.
+            Returns the watch text color if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="brandingSettings",
-                    id=channel_id
-                ).execute()
-
-                color = channel["items"][0]["brandingSettings"]["watch"]["textColor"]
-                return color
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="brandingSettings",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        color = channel["items"][0]["brandingSettings"]["watch"]["textColor"]
+                        return color
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="brandingSettings",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        color = channel["items"][0]["brandingSettings"]["watch"]["textColor"]
+                        return color
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -2028,16 +3035,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL WATCH BACKGROUND COLOR //////
-        def get_channel_watch_background_color(self, channel_id) -> (str | None):
+        def get_watch_background_color(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the watch background color for either your channel or a channel specified by channel_id.
+            Returns the watch background color if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="brandingSettings",
-                    id=channel_id
-                ).execute()
-
-                color = channel["items"][0]["brandingSettings"]["watch"]["backgroundColor"]
-                return color
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="brandingSettings",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:    
+                        color = channel["items"][0]["brandingSettings"]["watch"]["backgroundColor"]
+                        return color
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="brandingSettings",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:    
+                        color = channel["items"][0]["brandingSettings"]["watch"]["backgroundColor"]
+                        return color
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -2052,16 +3074,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL FEATURED PLAYLIST ID //////
-        def get_channel_featured_playlist_id(self, channel_id) -> (str | None):
+        def get_featured_playlist_id(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the featured playlist ID for either your channel or a channel specified by channel_id.
+            Returns the featured playlist ID if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="brandingSettings",
-                    id=channel_id
-                ).execute()
-
-                id = channel["items"][0]["brandingSettings"]["watch"]["featuredPlaylistId"]
-                return id
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="brandingSettings",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        id = channel["items"][0]["brandingSettings"]["watch"]["featuredPlaylistId"]
+                        return id
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="brandingSettings",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        id = channel["items"][0]["brandingSettings"]["watch"]["featuredPlaylistId"]
+                        return id
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -2076,16 +3113,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL AUDIT DETAILS //////
-        def get_channel_audit_details(self, channel_id) -> (dict | None):
+        def get_audit_details(self, your_channel: bool=True, channel_id: str=None) -> (dict | None):
+            """
+            Gets the audit details for either your channel or a channel specified by channel_id.
+            Returns the audit details part in a dictionary if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="auditDetails",
-                    id=channel_id
-                ).execute()
-
-                details = channel["items"][0]["auditDetails"]
-                return details
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="auditDetails",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        details = channel["items"][0]["auditDetails"]
+                        return details
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="auditDetails",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        details = channel["items"][0]["auditDetails"]
+                        return details
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -2100,16 +3152,32 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL OVERALL GOOD STANDING //////
-        def channel_has_overall_good_standing(self, channel_id) -> (bool | None):
+        def has_overall_good_standing(self, your_channel: bool=True, channel_id: str=None) -> (bool | None):
+            """
+            Checks if either your channel or a channel specified by channel_id is in overall
+            good standing.
+            Returns True if so and False otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="auditDetails",
-                    id=channel_id
-                ).execute()
-
-                standing = channel["items"][0]["auditDetails"]["overallGoodStanding"]
-                return bool(standing)
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="auditDetails",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        standing = channel["items"][0]["auditDetails"]["overallGoodStanding"]
+                        return bool(standing)
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="auditDetails",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        standing = channel["items"][0]["auditDetails"]["overallGoodStanding"]
+                        return bool(standing)
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -2124,16 +3192,32 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL COMMUNITY GUIDELINES GOOD STANDING //////
-        def channel_has_community_guidelines_good_standing(self, channel_id) -> (bool | None):
+        def has_community_guidelines_good_standing(self, your_channel: bool=True, channel_id: str=None) -> (bool | None):
+            """
+            Checks if either your channel or a channel specified by channel_id is in good standing
+            with the community guidelines.
+            Returns True if so and False otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="auditDetails",
-                    id=channel_id
-                ).execute()
-
-                standing = channel["items"][0]["auditDetails"]["communityGuideLinesGoodStanding"]
-                return bool(standing)
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="auditDetails",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        standing = channel["items"][0]["auditDetails"]["communityGuideLinesGoodStanding"]
+                        return bool(standing)
+                    else: return None
+                else: 
+                    channel = service.channels().list(
+                        part="contentOwnerDetails",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        details = channel["items"][0]["contentOwnerDetails"]
+                        return details
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -2148,16 +3232,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL CONTENT OWNER DETAILS //////
-        def get_channel_content_owner_details(self, channel_id) -> (dict | None):
+        def get_content_owner_details(self, your_channel: bool=True, channel_id: str=None) -> (dict | None):
+            """
+            Gets the content owner details for either your channel or a channel specified by channel_id.
+            Returns the content owner details part in a dictionary if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="contentOwnerDetails",
-                    id=channel_id
-                ).execute()
-
-                details = channel["items"][0]["contentOwnerDetails"]
-                return details
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="contentOwnerDetails",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        details = channel["items"][0]["contentOwnerDetails"]
+                        return details
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="contentOwnerDetails",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        details = channel["items"][0]["contentOwnerDetails"]
+                        return details
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -2172,16 +3271,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL CONTENT OWNER //////
-        def get_channel_content_owner(self, channel_id) -> (str | None):
+        def get_content_owner(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the content owner for either your channel or a channel specified by channel_id.
+            Returns the content owner if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="contentOwnerDetails",
-                    id=channel_id
-                ).execute()
-
-                owner = channel["items"][0]["contentOwnerDetails"]["contentOwner"]
-                return owner
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="contentOwnerDetails",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        owner = channel["items"][0]["contentOwnerDetails"]["contentOwner"]
+                        return owner
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="contentOwnerDetails",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        owner = channel["items"][0]["contentOwnerDetails"]["contentOwner"]
+                        return owner
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -2196,16 +3310,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL TIME LINKED //////
-        def get_channel_time_linked(self, channel_id) -> (str | None):
+        def get_time_linked(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the time a channel was linked for either your channel or a channel specified by channel_id.
+            Returns the time linked if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="contentOwnerDetails",
-                    id=channel_id
-                ).execute()
-
-                time = channel["items"][0]["contentOwnerDetails"]["timeLinked"]
-                return time
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="contentOwnerDetails",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        time = channel["items"][0]["contentOwnerDetails"]["timeLinked"]
+                        return time
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="contentOwnerDetails",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        time = channel["items"][0]["contentOwnerDetails"]["timeLinked"]
+                        return time
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -2220,16 +3349,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL LOCALIZATIONS //////
-        def get_channel_localizations_data(self, channel_id) -> (dict | None):
+        def get_localizations_data(self, your_channel: bool=True, channel_id: str=None) -> (dict | None):
+            """
+            Gets the localizations data for either your channel or a channel specified by channel_id.
+            Returns the localizations data part in a dictionary if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="localizations",
-                    id=channel_id
-                ).execute()
-
-                data = channel["items"][0]["localizations"]
-                return data
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="localizations",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        data = channel["items"][0]["localizations"]
+                        return data
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="localizations",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        data = channel["items"][0]["localizations"]
+                        return data
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -2244,16 +3388,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL LOCALIZATIONS TITLE //////
-        def get_channel_localizations_title(self, channel_id) -> (str | None):
+        def get_localizations_title(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the localizations title for either your channel or a channel specified by channel_id.
+            Returns the localizations title if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="localizations",
-                    id=channel_id
-                ).execute()
-
-                title = channel["items"][0]["localizations"]["title"]
-                return title
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="localizations",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        title = channel["items"][0]["localizations"]["title"]
+                        return title
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="localizations",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        title = channel["items"][0]["localizations"]["title"]
+                        return title
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -2268,16 +3427,31 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL LOCALIZATIONS DESCRIPTION //////
-        def get_channel_localizations_description(self, channel_id) -> (str | None):
+        def get_localizations_description(self, your_channel: bool=True, channel_id: str=None) -> (str | None):
+            """
+            Gets the localiztions description for either your channel or a channel specified by channel_id.
+            Returns the localiztions description if successful and None otherwise.
+            """
             service = self.service
             try:
-                channel = service.channels().list(
-                    part="localizations",
-                    id=channel_id
-                ).execute()
-
-                description = channel["items"][0]["localizations"]["description"]
-                return description
+                if not your_channel:
+                    channel = service.channels().list(
+                        part="localizations",
+                        id=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        description = channel["items"][0]["localizations"]["description"]
+                        return description
+                    else: return None
+                else:
+                    channel = service.channels().list(
+                        part="localizations",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        description = channel["items"][0]["localizations"]["description"]
+                        return description
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -2297,9 +3471,12 @@ class YouTubeDataAPIv3Tools:
             self.service = ytd_api_tools.service
         
         #////// UTILITY METHODS //////
-        def set_channel_banner(self, channel_id, banner_image_url):
+        def set_channel_banner(self, channel_id: str, banner_image_url: str) -> (bool | None):
+            """
+            Sets the channel banner of the channel specified by channel_id.
+            Returns True if successful and None otherwise.
+            """
             service = self.service
-
             try:
                 service.channels().update(
                     part="brandingSettings",
@@ -2312,32 +3489,38 @@ class YouTubeDataAPIv3Tools:
                         }
                     }
                 ).execute()
-
-                print("Channel banner has been set/updated successfully!")
-
+                return True
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"IndexError: No channel banner or no channel with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
         
-        def get_channel_banner_default_url(self):
+        def get_channel_banner_default_url(self) -> (str | None):
             """
-            Get the default URL of a channel banner.
+            Gets the default channel banner URL of the channel specified by channel_id.
+            Returns the URL if successful and None otherwise.
             """
             service = self.service
-
             try:
                 request = service.channelBanners().insert(
                     part="brandingSettings"
                 )
                 response = request.execute()
-
                 banner_url = response.get("brandingSettings", {}).get("image", {}).get("bannerImageUrl")
                 return banner_url
-
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
             except IndexError as ie:
-                print(f"There are no channels with the given ID.\n{ie}")
+                print(f"IndexError: No channel banner or no channel with the given ID.\n{ie}")
                 return None
             except TypeError as te:
                 print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
@@ -2346,9 +3529,12 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def delete_channel_banner(self, channel_id):
+        def delete_channel_banner(self, channel_id) -> (bool | None):
+            """
+            Removes the channel banner of the channel specified by channel_id.
+            Returns True if successful and None otherwise.
+            """
             service = self.service
-
             try:
                 service.channels().update(
                     part="brandingSettings",
@@ -2361,14 +3547,26 @@ class YouTubeDataAPIv3Tools:
                         }
                     }
                 ).execute()
-
-                print("Channel banner has been deleted successfully!")
-
+                return True
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"IndexError: No channel banner or no channel with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
         #////// ENTIRE CHANNEL BANNER RESOURCE //////
         def get_channel_banner(self) -> (dict | None):
+            """
+            Returns the entire ChannelBanner resource as a dictionary if successful
+            and None otherwise.
+            """
             service = self.service
             try:
                 request = service.channelBanners().insert()
@@ -2380,7 +3578,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"An API error occurred: {e}")
                 return None
             except IndexError as ie:
-                print(f"There are no channel banners.\n{ie}")
+                print(f"IndexError: No channel banner or no channel with the given ID.\n{ie}")
                 return None
             except TypeError as te:
                 print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
@@ -2433,7 +3631,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        #////// ENTIRE CHANNEL BANNER ETAG //////
+        #////// ENTIRE CHANNEL BANNER URL //////
         def get_channel_banner_url(self) -> (str | None):
             service = self.service
             try:
@@ -2478,6 +3676,32 @@ class YouTubeDataAPIv3Tools:
         """
         def __init__(self, ytd_api_tools: object) -> None:
             self.service = ytd_api_tools.service
+        
+        #////// UTILITY METHODS //////
+        def iterate_channel_sections(self, channel_id: str, func: object) -> (list[str] | None):
+            service = self.service
+            try:
+                request = service.channelSections().list(
+                    part="snippet",
+                    channelId=channel_id
+                )
+                response = request.execute()
+
+                for item in response["items"]:
+                    func(item)
+                return True
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no channels with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
         
         #////// CHANNEL SECTION //////
         def get_channel_section(self, section_id) -> (dict | None):
@@ -11270,7 +12494,7 @@ class YouTubeDataAPIv3Tools:
         def __init__(self, ytd_api_tools: object) -> None:
             self.service = ytd_api_tools.service   
         
-        def get_all_video_categories(self, country_code):
+        def get_all_video_categories(self, country_code: str) -> (list[dict] | None):
             """
             This method retrieves all video categories available in a specific 
             region (identified by the regionCode). It prints information about 
@@ -11284,11 +12508,13 @@ class YouTubeDataAPIv3Tools:
                     regionCode=f"{country_code}"
                 )
                 response = request.execute()
-
+                categories = []
                 for category in response["items"]:
-                    category_id = category["id"]
-                    category_title = category["snippet"]["title"]
-                    print(f"Category ID: {category_id}, Title: {category_title}")
+                    category = {}
+                    category["id"] = category["id"]
+                    category["title"] = category["snippet"]["title"]
+                    categories.append(category)
+                return categories
 
             except googleapiclient.errors.HttpError as e:
                 print(f"An error occurred: {e}")
@@ -11366,31 +12592,6 @@ class YouTubeDataAPIv3Tools:
             except googleapiclient.errors.HttpError as e:
                 print(f"An error occurred: {e}")
 
-        def get_videos_by_categories(self, category_ids, max_results=10):
-            """
-            This method allows you to retrieve videos that belong to multiple video categories. 
-            Provide a list of category_ids, and it will return videos that are associated with 
-            any of the specified categories.
-            """
-            service = self.service
-
-            try:
-                request = service.search().list(
-                    part="snippet",
-                    type="video",
-                    maxResults=max_results,
-                    videoCategoryId=",".join(category_ids)
-                )
-                response = request.execute()
-
-                for video in response["items"]:
-                    video_title = video["snippet"]["title"]
-                    video_id = video["id"]["videoId"]
-                    print(f"Video Title: {video_title} (Video ID: {video_id})")
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
         def search_video_categories(self, query, max_results=10):
             """
             This method allows you to search for video categories using a query. 
@@ -11437,7 +12638,6 @@ class YouTubeDataAPIv3Tools:
             except googleapiclient.errors.HttpError as e:
                 print(f"An error occurred: {e}")
  
-            
         #////// UTILITY METHODS //////
         def get_video_categories(self, region_code="US"):
             service = self.service
@@ -12858,7 +14058,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CAPTION IS CC //////
-        def captions_are_cc(self, video_id: str) -> (dict | None):
+        def captions_are_cc(self, video_id: str) -> (list[dict] | None):
             service = self.service
             try:
                 request = service.captions().list(
@@ -12866,9 +14066,11 @@ class YouTubeDataAPIv3Tools:
                     videoId=video_id
                 )
                 response = request.execute()
-                answers = {}
+                answers = []
                 for item in response["items"]:
-                    answers[f"{item['id']}"] = bool(item['snippet']['isCC'])
+                    answer = {}
+                    answer[f"{item['id']}"] = bool(item['snippet']['isCC'])
+                    answers.append(answer)
                 return answers
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
@@ -12915,9 +14117,12 @@ class YouTubeDataAPIv3Tools:
                     videoId=video_id
                 )
                 response = request.execute()
-                answers = {}
+                answers = []
                 for item in response["items"]:
-                    answers[f"{item['id']}"] = bool(item['snippet']['isLarge'])
+                    answer = {}
+                    answer[f"{item['id']}"] = bool(item['snippet']['isLarge'])
+                    answers.append(answer)
+                    return answers
                 return answers
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
@@ -12956,7 +14161,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CAPTION IS EASY READER //////
-        def captions_are_easy_readers(self, video_id: str) -> (dict | None):
+        def captions_are_easy_readers(self, video_id: str) -> (list[dict] | None):
             service = self.service
             try:
                 request = service.captions().list(
@@ -12964,9 +14169,12 @@ class YouTubeDataAPIv3Tools:
                     videoId=video_id
                 )
                 response = request.execute()
-                answers = {}
+                answers = []
                 for item in response["items"]:
-                    answers[f"{item['id']}"] = bool(item['snippet']['isEasyReader'])
+                    answer = {}
+                    answer[f"{item['id']}"] = bool(item['snippet']['isEasyReader'])
+                    answers.append(answers)
+                    return answers
                 return answers
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
@@ -13013,9 +14221,12 @@ class YouTubeDataAPIv3Tools:
                     videoId=video_id
                 )
                 response = request.execute()
-                answers = {}
+                answers = []
                 for item in response["items"]:
-                    answers[f"{item['id']}"] = bool(item['snippet']['isDraft'])
+                    answer = {}
+                    answer[f"{item['id']}"] = bool(item['snippet']['isDraft'])
+                    answers.append(answer)
+                    return answers
                 return answers
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
@@ -13062,9 +14273,11 @@ class YouTubeDataAPIv3Tools:
                     videoId=video_id
                 )
                 response = request.execute()
-                answers = {}
+                answers = []
                 for item in response["items"]:
-                    answers[f"{item['id']}"] = bool(item['snippet']['isAutoSynced'])
+                    answer = {}
+                    answer[f"{item['id']}"] = bool(item['snippet']['isAutoSynced'])
+                    answers.append(answers)
                 return answers
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
@@ -13305,12 +14518,14 @@ class YouTubeDataAPIv3Tools:
                 )
                 response = request.execute()
 
-                subscriptions = {}
+                subscriptions = []
                 for subscription in response["items"]:
                     channel_title = subscription["snippet"]["title"]
                     channel_id = subscription["snippet"]["resourceId"]["channelId"]
-                    subscriptions["title"] = channel_title
-                    subscriptions["id"] = channel_id
+                    sub = {}
+                    sub["title"] = channel_title
+                    sub["id"] = channel_id
+                    subscriptions.append(sub)
                 return subscriptions
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
@@ -16680,6 +17895,44 @@ class YouTubeDataAPIv3Tools:
             except googleapiclient.errors.HttpError as e:
                 print(f"An error occurred: {e}")        
             
+        def get_channel_id_by_name(self, channel_name: str) -> (str | None):
+            """ 
+            This method takes the channel_name as input and returns 
+            the corresponding channel ID. It uses the search.list method 
+            with the type="channel" parameter to filter the results and
+            fetches the first channel ID that matches the search query.
+            """
+            service = self.service
+
+            try:
+                request = service.search().list(
+                    part="id",
+                    q=channel_name,
+                    type="channel",
+                    maxResults=1
+                )
+                response = request.execute()
+
+                if "items" in response:
+                    channel_id = response["items"][0]["id"]["channelId"]
+                    return channel_id
+                else:
+                    print("Channel not found.")
+                    return None
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
         def search_videos(self, query, max_results=10):
             service = self.service
 
@@ -16828,6 +18081,33 @@ class YouTubeDataAPIv3Tools:
 
             except googleapiclient.errors.HttpError as e:
                 print(f"An error occurred: {e}")
+
+        def get_channel_videos(self, channel_id: str, max_results: int=100) -> (list[dict] | None):
+            service = self.service
+            try:
+                request = service.search().list(
+                part="snippet",
+                channelId=channel_id,
+                type="video",
+                maxResults=max_results
+                )
+                response = request.execute()
+                videos = []
+                for item in response["items"]:
+                    videos.append(item)
+                return videos
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as e:
+                print(f"There are no channels with the given ID.\n{e}")
+                return None
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                return None
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                return None
         
         def iterate_related_videos(self, video_id, max_results=10):
             service = self.service
@@ -16977,6 +18257,31 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
+        def get_videos_by_categories(self, category_ids, max_results=10):
+            """
+            This method allows you to retrieve videos that belong to multiple video categories. 
+            Provide a list of category_ids, and it will return videos that are associated with 
+            any of the specified categories.
+            """
+            service = self.service
+
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    type="video",
+                    maxResults=max_results,
+                    videoCategoryId=",".join(category_ids)
+                )
+                response = request.execute()
+
+                for video in response["items"]:
+                    video_title = video["snippet"]["title"]
+                    video_id = video["id"]["videoId"]
+                    print(f"Video Title: {video_title} (Video ID: {video_id})")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+ 
     #//////////// LIVE BROADCASTS ///////////
     class LiveBroadcast:
         def __init__(self, ytd_api_tools: object) -> None:
@@ -17399,11 +18704,13 @@ class YouTubeDataAPIv3Tools:
                         hl=language
                     )
                     response = request.execute()
-                    details = {}
+                    details = []
                     if "items" in response:
                         video = response["items"][0]
-                        details["title"] = video["snippet"]["title"]
-                        details["description"] = video["snippet"]["description"]
+                        detail = {}
+                        detail["title"] = video["snippet"]["title"]
+                        detail["description"] = video["snippet"]["description"]
+                        details.append(detail)
                     return details
 
             except googleapiclient.errors.HttpError as e:
@@ -17802,7 +19109,7 @@ class YouTubeDataAPIv3Tools:
             except KeyError as ke:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
-
+ 
         def get_abuse_report_reasons_in_category(self, category_id: str) -> (list[dict] | None):
             """
             This method retrieves the abuse report reasons available within 

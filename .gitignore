@@ -1,6 +1,8 @@
 client_secret_671382908634-hudnrlsnhr3gqresomjga29a33s0chml.apps.googleusercontent.com.json
+client_secret_671382908634-1u8psjq1erd5ml8odefqt5eufh8336l7.apps.googleusercontent.com.json
 *.json
 dev/
 token.pickle
 test.py
 test*.py
+api_key.py
