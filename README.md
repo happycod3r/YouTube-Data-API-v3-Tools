@@ -112,7 +112,6 @@ be done with every individual call to the YouTube Data API.
 Once you have created the `YouTubeDataAPIv3Tools` object. The following subclasses are available:
 
 - YouTubeDataAPIv3Tools.Channel
-- YouTubeDataAPIv3Tools.ChannelBanner
 - YouTubeDataAPIv3Tools.ChannelSection
 - YouTubeDataAPIv3Tools.Playlist
 - YouTubeDataAPIv3Tools.PlaylistItem
