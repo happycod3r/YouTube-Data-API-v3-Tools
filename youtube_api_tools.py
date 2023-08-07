@@ -1,3 +1,4 @@
+import google.api.endpoint_pb2
 import google_auth_oauthlib.flow
 import googleapiclient.discovery
 import googleapiclient.errors
@@ -74,15 +75,13 @@ class YouTubeDataAPIv3Tools:
         self, 
         _client_secrets_json_path: str,
         _scopes: list, 
+        _dev_key: str=None,
         _token_file: str="token.pickle",
-        _dev_key: str=None, 
-        _channel_id: str=None
     ) -> None:
         
         """
             Initializes the YouTubeAPIClient object.
         """
-
         self.api_scopes = []
 
         if _scopes is not None:
@@ -91,10 +90,6 @@ class YouTubeDataAPIv3Tools:
         
         self.CLIENT_SECRETS_JSON_FILE = _client_secrets_json_path
         self.DEV_KEY = _dev_key
-        self.CHANNEL_ID = _channel_id
-        
-        if _channel_id is not None:
-            self.CHANNEL_ID = _channel_id
         
         self.api_obj = {
             "scopes": self.api_scopes,
@@ -201,7 +196,6 @@ class YouTubeDataAPIv3Tools:
         if len(self.CLIENT_SECRETS_JSON_FILE) != 0:
             return self.CLIENT_SECRETS_JSON_FILE
         return None
-    
     
     #//////////// AUTHENTICATION ////////////
     
@@ -3659,7 +3653,7 @@ class YouTubeDataAPIv3Tools:
         types of content sections that you can organize on your YouTube channel. 
         Each section type serves a specific purpose and allows you to feature different 
         types of content prominently on your channel's front page. These are some 
-        common channel section types:
+        channel section types:
         
             - AllPlaylists: Displays a collection of playlists from the channel.
             - CompletedEvents: Displays live event broadcasts that have ended.
@@ -3669,9 +3663,10 @@ class YouTubeDataAPIv3Tools:
             - MultipleChannels: Displays other channels that the channel features.
             - PopularUploads: Displays the channel's most popular uploads.
             - RecentUploads: Displays the channel's most recent uploads.
-            - SinglePlaylist: Displays a single playlist from the channel.
+            - SinglePlaylist:  Displays a single playlist from the channel.
             - SubscribedChannels: Displays channels that the channel is subscribed to.
             - Uploads: Displays the channel's uploaded videos.
+            
         """
         def __init__(self, ytd_api_tools: object) -> None:
             self.service = ytd_api_tools.service
@@ -3703,18 +3698,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL SECTION //////
-        def get_channel_section(self, section_id) -> (dict | None):
+        def get_channel_section(self, section_id: str) -> (dict | None):
             service = self.service
-
             try:
                 channel = service.channelSections().list(
                     part="snippet",
                     id=section_id
                 ).execute()
-
-                channel = channel["items"][0]
-                return channel
-
+                if "items" in channel:
+                    channel = channel["items"][0]
+                    return channel
+                else: return None
+                
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -3728,19 +3723,71 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_channel_sections(self, channel_id: str) -> (dict | None):
+        def get_channel_section_by_index(self, index: int, channel_id: str=None) -> (dict | None):
             service = self.service
             try:
-                channel = service.channelSections().list(
-                    part="snippet",
-                    channelId=channel_id
-                ).execute()
-                sections = []
-                for i in range(len(channel["items"])):
-                    section = channel["items"][i]
-                    sections.append(section)
-                return sections
-            
+                if channel_id is not None:
+                    channel = service.channelSections().list(
+                        part="snippet",
+                        channelId=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        channel = channel["items"][index]
+                        return channel
+                    else: return None
+                else:
+                    channel = service.channelSections().list(
+                        part="snippet",
+                        mine=True
+                    ).execute()
+                    if "items" in channel:
+                        channel = channel["items"][index]
+                        return channel
+                    else: return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no channels with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+        
+        def get_channel_sections(self, your_channel: bool=True, channel_id: str=None) -> (dict | None):
+            """
+            Returns all of the channel sections for either your channel or 
+            the channel specified by channel_id. Returns None if unsuccessful.
+            """
+            service = self.service
+            try:
+                if not your_channel:
+                    channel = service.channelSections().list(
+                        part="snippet",
+                        channelId=channel_id
+                    ).execute()
+                    if "items" in channel:
+                        sections = []
+                        for i in range(len(channel["items"])):
+                            section = channel["items"][i]
+                            sections.append(section)
+                        return sections
+                    else: return None
+                else: 
+                    channel = service.channelSections().list(
+                        part="snippet",
+                        mine=your_channel
+                    ).execute()
+                    if "items" in channel:
+                        sections = []
+                        for i in range(len(channel["items"])):
+                            section = channel["items"][i]
+                            sections.append(section)
+                        return sections
+                    else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -3755,18 +3802,21 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL SECTION KIND //////
-        def get_channel_section_kind(self, section_id) -> (str | None):
+        def get_channel_section_kind(self, section_id: str) -> (str | None):
+            """
+            Returns the channel section kind for the channel section specified
+            by section_id. Returns None if unsuccessful.
+            """
             service = self.service
-
             try:
                 channel = service.channelSections().list(
                     part="snippet",
                     id=section_id
                 ).execute()
-
-                kind = channel["items"][0]["kind"]
-                return kind
-
+                if "items" in channel:
+                    kind = channel["items"][0]["kind"]
+                    return kind
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -3782,6 +3832,10 @@ class YouTubeDataAPIv3Tools:
 
         #////// CHANNEL SECTION ETAG //////
         def get_channel_section_etag(self, section_id) -> (str | None):
+            """
+            Returns the channel section etag for the channel section specified
+            by section_id. Returns None if unsuccessful.
+            """
             service = self.service
 
             try:
@@ -3789,10 +3843,10 @@ class YouTubeDataAPIv3Tools:
                     part="snippet",
                     id=section_id
                 ).execute()
-
-                etag = channel["items"][0]["etag"]
-                return etag
-
+                if "items" in channel:
+                    etag = channel["items"][0]["etag"]
+                    return etag
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -3808,6 +3862,10 @@ class YouTubeDataAPIv3Tools:
 
         #////// CHANNEL SECTION ID //////
         def get_channel_section_id_by_index(self, channel_id: str, section_index) -> (str | None):
+            """
+            Returns the channel section id for the channel section specified
+            by index on the channel specified by channel_id. Returns None if unsuccessful.
+            """
             service = self.service
 
             try:
@@ -3815,10 +3873,10 @@ class YouTubeDataAPIv3Tools:
                     part="id",
                     channelId=channel_id
                 ).execute()
-
-                id = channel["items"][section_index]["id"]
-                return id
-
+                if "items" in channel:
+                    id = channel["items"][section_index]["id"]
+                    return id
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -3833,6 +3891,11 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         def get_channel_section_id_by_type(self, channel_id: str, section_type: str) -> (str | None):
+            """
+            Returns the channel section IDs for the channel section type specified
+            by section_type on the channel specified by channel ID. 
+            Returns None if unsuccessful.
+            """
             service = self.service
 
             try:
@@ -3840,11 +3903,13 @@ class YouTubeDataAPIv3Tools:
                     part="snippet",
                     channelId=channel_id
                 ).execute()
-                for i in range(len(channel["items"])):
-                    if section_type == channel["items"][i]["snippet"]["type"]:
-                        id = channel["items"][i]["id"]
-                        return id
-                return None
+                if "items" in channel:
+                    sections = []
+                    for i in range(len(channel["items"])):
+                        if section_type == channel["items"][i]["snippet"]["type"]:
+                            sections.append(channel["items"][i]["id"])
+                    return sections
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -3859,6 +3924,10 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         def get_channel_section_ids(self, channel_id: str) -> (list[str] | None):
+            """
+            Returns the channel section IDs for the channel specified by channel_id. 
+            Returns None if unsuccessful.
+            """
             service = self.service
 
             try:
@@ -3866,11 +3935,13 @@ class YouTubeDataAPIv3Tools:
                     part="id",
                     channelId=channel_id
                 ).execute()
-                ids = []
-                for i in range(len(channel["items"])):
-                    id = channel["items"][i]["id"]
-                    ids.append(id)
-                return ids
+                if "items" in channel:
+                    ids = []
+                    for i in range(len(channel["items"])):
+                        id = channel["items"][i]["id"]
+                        ids.append(id)
+                    return ids
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -3886,17 +3957,20 @@ class YouTubeDataAPIv3Tools:
         
         #////// CHANNEL SECTION SNIPPET //////
         def get_channel_section_snippet(self, section_id) -> (str | None):
+            """
+            Returns the channel section snippet for the channel section specified
+            by section_id. Returns None if unsuccessful.
+            """
             service = self.service
-
             try:
                 channel = service.channelSections().list(
                     part="snippet",
                     id=section_id
                 ).execute()
-
-                snippet = channel["items"][0]["snippet"]
-                return snippet
-
+                if "items" in channel:
+                    snippet = channel["items"][0]["snippet"]
+                    return snippet
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -3912,17 +3986,20 @@ class YouTubeDataAPIv3Tools:
 
         #////// CHANNEL SECTION TYPE //////
         def get_channel_section_type(self, section_id) -> (str | None):
+            """
+            Returns the channel section type for the channel section specified
+            by section_id. Returns None if unsuccessful.
+            """
             service = self.service
-
             try:
                 channel = service.channelSections().list(
                     part="snippet",
                     id=section_id
                 ).execute()
-
-                type = channel["items"][0]["snippet"]["type"]
-                return type
-
+                if "items" in channel:
+                    type = channel["items"][0]["snippet"]["type"]
+                    return type
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -3938,17 +4015,20 @@ class YouTubeDataAPIv3Tools:
     
         #////// CHANNEL SECTION CHANNEL ID //////
         def get_section_channel_id(self, section_id) -> (str | None):
+            """
+            Returns the channel section ID for the channel section specified
+            by section_id. Returns None if unsuccessful.
+            """
             service = self.service
-
             try:
                 channel = service.channelSections().list(
                     part="snippet",
                     id=section_id
                 ).execute()
-
-                id = channel["items"][0]["snippet"]["channelId"]
-                return id
-
+                if "items" in channel:
+                    id = channel["items"][0]["snippet"]["channelId"]
+                    return id
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -3964,17 +4044,20 @@ class YouTubeDataAPIv3Tools:
     
         #////// CHANNEL SECTION TITLE //////
         def get_channel_section_title(self, section_id) -> (str | None):
+            """
+            Returns the channel section title for the channel section specified
+            by section_id. Returns None if unsuccessful.
+            """
             service = self.service
-
             try:
                 channel = service.channelSections().list(
                     part="snippet",
                     id=section_id
                 ).execute()
-
-                title = channel["items"][0]["snippet"]["title"]
-                return title
-
+                if "items" in channel:
+                    title = channel["items"][0]["snippet"]["title"]
+                    return title
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -3990,17 +4073,20 @@ class YouTubeDataAPIv3Tools:
     
         #////// CHANNEL SECTION POSITION //////
         def get_channel_section_position(self, section_id) -> (int | None):
+            """
+            Returns the channel section position for the channel section specified
+            by section_id. Returns None if unsuccessful.
+            """
             service = self.service
-
             try:
                 channel = service.channelSections().list(
                     part="snippet",
                     id=section_id
                 ).execute()
-
-                position = channel["items"][0]["snippet"]["position"]
-                return int(position)
-
+                if "items" in channel:
+                    position = channel["items"][0]["snippet"]["position"]
+                    return int(position)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -4016,17 +4102,20 @@ class YouTubeDataAPIv3Tools:
     
         #////// CHANNEL SECTION CONTENT DETAILS //////
         def get_channel_section_content_details(self, section_id) -> (dict | None):
+            """
+            Returns the channel section content details for the channel section specified
+            by section_id. Returns None if unsuccessful.
+            """
             service = self.service
-
             try:
                 channel = service.channelSections().list(
                     part="contentDetails",
                     id=section_id
                 ).execute()
-
-                details = channel["items"][0]["contentDetails"]
-                return details
-
+                if "items" in channel:
+                    details = channel["items"][0]["contentDetails"]
+                    return details
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -4042,17 +4131,20 @@ class YouTubeDataAPIv3Tools:
     
         #////// CHANNEL SECTION PLAYLISTS //////
         def get_channel_section_playlists(self, section_id) -> (list[str] | None):
+            """
+            Returns the channel section playlists for the channel section specified
+            by section_id. Returns None if unsuccessful.
+            """
             service = self.service
-
             try:
                 channel = service.channelSections().list(
                     part="contentDetails",
                     id=section_id
                 ).execute()
-
-                playlists = channel["items"][0]["contentDetails"]["playlists"]
-                return playlists
-
+                if "items" in channel:
+                    playlists = channel["items"][0]["contentDetails"]["playlists"]
+                    return playlists
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -4068,17 +4160,20 @@ class YouTubeDataAPIv3Tools:
         
         #////// CHANNEL SECTION CHANNELS //////
         def get_channel_section_channels(self, section_id) -> (list[str] | None):
+            """
+            Returns the channel section channels for the channel section specified
+            by section_id. Returns None if unsuccessful.
+            """
             service = self.service
-
             try:
                 channel = service.channelSections().list(
                     part="contentDetails",
                     id=section_id
                 ).execute()
-
-                channels = channel["items"][0]["contentDetails"]["channels"]
-                return channels
-
+                if "items" in channel:
+                    channels = channel["items"][0]["contentDetails"]["channels"]
+                    return channels
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
