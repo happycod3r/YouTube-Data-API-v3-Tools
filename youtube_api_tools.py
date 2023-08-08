@@ -4006,7 +4006,7 @@ class YouTubeDataAPIv3Tools:
             self.service = ytd_api_tools.service
 
         #////// PLAYLIST UTILITIES //////
-        def create_playlist(self, title: str, description: str, privacy_status: str="public") -> (dict | None):
+        def create(self, title: str, description: str, privacy_status: str="public") -> (dict | None):
             """
             Creates a new playlist with the given title and description and returns the 
             new playlist resource. Returns None if unsuccessful.
@@ -4044,7 +4044,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
                 
-        def delete_playlist(self, playlist_id: str) -> (bool | None):
+        def delete(self, playlist_id: str) -> (bool | None):
             """
             Deletes a playlist with the given ID. Returns True if the playlist
             was successfully deleted and returns None otherwise
@@ -4068,7 +4068,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def save_playlist(self, source_playlist_id: str, destination_playlist_id: str) -> (bool | None):
+        def save(self, source_playlist_id: str, destination_playlist_id: str) -> (bool | None):
             """
             Saves the playlist represented by source_playlist_id to the destination 
             represented by destination_playlist_id. Returns True if successful and
@@ -4104,7 +4104,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
     
-        def update_playlist_details(self, playlist_id: str, new_title: str=None, new_description: str=None) -> (bool | None):
+        def update_details(self, playlist_id: str, new_title: str=None, new_description: str=None) -> (bool | None):
             """
             Allows you to update the title and description of a playlist with the specified playlist_id.
             Returns True if the update was successful and False otherwise. Returns None if 
@@ -4145,7 +4145,11 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// PLAYLIST ID //////    
-        def get_playlist_id(self, playlist_title: str, channel_id: str=None, max_results: int=1) -> (str | None):
+        def get_id(self, playlist_title: str, channel_id: str=None, max_results: int=1) -> (str | None):
+            """
+            Returns the ID of the playlist specified by playlist_title from a channel specified
+            by channel_id if successful and None otherwise. 
+            """
             service = self.service
             try:
                 request = service.search().list(
@@ -4173,7 +4177,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_all_playlist_ids(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
+        def get_all_ids(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
             """
             Returns all playlist IDs for either your channel or the channel specified
             by channel_id. Returns None otherwise.
@@ -4225,6 +4229,7 @@ class YouTubeDataAPIv3Tools:
             Returns a playlist specified by playlist_name from either your channel or the 
             channel specified by channel_id. If you don't know the channel ID you can 
             alternatively use the playlist ID or use Channel.get_id() to retrieve the ID.
+            Returns None if unsuccessful.
             """
             service = self.service
             try:
@@ -4346,9 +4351,10 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST KIND //////
-        def get_playlist_kind(self, playlist_id: str) -> (str | None):
+        def get_kind_of_playlist(self, playlist_id: str) -> (str | None):
             """
-            Get the kind of playlist that the playlist is tagged as.
+            Returns the kind of playlist specified by playlist_id if 
+            successful and None otherwise.
             """ 
             service = self.service
             try:
@@ -4372,7 +4378,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
             
-        def get_all_playlist_kinds(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
+        def get_all_kinds(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
             """
             Returns all playlist kinds for either your channel or the channel specified
             by channel_id. Returns None otherwise.
@@ -4419,9 +4425,10 @@ class YouTubeDataAPIv3Tools:
                 return None
             
         #////// PLAYLIST ETAG //////
-        def get_playlist_etag(self, playlist_id: str) -> (str | None):
+        def get_etag(self, playlist_id: str) -> (str | None):
             """
-            Get the etag for the playlist specified by playlist_id.
+            Returns the etag of the playlist specified by playlist_id if 
+            successful and None otherwise.
             """ 
             service = self.service
             try:
@@ -4445,7 +4452,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_all_playlist_etags(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None): 
+        def get_all_etags(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None): 
             """
             Returns all playlist etags for either your channel or the channel specified
             by channel_id. Returns None otherwise.
@@ -4495,9 +4502,10 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST SNIPPET //////
-        def get_playlist_snippet(self, playlist_id: str) -> (str | None):
+        def get_snippet(self, playlist_id: str) -> (str | None):
             """
-            Get a playlists snippet using the playlist id.
+            Returns the snippet part of the playlist resource for the playlist specified 
+            by playlist_id if successful and None otherwise.
             """
             service = self.service
 
@@ -4524,7 +4532,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_all_playlist_snippets(self, your_playlists: bool, channel_id: str=None, max_results=10):
+        def get_all_snippets(self, your_playlists: bool, channel_id: str=None, max_results=10):
             """
             Returns all playlist snippets for either your channel or the channel specified
             by channel_id. Returns None otherwise.
@@ -4572,11 +4580,20 @@ class YouTubeDataAPIv3Tools:
             
         #////// PLAYLIST PUBLISHED DATETIME //////
         def get_date_published(self, playlist_id: str) -> (str | None):
+            """
+            Returns the publish date of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
+            service = self.service
             try:
-                playlist_info = self.get_playlist_snippet(playlist_id)
-                if playlist_info:
-                    return playlist_info["publishedAt"]
-                return None
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    return response["items"][0]["snippet"]["publishedAt"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -4637,7 +4654,11 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// PLAYLIST CHANNEL ID //////
-        def get_playlists_channel_id(self, playlist_id: str):
+        def get_channel_id(self, playlist_id: str):
+            """
+            Returns the channel ID of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
             try:
                 playlist_info = self.get_playlist_snippet(playlist_id)
                 if playlist_info is not None:
@@ -4656,12 +4677,21 @@ class YouTubeDataAPIv3Tools:
                 return None
             
         #////// PLAYLIST TITLE //////                
-        def get_playlist_name(self, playlist_id: str) -> (str | None):
+        def get_title(self, playlist_id: str) -> (str | None):
+            """
+            Returns the title of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
+            service = self.service
             try:
-                playlist_info = self.get_playlist_snippet(playlist_id)
-                if playlist_info:
-                    return playlist_info["title"]
-                return None
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    return response["items"][0]["snippet"]["title"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -4675,7 +4705,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_all_playlist_names(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
+        def get_all_titles(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
             """
             Returns all playlist names for either your channel or the channel specified
             by channel_id. Returns None otherwise.
@@ -4721,7 +4751,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def set_playlist_name(self, playlist_id, new_title=None) -> bool:
+        def set_title(self, playlist_id, new_title=None) -> bool:
             service = self.service
 
             try:
@@ -4758,15 +4788,21 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// PLAYLIST DESCRIPTION //////
-        def get_playlist_description(self, playlist_id: str) -> (str | None):
+        def get_description(self, playlist_id: str) -> (str | None):
             """
-            Get the description of a playlist using the playlist ID.
+            Returns the description of the playlist specified by playlist_id if 
+            successful and None otherwise.
             """
+            service = self.service
             try:
-                playlist_info = self.get_playlist_snippet(playlist_id)
-                if playlist_info:
-                    return playlist_info["description"]
-                return None
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    return response["items"][0]["snippet"]["description"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -4780,7 +4816,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_all_playlist_descriptions(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
+        def get_all_descriptions(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
             """
             Returns all playlist descriptions for either your channel or the channel specified
             by channel_id. Returns None otherwise.
@@ -4826,7 +4862,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def set_playlist_description(self, playlist_id, new_description: str=None) -> bool:
+        def set_description(self, playlist_id, new_description: str=None) -> bool:
             
             service = self.service
 
@@ -4862,12 +4898,21 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST THUMBNAIL //////
-        def get_playlist_thumbnails(self, playlist_id: str) -> (str | None):
-            try: 
-                playlist_info = self.get_playlist_snippet(playlist_id)
-                if playlist_info:
-                    return playlist_info["thumbnails"]
-                return None
+        def get_thumbnails(self, playlist_id: str) -> (str | None):
+            """
+            Returns the thumbnails part of the playlist resource for the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
+            service = self.service
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    return response["items"][0]["snippet"]["thumbnails"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -4881,7 +4926,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_all_playlist_thumbnails(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
+        def get_all_thumbnails(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
             """
             Returns all playlist thumbnails for either your channel or the channel specified
             by channel_id. Returns None otherwise.
@@ -4928,13 +4973,21 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// PLAYLIST DEFAULT RES THUMBNAIL //////
-        def get_playlist_default_res_thumbnail(self, playlist_id: str) -> (dict | None):
-
+        def get_default_res_thumbnail(self, playlist_id: str) -> (dict | None):
+            """
+            Returns the default res thumbnail of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
+            service = self.service
             try:
-                playlist_info = self.get_playlist_snippet(playlist_id)
-                if playlist_info:
-                    return playlist_info["thumbnails"]["default"]
-                return None
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    return response["items"][0]["snippet"]["default"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -4948,7 +5001,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_all_playlist_default_res_thumbnails(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
+        def get_all_default_res_thumbnails(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
             """
             Returns all playlist default res thumbnails for either your channel or the channel specified
             by channel_id. Returns None otherwise.
@@ -4994,12 +5047,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_playlist_default_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
+        def get_default_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
+            """
+            Returns the default res thumbnail url of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
+            service = self.service
             try:
-                playlist_info = self.get_playlist_snippet(playlist_id)
-                if playlist_info:
-                    return playlist_info["thumbnails"]["default"]["url"]
-                return None
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    return response["items"][0]["snippet"]["thumbnails"]["default"]["url"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -5013,7 +5075,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_all_playlist_default_res_thumbnail_urls(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
+        def get_all_default_res_thumbnail_urls(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
             """
             Returns all playlist default res thumbnail urls for either your channel or the channel specified
             by channel_id. Returns None otherwise.
@@ -5059,13 +5121,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_playlist_default_res_thumbnail_width(self, playlist_id: str) -> (int | None):
-
+        def get_default_res_thumbnail_width(self, playlist_id: str) -> (int | None):
+            """
+            Returns the default res thumbnail width of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
+            service = self.service
             try:
-                playlist_info = self.get_playlist_snippet(playlist_id)
-                if playlist_info:
-                    return int(playlist_info["thumbnails"]["default"]["width"])
-                return None
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    return response["items"][0]["snippet"]["thumbnails"]["default"]["width"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -5079,19 +5149,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_playlist_default_res_thumbnail_height(self, playlist_id: str) -> (int | None):
-
+        def get_default_res_thumbnail_height(self, playlist_id: str) -> (int | None):
+            """
+            Returns the default res thumbnail height of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
+            service = self.service
             try:
-                playlist_info = self.get_playlist_snippet(playlist_id)
-                if playlist_info:
-                    return int(playlist_info["thumbnails"]["default"]["height"])
-                return None
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as ie:
-                print(f"There are no playlists with the given ID.\n{ie}")
-                return None
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    return response["items"][0]["snippet"]["thumbnails"]["default"]["height"]
+                else: return None
             except TypeError as te:
                 print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
                 return None
@@ -5100,12 +5172,21 @@ class YouTubeDataAPIv3Tools:
                 return None
           
         #////// PLAYLIST MEDIUM RES THUMBNAIL //////
-        def get_playlist_medium_res_thumbnail(self, playlist_id: str) -> (dict | None):
+        def get_medium_res_thumbnail(self, playlist_id: str) -> (dict | None):
+            """
+            Returns the medium res thumbnail of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
+            service = self.service
             try:
-                playlist_info = self.get_playlist_snippet(playlist_id)
-                if playlist_info:
-                    return playlist_info["thumbnails"]["medium"]
-                return None
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    return response["items"][0]["snippet"]["thumbnails"]["medium"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -5119,7 +5200,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_all_playlist_medium_res_thumbnails(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
+        def get_all_medium_res_thumbnails(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
             """
             Returns all playlist medium res thumbnails for either your channel or the channel specified
             by channel_id. Returns None otherwise.
@@ -5165,12 +5246,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_playlist_medium_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
+        def get_medium_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
+            """
+            Returns the medium res thumbnail url of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
+            service = self.service
             try:
-                playlist_info = self.get_playlist_snippet(playlist_id)
-                if playlist_info:
-                    return playlist_info["thumbnails"]["medium"]["url"]
-                return None
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    return response["items"][0]["snippet"]["thumbnails"]["medium"]["url"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -5184,7 +5274,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_all_playlist_medium_res_thumbnail_urls(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
+        def get_all_medium_res_thumbnail_urls(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
             """
             Returns all playlist medium res thumbnail urls for either your channel or the channel specified
             by channel_id. Returns None otherwise.
@@ -5230,13 +5320,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_playlist_medium_res_thumbnail_width(self, playlist_id: str) -> (int | None):
-
+        def get_medium_res_thumbnail_width(self, playlist_id: str) -> (int | None):
+            """
+            Returns the medium res thumbnail width of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
+            service = self.service
             try:
-                playlist_info = self.get_playlist_snippet(playlist_id)
-                if playlist_info:
-                    return int(playlist_info["thumbnails"]["medium"]["width"])
-                return None
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    return response["items"][0]["snippet"]["thumbnails"]["medium"]["width"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -5250,13 +5348,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_playlist_medium_res_thumbnail_height(self, playlist_id: str) -> (int | None):
-
+        def get_medium_res_thumbnail_height(self, playlist_id: str) -> (int | None):
+            """
+            Returns the medium res thumbnail of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
+            service = self.service
             try:
-                playlist_info = self.get_playlist_snippet(playlist_id)
-                if playlist_info:
-                    return int(playlist_info["thumbnails"]["medium"]["height"])
-                return None
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    return response["items"][0]["snippet"]["thumbnails"]["default"]["height"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -5271,12 +5377,21 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST HIGH RES THUMBNAIL //////
-        def get_playlist_high_res_thumbnail(self, playlist_id: str) -> (dict | None):
+        def get_high_res_thumbnail(self, playlist_id: str) -> (dict | None):
+            """
+            Returns the high res thumbnail of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
+            service = self.service
             try:
-                playlist_info = self.get_playlist_snippet(playlist_id)
-                if playlist_info:
-                    return playlist_info["thumbnails"]["high"]
-                return None
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    return response["items"][0]["snippet"]["thumbnails"]["high"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -5290,7 +5405,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_all_playlist_high_res_thumbnails(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
+        def get_all_high_res_thumbnails(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
             """
             Returns all playlist high res thumbnails for either your channel or the channel specified
             by channel_id. Returns None otherwise.
@@ -5336,13 +5451,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_playlist_high_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
-
+        def get_high_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
+            """
+            Returns the high res thumbnail url of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
+            service = self.service
             try:
-                playlist_info = self.get_playlist_snippet(playlist_id)
-                if playlist_info:
-                    return playlist_info["thumbnails"]["high"]["url"]
-                return None
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    return response["items"][0]["snippet"]["thumbnails"]["high"]["url"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -5356,7 +5479,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_all_playlist_high_res_thumbnail_urls(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
+        def get_all_high_res_thumbnail_urls(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
             """
             Returns all playlist high res thumbnail urls for either your channel or the channel specified
             by channel_id. Returns None otherwise.
@@ -5402,13 +5525,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_playlist_high_res_thumbnail_width(self, playlist_id: str) -> (int | None):
-
+        def get_high_res_thumbnail_width(self, playlist_id: str) -> (int | None):
+            """
+            Returns the high res thumbnail width of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
+            service = self.service
             try:
-                playlist_info = self.get_playlist_snippet(playlist_id)
-                if playlist_info:
-                    return int(playlist_info["thumbnails"]["high"]["width"])
-                return None
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    return response["items"][0]["snippet"]["thumbnails"]["high"]["width"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -5422,13 +5553,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_playlist_high_res_thumbnail_height(self, playlist_id: str) -> (int | None):
-
+        def get_high_res_thumbnail_height(self, playlist_id: str) -> (int | None):
+            """
+            Returns the high res thumbnail height of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
+            service = self.service
             try:
-                playlist_info = self.get_playlist_snippet(playlist_id)
-                if playlist_info:
-                    return int(playlist_info["thumbnails"]["high"]["height"])
-                return None
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    return response["items"][0]["snippet"]["thumbnails"]["high"]["height"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -5443,12 +5582,21 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST STANDARD THUMBNAIL //////
-        def get_playlist_standard_res_thumbnail(self, playlist_id: str) -> (dict | None):
+        def get_standard_res_thumbnail(self, playlist_id: str) -> (dict | None):
+            """
+            Returns the standard res thumbnail of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
+            service = self.service
             try:
-                playlist_info = self.get_playlist_snippet(playlist_id)
-                if playlist_info:
-                    return playlist_info["thumbnails"]["standard"]
-                return None
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    return response["items"][0]["snippet"]["thumbnails"]["standard"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -5462,7 +5610,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_all_playlist_standard_res_thumbnails(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
+        def get_all_standard_res_thumbnails(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
             """
             Returns all playlist standard res thumbnails for either your channel or the channel specified
             by channel_id. Returns None otherwise.
@@ -5508,12 +5656,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_playlist_standard_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
+        def get_standard_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
+            """
+            Returns the standard res thumbnail url of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
+            service = self.service
             try:
-                playlist_info = self.get_playlist_snippet(playlist_id)
-                if playlist_info:
-                    return playlist_info["thumbnails"]["standard"]["url"]
-                return None
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    return response["items"][0]["snippet"]["thumbnails"]["standard"]["url"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -5527,7 +5684,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_all_playlist_standard_res_thumbnail_urls(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
+        def get_all_standard_res_thumbnail_urls(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
             """
             Returns all playlist standard res thumbnail urls for either your channel or the channel specified
             by channel_id. Returns None otherwise.
@@ -5573,13 +5730,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_playlist_standard_res_thumbnail_width(self, playlist_id: str) -> (int | None):
-
+        def get_standard_res_thumbnail_width(self, playlist_id: str) -> (int | None):
+            """
+            Returns the standard res thumbnail width of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
+            service = self.service
             try:
-                playlist_info = self.get_playlist_snippet(playlist_id)
-                if playlist_info:
-                    return int(playlist_info["thumbnails"]["standard"]["width"])
-                return None
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    return response["items"][0]["snippet"]["thumbnails"]["standard"]["width"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -5593,13 +5758,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_playlist_standard_res_thumbnail_height(self, playlist_id: str) -> (int | None):
-
+        def get_standard_res_thumbnail_height(self, playlist_id: str) -> (int | None):
+            """
+            Returns the standard res thumbnail height of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
+            service = self.service
             try:
-                playlist_info = self.get_playlist_snippet(playlist_id)
-                if playlist_info:
-                    return int(playlist_info["thumbnails"]["standard"]["height"])
-                return None
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    return response["items"][0]["snippet"]["thumbnails"]["standard"]["height"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -5614,13 +5787,21 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST MAX RES THUMBNAIL //////
-        def get_playlist_max_res_thumbnail(self, playlist_id: str) -> (dict | None):
-
+        def get_max_res_thumbnail(self, playlist_id: str) -> (dict | None):
+            """
+            Returns the max res thumbnail of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
+            service = self.service
             try:
-                playlist_info = self.get_playlist_snippet(playlist_id)
-                if playlist_info:
-                    return playlist_info["thumbnails"]["maxres"]
-                return None
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    return response["items"][0]["snippet"]["thumbnails"]["maxres"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -5634,7 +5815,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_all_playlist_max_res_thumbnails(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
+        def get_all_max_res_thumbnails(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
             """
             Returns all playlist max res thumbnails for either your channel or the channel specified
             by channel_id. Returns None otherwise.
@@ -5680,12 +5861,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_playlist_max_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
+        def get_max_res_thumbnail_url(self, playlist_id: str) -> (dict | None):
+            """
+            Returns the max res thumbnail url of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
+            service = self.service
             try:
-                playlist_info = self.get_playlist_snippet(playlist_id)
-                if playlist_info:
-                    return playlist_info["thumbnails"]["maxres"]["url"]
-                return None
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    return response["items"][0]["snippet"]["thumbnails"]["maxres"]["url"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -5699,7 +5889,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_all_playlist_max_res_thumbnail_urls(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
+        def get_all_max_res_thumbnail_urls(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
             """
             Returns all playlist max res thumbnail urls for either your channel or the channel specified
             by channel_id. Returns None otherwise.
@@ -5745,96 +5935,49 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_playlist_max_res_thumbnail_width(self, playlist_id: str) -> (int | None):
-
-            try:
-                playlist_info = self.get_playlist_snippet(playlist_id)
-                if playlist_info:
-                    return int(playlist_info["thumbnails"]["maxres"]["width"])
-                return None
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as ie:
-                print(f"There are no playlists with the given ID.\n{ie}")
-                return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                return None
-
-        def get_playlist_max_res_thumbnail_height(self, playlist_id: str) -> (int | None):
-
-            try:
-                playlist_info = self.get_playlist_snippet(playlist_id)
-                if playlist_info:
-                    return int(playlist_info["thumbnails"]["maxres"]["height"])
-                return None
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as ie:
-                print(f"There are no playlists with the given ID.\n{ie}")
-                return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                return None
-        
-        #////// PLAYLIST CHANNEL TITLE //////
-        def get_playlist_channel_name(self, playlist_id: str) -> (str | None):
-            try:
-                playlist_info = self.get_playlist_snippet(playlist_id)
-                if playlist_info:
-                    return playlist_info["channelTitle"]
-                return None
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as ie:
-                print(f"There are no playlists with the given ID.\n{ie}")
-                return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                return None
-
-        def get_all_playlist_channel_names(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
-            
+        def get_max_res_thumbnail_width(self, playlist_id: str) -> (int | None):
+            """
+            Returns the max res thumbnail width of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
             service = self.service
             try:
-                if not your_playlists:
-                    request = service.playlists().list(
-                        part="snippet",
-                        channelId=channel_id,
-                        maxResults=max_results
-                    )
-                    response = request.execute()
-                    if "items" in response:
-                        titles = []
-                        for playlist in response["items"]:
-                            titles.append(playlist["snippet"]["title"])
-                        return titles
-                    else: return None
-                else:
-                    request = service.playlists().list(
-                        part="snippet",
-                        mine=True,
-                        maxResults=max_results
-                    )
-                    response = request.execute()
-                    if "items" in response:
-                        titles = []
-                        for playlist in response["items"]:
-                            titles.append(playlist["snippet"]["title"])
-                        return titles
-                    else: return None
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    return response["items"][0]["snippet"]["thumbnails"]["maxres"]["width"]
+                else: return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+
+        def get_max_res_thumbnail_height(self, playlist_id: str) -> (int | None):
+            """
+            Returns the max res thumbnail height of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
+            service = self.service
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    return response["items"][0]["snippet"]["thumbnails"]["maxres"]["height"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -5848,27 +5991,65 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
+        #////// PLAYLIST CHANNEL NAME //////
+        def get_channel_name(self, playlist_id: str) -> (str | None):
+            """
+            Returns the channel name of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
+            service = self.service
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    return response["items"][0]["snippet"]["channelTitle"]
+                else: return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
+           
         #////// PLAYLIST DEFAULT LANGUAGE //////
-        def get_playlist_default_language(self, playlist_id: str) -> (str | None):
-            playlist_info = self.get_playlist_snippet(playlist_id)
-            if playlist_info:
-                try:
-                    return playlist_info['defaultLanguage']
-                except googleapiclient.errors.HttpError as e:
-                    print(f"An API error occurred: {e}")
-                    return None
-                except IndexError as ie:
-                    print(f"There are no playlists with the given ID.\n{ie}")
-                    return None
-                except TypeError as te:
-                    print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                    return None
-                except KeyError as ke:
-                    print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                    return None
-            return None
+        def get_default_language(self, playlist_id: str) -> (str | None):
+            """
+            Returns the default language of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
+            service = self.service
+            try:
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    return response["items"][0]["snippet"]["defaultLanguage"]
+                else: return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no playlists with the given ID.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
-        def get_all_playlist_default_languages(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
+        def get_all_default_languages(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
             """
             Returns all playlist default languages for either your channel or the channel specified
             by channel_id. Returns None otherwise.
@@ -5915,12 +6096,21 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST LOCALIZED DATA //////
-        def get_playlist_localized_data(self, playlist_id: str) -> (str | None):
+        def get_localized_data(self, playlist_id: str) -> (str | None):
+            """
+            Returns the localized data part of the playlist resource for the playlist specified 
+            by playlist_id if successful and None otherwise.
+            """
+            service = self.service
             try:
-                playlist_info = self.get_playlist_snippet(playlist_id)
-                if playlist_info:
-                    return playlist_info["localized"]
-                return None
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    return response["items"][0]["snippet"]["localized"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -5934,7 +6124,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
             
-        def get_all_playlists_localized_data(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
+        def get_all_localized_data(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
             """
             Returns all playlists localized data for either your channel or the channel specified
             by channel_id. Returns None otherwise.
@@ -5981,12 +6171,21 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST LOCALIZED TITLE //////
-        def get_playlist_localized_title(self, playlist_id: str) -> (str | None):
+        def get_localized_title(self, playlist_id: str) -> (str | None):
+            """
+            Returns the localized title of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
+            service = self.service
             try:
-                playlist_info = self.get_playlist_snippet(playlist_id)
-                if playlist_info:
-                    return playlist_info["localized"]["title"]
-                return None
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    return response["items"][0]["snippet"]["localized"]["title"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -6000,7 +6199,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_all_playlists_localized_titles(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
+        def get_all_localized_titles(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
             """
             Returns all playlist localized titles for either your channel or the channel specified
             by channel_id. Returns None otherwise.
@@ -6047,12 +6246,21 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST LOCALIZED DESCRIPTION //////
-        def get_playlist_localized_description(self, playlist_id: str) -> (str | None):
+        def get_localized_description(self, playlist_id: str) -> (str | None):
+            """
+            Returns the localized description of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
+            service = self.service
             try:
-                playlist_info = self.get_playlist_snippet(playlist_id)
-                if playlist_info:
-                    return playlist_info["localized"]["description"]
-                return None
+                request = service.playlists().list(
+                    part="snippet",
+                    id=playlist_id
+                )
+                response = request.execute()
+                if "items" in response:
+                    return response["items"][0]["snippet"]["localized"]["description"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -6066,7 +6274,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_all_playlists_localized_descriptions(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
+        def get_all_localized_descriptions(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list | None):
             """
             Returns all playlist localized description for either your channel or the channel specified
             by channel_id. Returns None otherwise.
@@ -6113,19 +6321,21 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST STATUS //////
-        def get_playlist_status(self, playlist_id: str) -> (str | None):
+        def get_status(self, playlist_id: str) -> (str | None):
+            """
+            Returns the status part of the playlist resource for the playlist specified 
+            by playlist_id if successful and None otherwise.
+            """
             service = self.service
-
             try:
                 request = service.playlists().list(
                     part="status",
                     id=playlist_id
                 )
                 response = request.execute()
-
-                playlist_snippet_info = response["items"][0]["status"]
-                return playlist_snippet_info
-
+                if "items" in response:
+                    return response["items"][0]["status"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -6139,7 +6349,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_all_playlist_statuses(self, your_playlists: bool, channel_id: str=None, max_results=10):
+        def get_all_statuses(self, your_playlists: bool, channel_id: str=None, max_results=10):
             """
             Returns all playlist statuses for either your channel or the channel specified
             by channel_id. Returns None otherwise.
@@ -6186,19 +6396,21 @@ class YouTubeDataAPIv3Tools:
                 return None
        
         #////// PLAYLIST PRIVACY STATUS //////
-        def get_playlist_privacy_status(self, playlist_id: str) -> (str | None):
+        def get_privacy_status(self, playlist_id: str) -> (str | None):
+            """
+            Returns the privacy status of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
             service = self.service
-
             try:
                 request = service.playlists().list(
-                    part="status",
+                    part="snippet",
                     id=playlist_id
                 )
                 response = request.execute()
-
-                playlist_snippet_info = response["items"][0]["status"]["privacyStatus"]
-                return playlist_snippet_info
-
+                if "items" in response:
+                    return response["items"][0]["status"]["privacyStatus"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -6206,7 +6418,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: No privacy status field available.\n {ke}")
                 return None
 
-        def get_all_playlist_privacy_statuses(self, your_playlists: bool, channel_id: str=None, max_results=10):
+        def get_all_privacy_statuses(self, your_playlists: bool, channel_id: str=None, max_results=10):
             """
             Returns all playlist privacy statuses for either your channel or the channel specified
             by channel_id. Returns None otherwise.
@@ -6246,7 +6458,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: No privacy status field available.\n {ke}")
                 return None
         
-        def set_playlist_privacy_status(self, playlist_id, privacy_status):
+        def set_privacy_status(self, playlist_id, privacy_status):
         
             service = self.service
 
@@ -6274,19 +6486,21 @@ class YouTubeDataAPIv3Tools:
                 return False
         
         #////// PLAYLIST CONTENT DETAILS //////
-        def get_playlist_content_details(self, playlist_id: str) -> (str | None):
+        def get_content_details(self, playlist_id: str) -> (str | None):
+            """
+            Returns the content details of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
             service = self.service
-
             try:
                 request = service.playlists().list(
                     part="contentDetails",
                     id=playlist_id
                 )
                 response = request.execute()
-
-                playlist_snippet_info = response["items"][0]["contentDetails"]
-                return playlist_snippet_info
-
+                if "items" in response:
+                    return response["items"][0]["contentDetails"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -6294,7 +6508,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: No content details field available.\n {ke}")
                 return None
 
-        def get_all_playlist_content_details(self, your_playlists: bool, channel_id: str=None, max_results=10): 
+        def get_all_content_details(self, your_playlists: bool, channel_id: str=None, max_results=10): 
             """
             Returns all playlist content details for either your channel or the channel specified
             by channel_id. Returns None otherwise.
@@ -6342,20 +6556,21 @@ class YouTubeDataAPIv3Tools:
                 return None
        
         #////// PLAYLIST ITEM COUNT //////
-        def get_playlist_item_count(self, playlist_id: str) -> (int | None):
-
+        def get_item_count(self, playlist_id: str) -> (int | None):
+            """
+            Returns the item count of the playlist specified by playlist_id if 
+            successful and None otherwise.
+            """
             service = self.service
-
             try:
                 request = service.playlists().list(
                     part="contentDetails",
                     id=playlist_id
                 )
                 response = request.execute()
-
-                playlist_snippet_info = response["items"][0]["contentDetails"]["itemCount"]
-                return playlist_snippet_info
-
+                if "items" in response:
+                    return response["items"][0]["contentDetails"]["itemCount"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -6369,7 +6584,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_all_playlist_item_counts(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list[int] | None):
+        def get_all_item_counts(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list[int] | None):
             """
             Returns all playlist item counts for either your channel or the channel specified
             by channel_id. Returns None otherwise.
@@ -6416,20 +6631,21 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST PLAYER //////
-        def get_playlist_player(self, playlist_id: str) -> (str | None):
-          
+        def get_player(self, playlist_id: str) -> (str | None):
+            """
+            Returns the player part of the playlist resource for the playlist specified by 
+            playlist_id if successful and None otherwise
+            """
             service = self.service
-
             try:
                 request = service.playlists().list(
                     part="player",
                     id=playlist_id
                 )
                 response = request.execute()
-
-                playlist_snippet_info = response["items"][0]["player"]
-                return playlist_snippet_info
-
+                if "items" in response:
+                    return response["items"][0]["player"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -6443,7 +6659,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_all_playlist_players(self, your_playlists: bool, channel_id: str=None, max_results=10):
+        def get_players(self, your_playlists: bool, channel_id: str=None, max_results=10):
             """
             Returns all playlist players for either your channel or the channel specified
             by channel_id. Returns None otherwise.
@@ -6490,19 +6706,21 @@ class YouTubeDataAPIv3Tools:
                 return None
        
         #////// PLAYLIST EMBED HTML //////
-        def get_playlist_embed_html(self, playlist_id: str) -> (int | None):
+        def get_embed_html(self, playlist_id: str) -> (int | None):
+            """
+            Returns the embed HTML of the playlist specified by playlist_id if 
+            successful and None o therwise
+            """
             service = self.service
-
             try:
                 request = service.playlists().list(
-                    part="player",
+                    part="snippet",
                     id=playlist_id
                 )
                 response = request.execute()
-
-                playlist_snippet_info = response["items"][0]["player"]["embedHtml"]
-                return playlist_snippet_info
-
+                if "items" in response:
+                    return response["items"][0]["player"]["embedHtml"]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -6516,7 +6734,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_all_playlist_embed_htmls(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list[int] | None):
+        def get_all_embed_htmls(self, your_playlists: bool, channel_id: str=None, max_results=10) -> (list[int] | None):
             """
             Returns all playlist embed htmls for either your channel or the channel specified
             by channel_id. Returns None otherwise.
