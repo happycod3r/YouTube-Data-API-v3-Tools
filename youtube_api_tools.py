@@ -3999,6 +3999,10 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
+    class ChannelBanner:
+        def __init__(self):
+            raise NotImplementedError
+              
     #//////////// PLAYLIST ////////////
     class Playlist: 
         def __init__(self, ytd_api_tools: object) -> None:
