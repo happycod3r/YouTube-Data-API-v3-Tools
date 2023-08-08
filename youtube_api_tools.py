@@ -6779,13 +6779,13 @@ class YouTubeDataAPIv3Tools:
             except KeyError as ke:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
-        
+
     #//////////// PLAYLIST ITEM ////////////
     class PlaylistItem:
         def __init__(self, ytd_api_tools: object) -> None:
             self.service = ytd_api_tools.service
         
-        def get_playlist_videos(self, playlist_id, max_results=10) -> (list | None):
+        def get_playlist_items(self, playlist_id: str, max_results: int=10) -> (list | None):
             service = self.service
             try:
                 request = service.playlistItems().list(
@@ -6794,11 +6794,12 @@ class YouTubeDataAPIv3Tools:
                     maxResults=max_results
                 )
                 response = request.execute()
-                videos = []
-                for video in response["items"]:
-                    videos.append(video)
-                return videos
-
+                if "items" in response:
+                    videos = []
+                    for video in response["items"]:
+                        videos.append(video)
+                    return videos
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -6812,42 +6813,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_playlist_video_identities(self, playlist_id: str, max_results: int=50) -> (list | None):
-            service = self.service
-            try:
-                videos = []
-                request = service.playlistItems().list(
-                    part="snippet",
-                    playlistId=playlist_id,
-                    maxResults=int(max_results)
-                )
-                while request is not None:
-                    response = request.execute()
-                    for item in response.get("items", []):
-                        video_id = item["snippet"]["resourceId"]["videoId"]
-                        video_title = item["snippet"]["title"]
-                        videos.append({
-                            "video_id": video_id,
-                            "video_title": video_title
-                        })
-                        
-
-                    request = service.playlistItems().list_next(request, response)
-                return videos
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as ie:
-                print(f"There are no playlists with the given ID.\n{ie}")
-                return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                return None
-        
-        def reorder_videos(self, playlist_id: str, video_ids: list) -> (bool | None):
+        def reorder_items(self, playlist_id: str, video_ids: list) -> (bool | None):
             """
             Allows you to reorder videos in a playlist by providing a list of video_ids. 
             The videos in the playlist will be reordered based on the order of the 
@@ -6896,7 +6862,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def add_video_to_playlist(self, playlist_id: str, video_id: str) -> bool:
+        def add_item_to_playlist(self, playlist_id: str, video_id: str) -> (bool | None):
             """
             This method allows you to add a video with the specified video_id 
             to a playlist with the specified playlist_id.
@@ -6931,11 +6897,11 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def remove_video_from_playlist(self, playlist_item_id: str) -> bool:
+        def remove_item_from_playlist(self, playlist_item_id: str) -> (bool | None):        
             """
-            This method allows you to remove a video from a playlist using the 
-            playlist_item_id. Note that you need to retrieve the playlist_item_id 
-            of the specific video in the playlist before using this method.
+            Removes the play list video specified by playlist_item_id from the 
+            playist that contains it. Returns True if the video was removed successfully
+            and None otherwise.
             """
             service = self.service
 
@@ -6957,10 +6923,10 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def iterate_videos_in_playlist(self, playlist_id: str, func=None) -> (bool | None):
+        def iterate_items_in_playlist(self, playlist_id: str, func=None) -> (bool | None):
             try:
                 if func is not None:
-                    videos = self.get_playlist_videos(playlist_id)
+                    videos = self.get_playlist_items(playlist_id)
                     if videos:
                         for video in videos:
                             func(video)
@@ -6983,7 +6949,14 @@ class YouTubeDataAPIv3Tools:
                 return None
              
         #////// ENTIRE PLAYLIST ITEM RESOURCE //////
-        def get_playlist_item_by_index(self, playlist_id: str, index: int=0) -> (str | None):
+        def get_item_by_index(self, playlist_id: str, index: int=0) -> (str | None):
+            """
+            Returns the playlist item resource of the item specified by index
+            from the playlist specified by playlist_id. Use this method in 
+            conjunction with PlaylistItem.iterate_items_in_playlist() if 
+            you don't know a specific playlist items ID and don't have the name
+            to find it either. 
+            """
             service = self.service
 
             try:
@@ -6992,10 +6965,10 @@ class YouTubeDataAPIv3Tools:
                     playlistId=playlist_id
                 )
                 response = request.execute()
-
-                playlist_item = response["items"][index]
-                return playlist_item
-
+                if "items" in response:
+                    playlist_item = response["items"][index]
+                    return playlist_item
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7009,7 +6982,11 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_playlist_item_by_id(self, item_id: str=None) -> (list[dict] | None):
+        def get_item_by_id(self, item_id: str=None) -> (list[dict] | None):
+            """
+            Returns the playlist item resource of the item specified by item ID if
+            successful otherwise returns None.
+            """
             service = self.service
 
             try:
@@ -7018,10 +6995,10 @@ class YouTubeDataAPIv3Tools:
                     id=item_id
                 )
                 response = request.execute()
-
-                playlist_item = response["items"][0]
-                return playlist_item
-
+                if "items" in response:
+                    playlist_item = response["items"][0]
+                    return playlist_item
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7035,7 +7012,11 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_all_playlist_items(self, playlist_id: str) -> (str | None):
+        def get_all_items(self, playlist_id: str) -> (str | None):
+            """
+            Returns all playlist items from the playlist specified by playlist_id.
+            Returns None otherwise.
+            """
             service = self.service
 
             try:
@@ -7044,11 +7025,13 @@ class YouTubeDataAPIv3Tools:
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                items = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    items.append(pitem)
-                return items
+                if "items" in response:
+                    items = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        items.append(pitem)
+                    return items
+                else: return None
 
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
@@ -7063,19 +7046,22 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_playlist_item(self, item_id: str) -> (str | None):
+        def get_item(self, item_id: str) -> (str | None):
+            """
+            Returns the item resource associated with the given item_id. Returns None
+            otherwise.
+            """
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                playlist_item = response["items"]
-                return playlist_item
-
+                if "items" in response:
+                    playlist_item = response["items"]
+                    return playlist_item
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7090,19 +7076,22 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// PLAYLIST ITEM KIND //////
-        def get_playlist_item_kind(self, item_id: str) -> (str | None):
+        def get_kind_of_item(self, item_id: str) -> (str | None):
+            """
+            Returns the item kind associated with the given item_id. Returns None
+            otherwise.
+            """
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                kind = response["items"][0]["kind"]
-                return kind
-
+                if "items" in response:
+                    kind = response["items"][0]["kind"]
+                    return kind
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7116,21 +7105,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_all_playlist_item_kinds(self, playlist_id: str) -> (list[str] | None):
+        def get_kind_of_all_items(self, playlist_id: str) -> (list[str] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                kinds = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    kinds.append(pitem["kind"])
-                return kinds
-
+                if "items" in response:
+                    kinds = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        kinds.append(pitem["kind"])
+                    return kinds
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7145,19 +7134,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST ITEM ETAG //////
-        def get_playlist_item_etag(self, item_id: str) -> (str | None):
+        def get_etag(self, item_id: str) -> (str | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                etag = response["items"][0]["etag"]
-                return etag
-
+                if "items" in response:
+                    etag = response["items"][0]["etag"]
+                    return etag
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7171,21 +7159,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_etags(self, playlist_id: str) -> (list[str] | None):
+        def get_all_etags(self, playlist_id: str) -> (list[str] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                etags = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    etags.append(pitem["etag"])
-                return etags
- 
+                if "items" in response:
+                    etags = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        etags.append(pitem["etag"])
+                    return etags
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7200,19 +7188,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST ITEM ETAG //////
-        def get_playlist_item_id(self, item_id: str) -> (str | None):
+        def get_id(self, item_id: str) -> (str | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                id = response["items"][0]["id"]
-                return id
-
+                if "items" in response:
+                    id = response["items"][0]["id"]
+                    return id
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7226,21 +7213,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_ids(self, playlist_id: str) -> (list[str] | None):
+        def get_all_ids(self, playlist_id: str) -> (list[str] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                etags = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    id.append(pitem["id"])
-                return id
- 
+                if "items" in response:
+                    etags = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        id.append(pitem["id"])
+                    return id
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7255,19 +7242,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST ITEM SNIPPETS //////
-        def get_playlist_item_snippet(self, item_id: str) -> (str | None):
+        def get_snippet(self, item_id: str) -> (str | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                snippet = response["items"][0]["snippet"]
-                return snippet
-
+                if "items" in response:
+                    snippet = response["items"][0]["snippet"]
+                    return snippet
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7281,21 +7267,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_snippets(self, playlist_id: str) -> (list[str] | None):
+        def get_all_snippets(self, playlist_id: str) -> (list[str] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                snippets = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    snippets.append(pitem["snippet"])
-                return snippets
- 
+                if "items" in response:
+                    snippets = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        snippets.append(pitem["snippet"])
+                    return snippets
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7310,19 +7296,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST ITEM PUBLISH DATES //////
-        def get_playlist_item_published_date(self, item_id: str) -> (str | None):
+        def get_published_date(self, item_id: str) -> (str | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                date = response["items"][0]["snippet"]["publishedAt"]
-                return date
-
+                if "items" in response:
+                    date = response["items"][0]["snippet"]["publishedAt"]
+                    return date
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7336,21 +7321,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_publish_dates(self, playlist_id: str) -> (list[str] | None):
+        def get_all_publish_dates(self, playlist_id: str) -> (list[str] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                dates = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    dates.append(pitem["snippet"]["publishedAt"])
-                return dates
- 
+                if "items" in response:
+                    dates = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        dates.append(pitem["snippet"]["publishedAt"])
+                    return dates
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7365,19 +7350,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST ITEM CHANNEL ID //////
-        def get_playlist_item_channel_id(self, item_id: str) -> (str | None):
+        def get_channel_id(self, item_id: str) -> (str | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                id = response["items"][0]["snippet"]["channelId"]
-                return id
-
+                if "items" in response:
+                    id = response["items"][0]["snippet"]["channelId"]
+                    return id
+                else: return None 
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7391,21 +7375,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_channel_ids(self, playlist_id: str) -> (list[str] | None):
+        def get_all_channel_ids(self, playlist_id: str) -> (list[str] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                ids = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    ids.append(pitem["snippet"]["channelId"])
-                return ids
- 
+                if "items" in response:
+                    ids = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        ids.append(pitem["snippet"]["channelId"])
+                    return ids
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7420,19 +7404,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST ITEM TITLE //////
-        def get_playlist_item_title(self, item_id: str) -> (str | None):
+        def get_title(self, item_id: str) -> (str | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                title = response["items"][0]["snippet"]["title"]
-                return title
-
+                if "items" in response:
+                    title = response["items"][0]["snippet"]["title"]
+                    return title
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7446,21 +7429,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_titles(self, playlist_id: str) -> (list[str] | None):
+        def get_all_titles(self, playlist_id: str) -> (list[str] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                titles = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    titles.append(pitem["snippet"]["title"])
-                return titles
- 
+                if "items" in response:
+                    titles = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        titles.append(pitem["snippet"]["title"])
+                    return titles
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7475,19 +7458,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST ITEM DESCRIPTION //////
-        def get_playlist_item_description(self, item_id: str) -> (str | None):
+        def get_description(self, item_id: str) -> (str | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                description = response["items"][0]["snippet"]["description"]
-                return description
-
+                if "items" in response:
+                    description = response["items"][0]["snippet"]["description"]
+                    return description
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7501,21 +7483,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_descriptions(self, playlist_id: str) -> (list[str] | None):
+        def get_all_descriptions(self, playlist_id: str) -> (list[str] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                descriptions = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    descriptions.append(pitem["snippet"]["description"])
-                return descriptions
- 
+                if "items" in response:
+                    descriptions = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        descriptions.append(pitem["snippet"]["description"])
+                    return descriptions
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7530,19 +7512,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST ITEM THUMBNAILS //////
-        def get_playlist_item_thumbnail(self, item_id: str) -> (dict | None):
+        def get_thumbnail(self, item_id: str) -> (dict | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                thumb = response["items"][0]["snippet"]["thumbnails"]
-                return thumb
-
+                if "items" in response:
+                    thumb = response["items"][0]["snippet"]["thumbnails"]
+                    return thumb
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7556,21 +7537,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_thumbnails(self, playlist_id: str) -> (list[dict] | None):
+        def get_all_thumbnails(self, playlist_id: str) -> (list[dict] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                thumbs = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    thumbs.append(pitem["snippet"]["thumbnails"])
-                return thumbs
- 
+                if "items" in response:
+                    thumbs = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        thumbs.append(pitem["snippet"]["thumbnails"])
+                    return thumbs
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7585,19 +7566,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST ITEM DEFAULT RES THUMBNAIL //////
-        def get_playlist_item_default_res_thumbnail(self, item_id: str) -> (dict | None):
+        def get_default_res_thumbnail(self, item_id: str) -> (dict | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                thumb = response["items"][0]["snippet"]["thumbnails"]["default"]
-                return thumb
-
+                if "items" in response:
+                    thumb = response["items"][0]["snippet"]["thumbnails"]["default"]
+                    return thumb
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7611,21 +7591,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_default_res_thumbnails(self, playlist_id: str) -> (list[dict] | None):
+        def get_all_default_res_thumbnails(self, playlist_id: str) -> (list[dict] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                thumbs = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    thumbs.append(pitem["snippet"]["thumbnails"]["default"])
-                return thumbs
- 
+                if "items" in response:
+                    thumbs = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        thumbs.append(pitem["snippet"]["thumbnails"]["default"])
+                    return thumbs
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7639,19 +7619,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_playlist_item_default_res_thumbnail_url(self, item_id: str) -> (str | None):
+        def get_default_res_thumbnail_url(self, item_id: str) -> (str | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                url = response["items"][0]["snippet"]["thumbnails"]["default"]["url"]
-                return url
-
+                if "items" in response:
+                    url = response["items"][0]["snippet"]["thumbnails"]["default"]["url"]
+                    return url
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7665,21 +7644,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_default_res_thumbnail_urls(self, playlist_id: str) -> (list[str] | None):
+        def get_all_default_res_thumbnail_urls(self, playlist_id: str) -> (list[str] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                urls = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    urls.append(pitem["snippet"]["thumbnails"]["default"]["url"])
-                return urls
- 
+                if "items" in response:
+                    urls = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        urls.append(pitem["snippet"]["thumbnails"]["default"]["url"])
+                    return urls
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7693,19 +7672,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_playlist_item_default_res_thumbnail_width(self, item_id: str) -> (int | None):
+        def get_default_res_thumbnail_width(self, item_id: str) -> (int | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                width = response["items"][0]["snippet"]["thumbnails"]["default"]["width"]
-                return int(width)
-
+                if "items" in response:
+                    width = response["items"][0]["snippet"]["thumbnails"]["default"]["width"]
+                    return int(width)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7719,21 +7697,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_default_res_thumbnail_widths(self, playlist_id: str) -> (list[int] | None):
+        def get_all_default_res_thumbnail_widths(self, playlist_id: str) -> (list[int] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                widths = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    widths.append(pitem["snippet"]["thumbnails"]["default"]["width"])
-                return widths
- 
+                if "items" in response:
+                    widths = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        widths.append(pitem["snippet"]["thumbnails"]["default"]["width"])
+                    return widths
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7747,19 +7725,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_playlist_item_default_res_thumbnail_height(self, item_id: str) -> (int | None):
+        def get_default_res_thumbnail_height(self, item_id: str) -> (int | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                height = response["items"][0]["snippet"]["thumbnails"]["default"]["height"]
-                return int(height)
-
+                if "items" in response:
+                    height = response["items"][0]["snippet"]["thumbnails"]["default"]["height"]
+                    return int(height)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7773,21 +7750,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_default_res_thumbnail_heights(self, playlist_id: str) -> (list[int] | None):
+        def get_all_default_res_thumbnail_heights(self, playlist_id: str) -> (list[int] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                heights = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    heights.append(pitem["snippet"]["thumbnails"]["default"]["height"])
-                return heights
- 
+                if "items" in response:
+                    heights = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        heights.append(pitem["snippet"]["thumbnails"]["default"]["height"])
+                    return heights
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7802,19 +7779,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST ITEM MEDIUM RES THUMBNAIL //////
-        def get_playlist_item_medium_res_thumbnail(self, item_id: str) -> (dict | None):
+        def get_medium_res_thumbnail(self, item_id: str) -> (dict | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                thumb = response["items"][0]["snippet"]["thumbnails"]["medium"]
-                return thumb
-
+                if "items" in response:
+                    thumb = response["items"][0]["snippet"]["thumbnails"]["medium"]
+                    return thumb
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7828,21 +7804,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_medium_res_thumbnails(self, playlist_id: str) -> (list[dict] | None):
+        def get_all_medium_res_thumbnails(self, playlist_id: str) -> (list[dict] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                thumbs = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    thumbs.append(pitem["snippet"]["thumbnails"]["medium"])
-                return thumbs
- 
+                if "items" in response:
+                    thumbs = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        thumbs.append(pitem["snippet"]["thumbnails"]["medium"])
+                    return thumbs
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7856,19 +7832,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_playlist_item_medium_res_thumbnail_url(self, item_id: str) -> (str | None):
+        def get_medium_res_thumbnail_url(self, item_id: str) -> (str | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                url = response["items"][0]["snippet"]["thumbnails"]["medium"]["url"]
-                return url
-
+                if "items" in response:
+                    url = response["items"][0]["snippet"]["thumbnails"]["medium"]["url"]
+                    return url
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7882,21 +7857,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_medium_res_thumbnail_urls(self, playlist_id: str) -> (list[str] | None):
+        def get_all_medium_res_thumbnail_urls(self, playlist_id: str) -> (list[str] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                urls = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    urls.append(pitem["snippet"]["thumbnails"]["medium"]["url"])
-                return urls
- 
+                if "items" in response:
+                    urls = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        urls.append(pitem["snippet"]["thumbnails"]["medium"]["url"])
+                    return urls
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7910,19 +7885,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_playlist_item_medium_res_thumbnail_width(self, item_id: str) -> (int | None):
+        def get_medium_res_thumbnail_width(self, item_id: str) -> (int | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                width = response["items"][0]["snippet"]["thumbnails"]["medium"]["width"]
-                return int(width)
-
+                if "items" in response:
+                    width = response["items"][0]["snippet"]["thumbnails"]["medium"]["width"]
+                    return int(width)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7936,21 +7910,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_medium_res_thumbnail_widths(self, playlist_id: str) -> (list[int] | None):
+        def get_all_medium_res_thumbnail_widths(self, playlist_id: str) -> (list[int] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                widths = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    widths.append(pitem["snippet"]["thumbnails"]["medium"]["width"])
-                return widths
- 
+                if "items" in response:
+                    widths = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        widths.append(pitem["snippet"]["thumbnails"]["medium"]["width"])
+                    return widths
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7964,19 +7938,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_playlist_item_medium_res_thumbnail_height(self, item_id: str) -> (int | None):
+        def get_medium_res_thumbnail_height(self, item_id: str) -> (int | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                height = response["items"][0]["snippet"]["thumbnails"]["medium"]["height"]
-                return int(height)
-
+                if "items" in response:
+                    height = response["items"][0]["snippet"]["thumbnails"]["medium"]["height"]
+                    return int(height)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -7990,21 +7963,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_medium_res_thumbnail_heights(self, playlist_id: str) -> (list[int] | None):
+        def get_all_medium_res_thumbnail_heights(self, playlist_id: str) -> (list[int] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                heights = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    heights.append(pitem["snippet"]["thumbnails"]["medium"]["height"])
-                return heights
- 
+                if "items" in response:
+                    heights = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        heights.append(pitem["snippet"]["thumbnails"]["medium"]["height"])
+                    return heights
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8019,19 +7992,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST ITEM HIGH RES THUMBNAIL //////
-        def get_playlist_item_high_res_thumbnail(self, item_id: str) -> (dict | None):
+        def get_high_res_thumbnail(self, item_id: str) -> (dict | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                thumb = response["items"][0]["snippet"]["thumbnails"]["high"]
-                return thumb
-
+                if "items" in response:
+                    thumb = response["items"][0]["snippet"]["thumbnails"]["high"]
+                    return thumb
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8045,21 +8017,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_high_res_thumbnails(self, playlist_id: str) -> (list[dict] | None):
+        def get_all_high_res_thumbnails(self, playlist_id: str) -> (list[dict] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                thumbs = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    thumbs.append(pitem["snippet"]["thumbnails"]["high"])
-                return thumbs
- 
+                if "items" in response:
+                    thumbs = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        thumbs.append(pitem["snippet"]["thumbnails"]["high"])
+                    return thumbs
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8073,19 +8045,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_playlist_item_high_res_thumbnail_url(self, item_id: str) -> (str | None):
+        def get_high_res_thumbnail_url(self, item_id: str) -> (str | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                url = response["items"][0]["snippet"]["thumbnails"]["high"]["url"]
-                return url
-
+                if "items" in response:
+                    url = response["items"][0]["snippet"]["thumbnails"]["high"]["url"]
+                    return url
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8099,21 +8070,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_high_res_thumbnail_urls(self, playlist_id: str) -> (list[str] | None):
+        def get_all_high_res_thumbnail_urls(self, playlist_id: str) -> (list[str] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                urls = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    urls.append(pitem["snippet"]["thumbnails"]["high"]["url"])
-                return urls
- 
+                if "items" in response:
+                    urls = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        urls.append(pitem["snippet"]["thumbnails"]["high"]["url"])
+                    return urls
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8127,19 +8098,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_playlist_item_high_res_thumbnail_width(self, item_id: str) -> (int | None):
+        def get_high_res_thumbnail_width(self, item_id: str) -> (int | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                width = response["items"][0]["snippet"]["thumbnails"]["high"]["width"]
-                return int(width)
-
+                if "items" in response:
+                    width = response["items"][0]["snippet"]["thumbnails"]["high"]["width"]
+                    return int(width)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8153,21 +8123,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_high_res_thumbnail_widths(self, playlist_id: str) -> (list[int] | None):
+        def get_all_high_res_thumbnail_widths(self, playlist_id: str) -> (list[int] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                widths = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    widths.append(pitem["snippet"]["thumbnails"]["high"]["width"])
-                return widths
- 
+                if "items" in response:
+                    widths = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        widths.append(pitem["snippet"]["thumbnails"]["high"]["width"])
+                    return widths
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8181,19 +8151,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_playlist_item_high_res_thumbnail_height(self, item_id: str) -> (int | None):
+        def get_high_res_thumbnail_height(self, item_id: str) -> (int | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                height = response["items"][0]["snippet"]["thumbnails"]["high"]["height"]
-                return int(height)
-
+                if "items" in response:
+                    height = response["items"][0]["snippet"]["thumbnails"]["high"]["height"]
+                    return int(height)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8207,21 +8176,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_high_res_thumbnail_heights(self, playlist_id: str) -> (list[int] | None):
+        def get_all_high_res_thumbnail_heights(self, playlist_id: str) -> (list[int] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                heights = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    heights.append(pitem["snippet"]["thumbnails"]["high"]["height"])
-                return heights
- 
+                if "items" in response:
+                    heights = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        heights.append(pitem["snippet"]["thumbnails"]["high"]["height"])
+                    return heights
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8236,19 +8205,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST ITEM STANDARD RES THUMBNAIL //////
-        def get_playlist_item_standard_res_thumbnail(self, item_id: str) -> (dict | None):
+        def get_standard_res_thumbnail(self, item_id: str) -> (dict | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                thumb = response["items"][0]["snippet"]["thumbnails"]["standard"]
-                return thumb
-
+                if "items" in response:
+                    thumb = response["items"][0]["snippet"]["thumbnails"]["standard"]
+                    return thumb
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8262,21 +8230,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_standard_res_thumbnails(self, playlist_id: str) -> (list[dict] | None):
+        def get_all_standard_res_thumbnails(self, playlist_id: str) -> (list[dict] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                thumbs = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    thumbs.append(pitem["snippet"]["thumbnails"]["standard"])
-                return thumbs
- 
+                if "items" in response:
+                    thumbs = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        thumbs.append(pitem["snippet"]["thumbnails"]["standard"])
+                    return thumbs
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8290,19 +8258,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_playlist_item_standard_res_thumbnail_url(self, item_id: str) -> (str | None):
+        def get_standard_res_thumbnail_url(self, item_id: str) -> (str | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                url = response["items"][0]["snippet"]["thumbnails"]["standard"]["url"]
-                return url
-
+                if "items" in response:
+                    url = response["items"][0]["snippet"]["thumbnails"]["standard"]["url"]
+                    return url
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8316,21 +8283,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_standard_res_thumbnail_urls(self, playlist_id: str) -> (list[str] | None):
+        def get_all_standard_res_thumbnail_urls(self, playlist_id: str) -> (list[str] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                urls = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    urls.append(pitem["snippet"]["thumbnails"]["standard"]["url"])
-                return urls
- 
+                if "items" in response:
+                    urls = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        urls.append(pitem["snippet"]["thumbnails"]["standard"]["url"])
+                    return urls
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8344,19 +8311,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_playlist_item_standard_res_thumbnail_width(self, item_id: str) -> (int | None):
+        def get_standard_res_thumbnail_width(self, item_id: str) -> (int | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                width = response["items"][0]["snippet"]["thumbnails"]["standard"]["width"]
-                return int(width)
-
+                if "items" in response:
+                    width = response["items"][0]["snippet"]["thumbnails"]["standard"]["width"]
+                    return int(width)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8370,21 +8336,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_standard_res_thumbnail_widths(self, playlist_id: str) -> (list[int] | None):
+        def get_all_standard_res_thumbnail_widths(self, playlist_id: str) -> (list[int] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                widths = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    widths.append(pitem["snippet"]["thumbnails"]["standard"]["width"])
-                return widths
- 
+                if "items" in response:
+                    widths = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        widths.append(pitem["snippet"]["thumbnails"]["standard"]["width"])
+                    return widths
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8398,19 +8364,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_playlist_item_standard_res_thumbnail_height(self, item_id: str) -> (int | None):
+        def get_standard_res_thumbnail_height(self, item_id: str) -> (int | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                height = response["items"][0]["snippet"]["thumbnails"]["standard"]["height"]
-                return int(height)
-
+                if "items" in response:
+                    height = response["items"][0]["snippet"]["thumbnails"]["standard"]["height"]
+                    return int(height)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8424,21 +8389,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_standard_res_thumbnail_heights(self, playlist_id: str) -> (list[int] | None):
+        def get_all_standard_res_thumbnail_heights(self, playlist_id: str) -> (list[int] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                heights = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    heights.append(pitem["snippet"]["thumbnails"]["standard"]["height"])
-                return heights
- 
+                if "items" in response:
+                    heights = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        heights.append(pitem["snippet"]["thumbnails"]["standard"]["height"])
+                    return heights
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8453,19 +8418,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST ITEM MAX RES THUMBNAIL //////
-        def get_playlist_item_max_res_thumbnail(self, item_id: str) -> (dict | None):
+        def get_max_res_thumbnail(self, item_id: str) -> (dict | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                thumb = response["items"][0]["snippet"]["thumbnails"]["maxres"]
-                return thumb
-
+                if "items" in response:
+                    thumb = response["items"][0]["snippet"]["thumbnails"]["maxres"]
+                    return thumb
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8479,21 +8443,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_max_res_thumbnails(self, playlist_id: str) -> (list[dict] | None):
+        def get_all_max_res_thumbnails(self, playlist_id: str) -> (list[dict] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                thumbs = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    thumbs.append(pitem["snippet"]["thumbnails"]["maxres"])
-                return thumbs
- 
+                if "items" in response:
+                    thumbs = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        thumbs.append(pitem["snippet"]["thumbnails"]["maxres"])
+                    return thumbs
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8507,19 +8471,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
                    
-        def get_playlist_item_max_res_thumbnail_url(self, item_id: str) -> (str | None):
+        def get_max_res_thumbnail_url(self, item_id: str) -> (str | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                url = response["items"][0]["snippet"]["thumbnails"]["maxres"]["url"]
-                return url
-
+                if "items" in response:
+                    url = response["items"][0]["snippet"]["thumbnails"]["maxres"]["url"]
+                    return url
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8533,21 +8496,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_max_res_thumbnail_urls(self, playlist_id: str) -> (list[str] | None):
+        def get_all_max_res_thumbnail_urls(self, playlist_id: str) -> (list[str] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                urls = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    urls.append(pitem["snippet"]["thumbnails"]["maxres"]["url"])
-                return urls
- 
+                if "items" in response:
+                    urls = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        urls.append(pitem["snippet"]["thumbnails"]["maxres"]["url"])
+                    return urls
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8561,19 +8524,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
              
-        def get_playlist_item_max_res_thumbnail_width(self, item_id: str) -> (int | None):
+        def get_max_res_thumbnail_width(self, item_id: str) -> (int | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                width = response["items"][0]["snippet"]["thumbnails"]["maxres"]["width"]
-                return int(width)
-
+                if "items" in response:
+                    width = response["items"][0]["snippet"]["thumbnails"]["maxres"]["width"]
+                    return int(width)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8587,21 +8549,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_max_res_thumbnail_widths(self, playlist_id: str) -> (list[int] | None):
+        def get_all_max_res_thumbnail_widths(self, playlist_id: str) -> (list[int] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                widths = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    widths.append(pitem["snippet"]["thumbnails"]["maxres"]["width"])
-                return widths
- 
+                if "items" in response:
+                    widths = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        widths.append(pitem["snippet"]["thumbnails"]["maxres"]["width"])
+                    return widths
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8615,19 +8577,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_playlist_item_max_res_thumbnail_height(self, item_id: str) -> (int | None):
+        def get_max_res_thumbnail_height(self, item_id: str) -> (int | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                height = response["items"][0]["snippet"]["thumbnails"]["maxres"]["height"]
-                return int(height)
-
+                if "items" in response:
+                    height = response["items"][0]["snippet"]["thumbnails"]["maxres"]["height"]
+                    return int(height)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8641,21 +8602,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_max_res_thumbnail_heights(self, playlist_id: str) -> (list[int] | None):
+        def get_all_max_res_thumbnail_heights(self, playlist_id: str) -> (list[int] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                heights = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    heights.append(pitem["snippet"]["thumbnails"]["maxres"]["height"])
-                return heights
- 
+                if "items" in response:
+                    heights = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        heights.append(pitem["snippet"]["thumbnails"]["maxres"]["height"])
+                    return heights
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8670,19 +8631,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST ITEM CHANNEL TITLE //////
-        def get_playlist_item_channel_title(self, item_id: str) -> (str | None):
+        def get_channel_title(self, item_id: str) -> (str | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                title = response["items"][0]["snippet"]["channelTitle"]
-                return title
-
+                if "items" in response:
+                    title = response["items"][0]["snippet"]["channelTitle"]
+                    return title
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8696,21 +8656,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_channel_titles(self, playlist_id: str) -> (list[str] | None):
+        def get_all_channel_titles(self, playlist_id: str) -> (list[str] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                titles = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    titles.append(pitem["snippet"]["channelTitle"])
-                return titles
- 
+                if "items" in response:
+                    titles = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        titles.append(pitem["snippet"]["channelTitle"])
+                    return titles
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8725,19 +8685,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST ITEM VIDEO OWNER CHANNEL TITLE //////
-        def get_playlist_item_video_owner_channel_title(self, item_id: str) -> (str | None):
+        def get_owners_channel_title(self, item_id: str) -> (str | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                title = response["items"][0]["snippet"]["videoOwnerChannelTitle"]
-                return title
-
+                if "items" in response:
+                    title = response["items"][0]["snippet"]["videoOwnerChannelTitle"]
+                    return title
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8751,7 +8710,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_video_owner_channel_titles(self, playlist_id: str) -> (list[str] | None):
+        def get_all_owner_channel_titles(self, playlist_id: str) -> (list[str] | None):
             service = self.service
             try:
                 request = service.playlistItems().list(
@@ -8759,12 +8718,13 @@ class YouTubeDataAPIv3Tools:
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                titles = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    titles.append(pitem["snippet"]["videoOwnerChannelTitle"])
-                return titles
- 
+                if "items" in response:
+                    titles = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        titles.append(pitem["snippet"]["videoOwnerChannelTitle"])
+                    return titles
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8779,19 +8739,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST ITEM VIDEO OWNER CHANNEL ID //////
-        def get_playlist_item_video_owner_channel_id(self, item_id: str) -> (str | None):
+        def get_owners_channel_id(self, item_id: str) -> (str | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                id = response["items"][0]["snippet"]["videoOwnerChannelId"]
-                return id
-
+                if "items" in response:
+                    id = response["items"][0]["snippet"]["videoOwnerChannelId"]
+                    return id
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8805,7 +8764,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_video_owner_channel_ids(self, playlist_id: str) -> (list[str] | None):
+        def get_all_owner_channel_ids(self, playlist_id: str) -> (list[str] | None):
             service = self.service
             try:
                 request = service.playlistItems().list(
@@ -8813,12 +8772,13 @@ class YouTubeDataAPIv3Tools:
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                ids = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    ids.append(pitem["snippet"]["videoOwnerChannelId"])
-                return ids
- 
+                if "items" in response:
+                    ids = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        ids.append(pitem["snippet"]["videoOwnerChannelId"])
+                    return ids
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8833,19 +8793,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST ITEM PLAYLIST ID //////
-        def get_playlist_item_playlist_id(self, item_id: str) -> (str | None):
+        def get_playlist_id(self, item_id: str) -> (str | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                id = response["items"][0]["snippet"]["playlistId"]
-                return id
-
+                if "items" in response:
+                    id = response["items"][0]["snippet"]["playlistId"]
+                    return id
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8860,19 +8819,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST ITEM POSITION //////
-        def get_playlist_item_position(self, item_id: str) -> (int | None):
+        def get_position(self, item_id: str) -> (int | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                position = response["items"][0]["snippet"]["position"]
-                return int(position)
-
+                if "items" in response:
+                    position = response["items"][0]["snippet"]["position"]
+                    return int(position)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8886,21 +8844,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_positions(self, playlist_id: str) -> (list[int] | None):
+        def get_all_positions(self, playlist_id: str) -> (list[int] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                positions = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    positions.append(pitem["snippet"]["position"])
-                return positions
- 
+                if "items" in response:
+                    positions = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        positions.append(pitem["snippet"]["position"])
+                    return positions
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8915,19 +8873,18 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// PLAYLIST ITEM RESOURCE ID //////
-        def get_playlist_item_resource_id(self, item_id: str) -> (int | None):
+        def get_resource_id(self, item_id: str) -> (int | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                id = response["items"][0]["snippet"]["resourceId"]
-                return id
-
+                if "items" in response:
+                    id = response["items"][0]["snippet"]["resourceId"]
+                    return id
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8941,21 +8898,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_resource_ids(self, playlist_id: str) -> (list[int] | None):
+        def get_all_resource_ids(self, playlist_id: str) -> (list[int] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                ids = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    ids.append(pitem["snippet"]["resourceId"])
-                return ids
- 
+                if "items" in response:
+                    ids = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        ids.append(pitem["snippet"]["resourceId"])
+                    return ids
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8970,19 +8927,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST ITEM RESOURCE ID KIND //////
-        def get_playlist_item_resource_id_kind(self, item_id: str) -> (str | None):
+        def get_resource_id_kind(self, item_id: str) -> (str | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                kind = response["items"][0]["snippet"]["resourceId"]["kind"]
-                return kind
-
+                if "items" in response:
+                    kind = response["items"][0]["snippet"]["resourceId"]["kind"]
+                    return kind
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -8996,21 +8952,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_resource_id_kinds(self, playlist_id: str) -> (list[str] | None):
+        def get_all_resource_id_kinds(self, playlist_id: str) -> (list[str] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                kinds = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    kinds.append(pitem["snippet"]["resourceId"]["kind"])
-                return kinds
- 
+                if "items" in response:
+                    kinds = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        kinds.append(pitem["snippet"]["resourceId"]["kind"])
+                    return kinds
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -9024,20 +8980,19 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        #////// PLAYLIST ITEM RESOURCE ID VIDEO ID //////
-        def get_playlist_item_resource_id_video_id(self, item_id: str) -> (str | None):
+        #////// PLAYLIST ITEM RESOURCE VIDEO ID //////
+        def get_resource_video_id(self, item_id: str) -> (str | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     id=item_id
                 )
                 response = request.execute()
-
-                id = response["items"][0]["snippet"]["resourceId"]["videoId"]
-                return id
-
+                if "items" in response:
+                    id = response["items"][0]["snippet"]["resourceId"]["videoId"]
+                    return id
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -9051,21 +9006,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_resource_id_video_ids(self, playlist_id: str) -> (list[str] | None):
+        def get_all_resource_video_ids(self, playlist_id: str) -> (list[str] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="snippet",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                ids = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    ids.append(pitem["snippet"]["resourceId"]["videoId"])
-                return ids
- 
+                if "items" in response:
+                    ids = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        ids.append(pitem["snippet"]["resourceId"]["videoId"])
+                    return ids
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -9080,19 +9035,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST ITEM CONTENT DETAILS //////
-        def get_playlist_item_content_details(self, item_id: str) -> (dict | None):
+        def get_content_details(self, item_id: str) -> (dict | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="contentDetails",
                     id=item_id
                 )
                 response = request.execute()
-
-                details = response["items"][0]["contentDetails"]
-                return details
-
+                if "items" in response:
+                    details = response["items"][0]["contentDetails"]
+                    return details
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -9106,21 +9060,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_items_content_details(self, playlist_id: str) -> (list[dict] | None):
+        def get_all_content_details(self, playlist_id: str) -> (list[dict] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="contentDetails",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                ids = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    ids.append(pitem["contentDetails"])
-                return ids
- 
+                if "items" in response:
+                    ids = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        ids.append(pitem["contentDetails"])
+                    return ids
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -9135,19 +9089,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST ITEM VIDEO ID //////
-        def get_playlist_item_video_id(self, item_id: str) -> (str | None):
+        def get_video_id(self, item_id: str) -> (str | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="contentDetails",
                     id=item_id
                 )
                 response = request.execute()
-
-                id = response["items"][0]["contentDetails"]["videoId"]
-                return id
-
+                if "items" in response:
+                    id = response["items"][0]["contentDetails"]["videoId"]
+                    return id
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -9161,21 +9114,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_video_ids(self, playlist_id: str) -> (list[str] | None):
+        def get_all_video_ids(self, playlist_id: str) -> (list[str] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="contentDetails",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                ids = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    ids.append(pitem["contentDetails"]["videoId"])
-                return ids
- 
+                if "items" in response:
+                    ids = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        ids.append(pitem["contentDetails"]["videoId"])
+                    return ids
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -9190,19 +9143,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST ITEM START AT //////
-        def get_playlist_item_start_at_time(self, item_id: str) -> (str | None):
+        def get_start_at_time(self, item_id: str) -> (str | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="contentDetails",
                     id=item_id
                 )
                 response = request.execute()
-
-                time = response["items"][0]["contentDetails"]["startAt"]
-                return time
-
+                if "items" in response:
+                    time = response["items"][0]["contentDetails"]["startAt"]
+                    return time
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -9216,21 +9168,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_start_at_times(self, playlist_id: str) -> (list[str] | None):
+        def get_all_start_at_times(self, playlist_id: str) -> (list[str] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="contentDetails",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                times = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    times.append(pitem["contentDetails"]["startAt"])
-                return times
- 
+                if "items" in response:
+                    times = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        times.append(pitem["contentDetails"]["startAt"])
+                    return times
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -9245,19 +9197,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST ITEM END AT //////
-        def get_playlist_item_end_at_time(self, item_id: str) -> (str | None):
+        def get_end_at_time(self, item_id: str) -> (str | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="contentDetails",
                     id=item_id
                 )
                 response = request.execute()
-
-                time = response["items"][0]["contentDetails"]["endAt"]
-                return time
-
+                if "items" in response:
+                    time = response["items"][0]["contentDetails"]["endAt"]
+                    return time
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -9271,21 +9222,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_end_at_times(self, playlist_id: str) -> (list[str] | None):
+        def get_all_end_at_times(self, playlist_id: str) -> (list[str] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="contentDetails",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                times = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    times.append(pitem["contentDetails"]["endAt"])
-                return times
- 
+                if "items" in response:
+                    times = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        times.append(pitem["contentDetails"]["endAt"])
+                    return times
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -9300,19 +9251,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST ITEM _NOTE //////
-        def get_playlist_item_note(self, item_id: str) -> (str | None):
+        def get_note(self, item_id: str) -> (str | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="contentDetails",
                     id=item_id
                 )
                 response = request.execute()
-
-                note = response["items"][0]["contentDetails"]["note"]
-                return note
-
+                if "items" in response:
+                    note = response["items"][0]["contentDetails"]["note"]
+                    return note
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -9326,21 +9276,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_notes(self, playlist_id: str) -> (list[str] | None):
+        def get_all_notes(self, playlist_id: str) -> (list[str] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="contentDetails",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                notes = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    notes.append(pitem["contentDetails"]["note"])
-                return notes
- 
+                if "items" in response:
+                    notes = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        notes.append(pitem["contentDetails"]["note"])
+                    return notes
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -9355,19 +9305,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST ITEM VIDEO PUBLISHED DATE //////
-        def get_playlist_item_video_published_date(self, item_id: str) -> (str | None):
+        def get_published_date(self, item_id: str) -> (str | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="contentDetails",
                     id=item_id
                 )
                 response = request.execute()
-
-                date = response["items"][0]["contentDetails"]["videoPublishedAt"]
-                return date
-
+                if "items" in response:
+                    date = response["items"][0]["contentDetails"]["videoPublishedAt"]
+                    return date
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -9381,21 +9330,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_video_published_dates(self, playlist_id: str) -> (list[str] | None):
+        def get_all_published_dates(self, playlist_id: str) -> (list[str] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="contentDetails",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                dates = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    dates.append(pitem["contentDetails"]["videoPublishedAt"])
-                return dates
- 
+                if "items" in response:
+                    dates = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        dates.append(pitem["contentDetails"]["videoPublishedAt"])
+                    return dates
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -9410,19 +9359,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST ITEM STATUS //////
-        def get_playlist_item_status(self, item_id: str) -> (dict | None):
+        def get_status(self, item_id: str) -> (dict | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="status",
                     id=item_id
                 )
                 response = request.execute()
-
-                status = response["items"][0]["status"]
-                return status
-
+                if "items" in response:
+                    status = response["items"][0]["status"]
+                    return status
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -9436,21 +9384,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_statuses(self, playlist_id: str) -> (list[dict] | None):
+        def get_all_statuses(self, playlist_id: str) -> (list[dict] | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="status",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                statuses = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    statuses.append(pitem["status"])
-                return statuses
- 
+                if "items" in response:
+                    statuses = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        statuses.append(pitem["status"])
+                    return statuses
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -9465,19 +9413,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// PLAYLIST ITEM PRIVACY STATUS //////
-        def get_playlist_item_privacy_status(self, item_id: str) -> (dict | None):
+        def get_privacy_status(self, item_id: str) -> (dict | None):
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="status",
                     id=item_id
                 )
                 response = request.execute()
-
-                status = response["items"][0]["status"]["privacyStatus"]
-                return status
-
+                if "items" in response:
+                    status = response["items"][0]["status"]["privacyStatus"]
+                    return status
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -9491,21 +9438,21 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_playlist_item_privacy_statuses(self, playlist_id: str) -> (list[dict] | None): 
+        def get_all_privacy_statuses(self, playlist_id: str) -> (list[dict] | None): 
             service = self.service
-
             try:
                 request = service.playlistItems().list(
                     part="status",
                     playlistId=playlist_id
                 )
                 response = request.execute()
-                statuses = []
-                playlist_items = response["items"]
-                for pitem in playlist_items:
-                    statuses.append(pitem["status"]["privacyStatus"])
-                return statuses
- 
+                if "items" in response:
+                    statuses = []
+                    playlist_items = response["items"]
+                    for pitem in playlist_items:
+                        statuses.append(pitem["status"]["privacyStatus"])
+                    return statuses
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -9519,6 +9466,8 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
+#//////////////////////////////
+
     #//////////// VIDEO ////////////
     class Video:
 
