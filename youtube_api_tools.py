@@ -3510,7 +3510,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL SECTION //////
-        def get_channel_section(self, section_id: str) -> (dict | None):
+        def get_section(self, section_id: str) -> (dict | None):
             service = self.service
             try:
                 channel = service.channelSections().list(
@@ -3535,7 +3535,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_channel_section_by_index(self, index: int, channel_id: str=None) -> (dict | None):
+        def get_section_by_index(self, index: int, channel_id: str=None) -> (dict | None):
             service = self.service
             try:
                 if channel_id is not None:
@@ -3569,7 +3569,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_channel_sections(self, your_channel: bool=True, channel_id: str=None) -> (dict | None):
+        def get_sections(self, your_channel: bool=True, channel_id: str=None) -> (dict | None):
             """
             Returns all of the channel sections for either your channel or 
             the channel specified by channel_id. Returns None if unsuccessful.
@@ -3614,7 +3614,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL SECTION KIND //////
-        def get_channel_section_kind(self, section_id: str) -> (str | None):
+        def get_kind(self, section_id: str) -> (str | None):
             """
             Returns the channel section kind for the channel section specified
             by section_id. Returns None if unsuccessful.
@@ -3643,7 +3643,7 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// CHANNEL SECTION ETAG //////
-        def get_channel_section_etag(self, section_id) -> (str | None):
+        def get_etag(self, section_id) -> (str | None):
             """
             Returns the channel section etag for the channel section specified
             by section_id. Returns None if unsuccessful.
@@ -3673,7 +3673,7 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// CHANNEL SECTION ID //////
-        def get_channel_section_id_by_index(self, channel_id: str, section_index) -> (str | None):
+        def get_id_by_index(self, channel_id: str, section_index) -> (str | None):
             """
             Returns the channel section id for the channel section specified
             by index on the channel specified by channel_id. Returns None if unsuccessful.
@@ -3693,7 +3693,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"An API error occurred: {e}")
                 return None
             except IndexError as ie:
-                print(f"There are no channels with the given ID.\n{ie}")
+                print(f"There are no more sections. The last section is at index {section_index - 1}\n{ie}")
                 return None
             except TypeError as te:
                 print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
@@ -3702,7 +3702,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_channel_section_id_by_type(self, channel_id: str, section_type: str) -> (str | None):
+        def get_id_by_type(self, channel_id: str, section_type: str) -> (str | None):
             """
             Returns the channel section IDs for the channel section type specified
             by section_type on the channel specified by channel ID. 
@@ -3735,7 +3735,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_channel_section_ids(self, channel_id: str) -> (list[str] | None):
+        def get_ids(self, channel_id: str) -> (list[str] | None):
             """
             Returns the channel section IDs for the channel specified by channel_id. 
             Returns None if unsuccessful.
@@ -3768,7 +3768,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL SECTION SNIPPET //////
-        def get_channel_section_snippet(self, section_id) -> (str | None):
+        def get_snippet(self, section_id) -> (str | None):
             """
             Returns the channel section snippet for the channel section specified
             by section_id. Returns None if unsuccessful.
@@ -3797,7 +3797,7 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// CHANNEL SECTION TYPE //////
-        def get_channel_section_type(self, section_id) -> (str | None):
+        def get_type(self, section_id) -> (str | None):
             """
             Returns the channel section type for the channel section specified
             by section_id. Returns None if unsuccessful.
@@ -3826,7 +3826,7 @@ class YouTubeDataAPIv3Tools:
                 return None
     
         #////// CHANNEL SECTION CHANNEL ID //////
-        def get_section_channel_id(self, section_id) -> (str | None):
+        def get_channel_id(self, section_id) -> (str | None):
             """
             Returns the channel section ID for the channel section specified
             by section_id. Returns None if unsuccessful.
@@ -3855,7 +3855,7 @@ class YouTubeDataAPIv3Tools:
                 return None
     
         #////// CHANNEL SECTION TITLE //////
-        def get_channel_section_title(self, section_id) -> (str | None):
+        def get_title(self, section_id) -> (str | None):
             """
             Returns the channel section title for the channel section specified
             by section_id. Returns None if unsuccessful.
@@ -3867,7 +3867,7 @@ class YouTubeDataAPIv3Tools:
                     id=section_id
                 ).execute()
                 if "items" in channel:
-                    title = channel["items"][0]["snippet"]["title"]
+                    title = channel["items"][0]["snippet"]
                     return title
                 else: return None
             except googleapiclient.errors.HttpError as e:
@@ -3884,7 +3884,7 @@ class YouTubeDataAPIv3Tools:
                 return None
     
         #////// CHANNEL SECTION POSITION //////
-        def get_channel_section_position(self, section_id) -> (int | None):
+        def get_position(self, section_id) -> (int | None):
             """
             Returns the channel section position for the channel section specified
             by section_id. Returns None if unsuccessful.
@@ -3913,7 +3913,7 @@ class YouTubeDataAPIv3Tools:
                 return None
     
         #////// CHANNEL SECTION CONTENT DETAILS //////
-        def get_channel_section_content_details(self, section_id) -> (dict | None):
+        def get_details(self, section_id) -> (dict | None):
             """
             Returns the channel section content details for the channel section specified
             by section_id. Returns None if unsuccessful.
@@ -3942,7 +3942,7 @@ class YouTubeDataAPIv3Tools:
                 return None
     
         #////// CHANNEL SECTION PLAYLISTS //////
-        def get_channel_section_playlists(self, section_id) -> (list[str] | None):
+        def get_playlists(self, section_id) -> (list[str] | None):
             """
             Returns the channel section playlists for the channel section specified
             by section_id. Returns None if unsuccessful.
@@ -3971,7 +3971,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CHANNEL SECTION CHANNELS //////
-        def get_channel_section_channels(self, section_id) -> (list[str] | None):
+        def get_channels(self, section_id) -> (list[str] | None):
             """
             Returns the channel section channels for the channel section specified
             by section_id. Returns None if unsuccessful.
