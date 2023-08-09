@@ -3999,13 +3999,30 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-    #//////////// CHANNEL BANNER ////////////
+    #//////////// CHANNEL BANNER  ////////////
     class ChannelBanner:
         def __init__(self):
             raise NotImplementedError
               
     #//////////// PLAYLIST ////////////
-    class Playlist: 
+    class Playlist:
+        """
+        A playlist resource represents a YouTube playlist. A playlist is a collection 
+        of videos that can be viewed sequentially and shared with other users. By default, 
+        playlists are publicly visible to other users, but playlists can be public or 
+        private.
+
+        YouTube also uses playlists to identify special collections of videos for a channel, 
+        such as:
+        
+            uploaded videos
+            positively rated (liked) videos
+        
+        To be more specific, these lists are associated with a channel, which is a 
+        collection of a person, group, or company's videos, playlists, and other YouTube 
+        information. You can retrieve the playlist IDs for each of these lists from 
+        the channel resource for a given channel using the Channel class.
+        """
         def __init__(self, ytd_api_tools: object) -> None:
             self.apitools_ref = ytd_api_tools
             self.service = ytd_api_tools.service
@@ -6867,14 +6884,15 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def add_item_to_playlist(self, playlist_id: str, video_id: str) -> (bool | None):
+        def save_to_playlist(self, playlist_id: str, video_id: str) -> (bool | None):
             """
-            This method allows you to add a video with the specified video_id 
-            to a playlist with the specified playlist_id.
+            This method allows you to save a video specified by ID to a playlist
+            also specified by ID.
             """
             service = self.service
+
             try:
-                request = service.playlistItems().insert(
+                service.playlistItems().insert(
                     part="snippet",
                     body={
                         "snippet": {
@@ -6885,24 +6903,24 @@ class YouTubeDataAPIv3Tools:
                             }
                         }
                     }
-                )
-                response = request.execute()
+                ).execute()
+
                 return True
 
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
-            except IndexError as ie:
-                print(f"There are no playlists with the given ID.\n{ie}")
+            except IndexError as e:
+                print(f"IndexError:\n{e}")
                 return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+            except TypeError as e:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
                 return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+            except KeyError as e:
+                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
                 return None
         
-        def remove_item_from_playlist(self, playlist_item_id: str) -> (bool | None):        
+        def remove_from_playlist(self, playlist_item_id: str) -> (bool | None):        
             """
             Removes the play list video specified by playlist_item_id from the 
             playist that contains it. Returns True if the video was removed successfully
@@ -9471,8 +9489,6 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-#//////////////////////////////
-
     #//////////// VIDEO ////////////
     class Video:
 
@@ -9482,20 +9498,15 @@ class YouTubeDataAPIv3Tools:
         #////// UTILITY METHODS //////                    
         def upload_video(self, video_path: str, title: str, description: str, privacy_status: str="public") -> (bool | None):
             """
-            The upload_video(video_path, title, description, privacy_status), takes the 
-            following parameters:
+            Uploads a video specified by video_path with the given details to YouTube. The 
+            following is a breakdown of this methods parameters. Returns True if the video
+            was uploaded successfully and False otherwise. Returns None upon an error.
 
                 video_path:     The local file path of the video you want to upload.
                 title:          The title of the video.
                 description:    The description of the video.
                 privacy_status: (Optional) The privacy status of the uploaded video. It can 
                 be set to "public," "private," or "unlisted." The default is "public."
-                
-            Before using this method or any method in this class, ensure you have the 
-            get_authenticated_service() method defined as shown in the previous responses 
-            to obtain an authenticated YouTube API service. This ensures that your 
-            application is authorized to make API requests and has the necessary permissions 
-            to upload videos on behalf of the user.
 
             """
             import requests
@@ -9552,6 +9563,10 @@ class YouTubeDataAPIv3Tools:
                 return None 
         
         def exists(self, video_id: str) -> bool:
+            """
+            Checks if the video specified by video_id exists or not.
+            If so returns True otherwise returns False.
+            """
             try:
                 if self.get_video(video_id) is not None:
                     return True
@@ -9566,147 +9581,116 @@ class YouTubeDataAPIv3Tools:
                 return False
                           
         def delete(self, video_id: str) -> (bool | None):
+            """
+            Deletes the video specified by video_id after checking that it exists.
+            If the video exists and is deleted successfully returns True otherwise 
+            returns None.
+            """
             service = self.service
+            if self.exists(video_id):
+                try:
+                    service.videos().delete(
+                        id=video_id
+                    ).execute()
 
-            try:
-                service.videos().delete(
-                    id=video_id
-                ).execute()
-
-                return True
-            except OSError as e:
-                print(f"An OS error occurred: {e}")
-                None
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as e:
-                print(f"IndexError:\n{e}")
-                return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                return None
+                    return True
+                except OSError as e:
+                    print(f"An OS error occurred: {e}")
+                    None
+                except googleapiclient.errors.HttpError as e:
+                    print(f"An API error occurred: {e}")
+                    return None
+                except IndexError as e:
+                    print(f"IndexError:\n{e}")
+                    return None
+                except TypeError as te:
+                    print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                    return None
+                except KeyError as ke:
+                    print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                    return None
+            else: return None
 
         def like(self, video_id: str) -> (bool | None):
             """
-            This method like_video(video_id) takes the video_id of the video 
-            you want to like and calls the videos.rate method with rating="like" 
-            to like the video.
+            Positively rates the video specified by video_id and returns True. Returns
+            False if the video doesn't exist and None otherwise.
             """
             service = self.service
+            if self.exists(video_id):
+                try:
+                    service.videos().rate(
+                        id=video_id,
+                        rating="like"
+                    ).execute()
+                    return True
 
-            try:
-                request = service.videos().rate(
-                    id=video_id,
-                    rating="like"
-                )
-                response = request.execute()
-                return True
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as e:
-                print(f"IndexError:\n{e}")
-                return None
-            except TypeError as e:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
-                return None
-            except KeyError as e:
-                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
-                return None
+                except googleapiclient.errors.HttpError as e:
+                    print(f"An API error occurred: {e}")
+                    return None
+                except IndexError as e:
+                    print(f"IndexError:\n{e}")
+                    return None
+                except TypeError as e:
+                    print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                    return None
+                except KeyError as e:
+                    print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                    return None
+            else: return False
 
         def unlike(self, video_id: str) -> (bool | None):
-            service = self.service
-
-            try:
-                request = service.videos().rate(
-                    id=video_id,
-                    rating="none"
-                )
-                response = request.execute()
-
-                return True
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as e:
-                print(f"IndexError:\n{e}")
-                return None
-            except TypeError as e:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
-                return None
-            except KeyError as e:
-                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
-                return None
-
-        def save_to_playlist(self, playlist_id: str, video_id: str) -> (bool | None):
             """
-            This method allows you to save a video specified by ID to a playlist
-            also specified by ID.
+            Negatively rates the video specified by video_id and returns True. Returns
+            False if the video doesn't exist and None otherwise.
             """
             service = self.service
-
-            try:
-                service.playlistItems().insert(
-                    part="snippet",
-                    body={
-                        "snippet": {
-                            "playlistId": playlist_id,
-                            "resourceId": {
-                                "kind": "youtube#video",
-                                "videoId": video_id
-                            }
-                        }
-                    }
-                ).execute()
-
-                return True
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as e:
-                print(f"IndexError:\n{e}")
-                return None
-            except TypeError as e:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
-                return None
-            except KeyError as e:
-                print(f"Key error: Bad key. Field doesn't exists!\n{e}")
-                return None
-
-        def update_privacy_status(self, video_id: str, privacy_status: str) -> (bool | None):
+            if self.exists(video_id):
+                try:
+                    service.videos().rate(
+                        id=video_id,
+                        rating="none"
+                    ).execute()
+                    return True
+                except googleapiclient.errors.HttpError as e:
+                    print(f"An API error occurred: {e}")
+                    return None
+                except IndexError as e:
+                    print(f"IndexError:\n{e}")
+                    return None
+                except TypeError as e:
+                    print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{e}")
+                    return None
+                except KeyError as e:
+                    print(f"Key error: Bad key. Field doesn't exists!\n{e}")
+                    return None
+            else: return False
+        
+        def update_privacy_status(self, video_id: str, privacy_status: str="public") -> (bool | None):
             """
-            This function allows you to update the privacy status of a video 
-            with the specified video_id. The privacy_status can be set to 
-            "private," "public," or "unlisted."
+            Updates the privacy status of a video specified by video_id. The privacy_status 
+            can be set to "private," "public," or "unlisted." Returns None if no video
+            with he given ID exists.
             """
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="status",
                     id=video_id
                 ).execute()
-
-                status = video["items"][0]["status"]
-                status["privacyStatus"] = privacy_status
-
-                service.videos().update(
-                    part="status",
-                    body={
-                        "id": video_id,
-                        "status": status
-                    }
-                ).execute()
-
-                return True
-
+                if "items" in video:
+                    status = video["items"][0]["status"]
+                    status["privacyStatus"] = privacy_status
+                    
+                    service.videos().update(
+                        part="status",
+                        body={
+                            "id": video_id,
+                            "status": status
+                        }
+                    ).execute()
+                    return True
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -9722,9 +9706,8 @@ class YouTubeDataAPIv3Tools:
 
         def update_details(self, video_id: str, new_title: str=None, new_description: str=None, new_tags: list[str]=None) -> (bool | None):
             """
-            This method allows you to update the title, description, and tags of a 
-            video with the specified video_id. You can provide the new values for these 
-            parameters, and the snippet will be updated accordingly.
+            Update the title, description and tags for a video specified by video_id.
+            Returns True if the update was successful and None otherwise.
             """
             service = self.service
 
@@ -9733,25 +9716,23 @@ class YouTubeDataAPIv3Tools:
                     part="snippet",
                     id=video_id
                 ).execute()
-
-                snippet = video["items"][0]["snippet"]
-                if new_title:
-                    snippet["title"] = new_title
-                if new_description:
-                    snippet["description"] = new_description
-                if new_tags:
-                    snippet["tags"] = new_tags
-
-                service.videos().update(
-                    part="snippet",
-                    body={
-                        "id": video_id,
-                        "snippet": snippet
-                    }
-                ).execute()
-
-                return True
-
+                if "items" in video:
+                    snippet = video["items"][0]["snippet"]
+                    if new_title:
+                        snippet["title"] = new_title
+                    if new_description:
+                        snippet["description"] = new_description
+                    if new_tags:
+                        snippet["tags"] = new_tags
+                    service.videos().update(
+                        part="snippet",
+                        body={
+                            "id": video_id,
+                            "snippet": snippet
+                        }
+                    ).execute()
+                    return True
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -9775,12 +9756,12 @@ class YouTubeDataAPIv3Tools:
                     maxResults=max_results
                 )
                 response = request.execute()
-
-                trending = []
-                for item in response["items"]:
-                    trending.append(item)
-                return trending
-
+                if "items" in response:
+                    trending = []
+                    for item in response["items"]:
+                        trending.append(item)
+                    return trending
+                else: return None 
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10114,13 +10095,12 @@ class YouTubeDataAPIv3Tools:
            
         def update_thumbnail_with_url(self, video_id: str, thumbnail_url: str) -> (bool | None):
             """
-            This function allows you to update the thumbnail of a video using 
-            a custom image URL. Provide the video_id of the video you want to update, 
-            and the thumbnail_url that points to the new thumbnail image.
+            Update the thumbnail of a video specified by video_id using a custom image URL
+            specified by thumbnail_url that points to the new thumbnail image.
             """
             service = self.service
             try:
-                request = service.videos().update(
+                service.videos().update(
                     part="snippet",
                     body={
                         "id": video_id,
@@ -10132,8 +10112,7 @@ class YouTubeDataAPIv3Tools:
                             }
                         }
                     }
-                )
-                response = request.execute()
+                ).execute()
                 return True
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
@@ -10654,7 +10633,7 @@ class YouTubeDataAPIv3Tools:
                 return None
          
         #////// VIDEO CHANNEL TITLE //////
-        def get_video_channel_title(self, video_id: str, region_code: str="US") -> (list[str] | None):
+        def get_channel_title(self, video_id: str, region_code: str="US") -> (list[str] | None):
             service = self.service
             try:
                 video = service.videos().list(
@@ -11941,7 +11920,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO RECORDING DATE //////
-        def get_video_recording_date(self, video_id: str, region_code: str="US") -> (str | None):
+        def get_recording_date(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
             try:
                 video = service.videos().list(
@@ -13189,12 +13168,14 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
+#//////////////////////////////
+
     #//////////// VIDEO CATEGORIES ////////////
     class VideoCategories:
         def __init__(self, ytd_api_tools: object) -> None:
             self.service = ytd_api_tools.service   
         
-        def get_all_video_categories(self, country_code: str) -> (list[dict] | None):
+        def get_all_categories(self, country_code: str) -> (list[dict] | None):
             """
             This method retrieves all video categories available in a specific 
             region (identified by the regionCode). It prints information about 
@@ -13219,7 +13200,7 @@ class YouTubeDataAPIv3Tools:
             except googleapiclient.errors.HttpError as e:
                 print(f"An error occurred: {e}")
 
-        def get_video_category_by_id(self, category_id):
+        def get_category_by_id(self, category_id: str):
             """
             This method allows you to retrieve details about a specific 
             video category identified by its category_id. It prints information 
@@ -13238,56 +13219,6 @@ class YouTubeDataAPIv3Tools:
                     category = response["items"][0]
                     category_title = category["snippet"]["title"]
                     print(f"Category ID: {category_id}, Title: {category_title}")
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def get_videos_in_category(self, category_id, max_results=10):
-            """
-            This method retrieves videos that belong to a specific video category, 
-            identified by category_id. It prints information about each video, including 
-            its title and video ID.
-            """
-            service = self.service
-
-            try:
-                request = service.search().list(
-                    part="snippet",
-                    type="video",
-                    maxResults=max_results,
-                    videoCategoryId=category_id
-                )
-                response = request.execute()
-
-                for video in response["items"]:
-                    video_title = video["snippet"]["title"]
-                    video_id = video["id"]["videoId"]
-                    print(f"Video Title: {video_title} (Video ID: {video_id})")
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def get_most_popular_videos_in_category(self, category_id, max_results=10):
-            """
-            This method retrieves the most popular videos in a specific video category, 
-            ordered by the number of views.
-            """
-            service = self.service
-
-            try:
-                request = service.search().list(
-                    part="snippet",
-                    type="video",
-                    maxResults=max_results,
-                    videoCategoryId=category_id,
-                    order="viewCount"
-                )
-                response = request.execute()
-
-                for video in response["items"]:
-                    video_title = video["snippet"]["title"]
-                    video_id = video["id"]["videoId"]
-                    print(f"Video Title: {video_title} (Video ID: {video_id})")
 
             except googleapiclient.errors.HttpError as e:
                 print(f"An error occurred: {e}")
@@ -19012,6 +18943,56 @@ class YouTubeDataAPIv3Tools:
             except googleapiclient.errors.HttpError as e:
                 print(f"An error occurred: {e}")
  
+        def get_videos_in_category(self, category_id, max_results=10):
+            """
+            This method retrieves videos that belong to a specific video category, 
+            identified by category_id. It prints information about each video, including 
+            its title and video ID.
+            """
+            service = self.service
+
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    type="video",
+                    maxResults=max_results,
+                    videoCategoryId=category_id
+                )
+                response = request.execute()
+
+                for video in response["items"]:
+                    video_title = video["snippet"]["title"]
+                    video_id = video["id"]["videoId"]
+                    print(f"Video Title: {video_title} (Video ID: {video_id})")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
+        def get_most_popular_videos_in_category(self, category_id, max_results=10):
+            """
+            This method retrieves the most popular videos in a specific video category, 
+            ordered by the number of views.
+            """
+            service = self.service
+
+            try:
+                request = service.search().list(
+                    part="snippet",
+                    type="video",
+                    maxResults=max_results,
+                    videoCategoryId=category_id,
+                    order="viewCount"
+                )
+                response = request.execute()
+
+                for video in response["items"]:
+                    video_title = video["snippet"]["title"]
+                    video_id = video["id"]["videoId"]
+                    print(f"Video Title: {video_title} (Video ID: {video_id})")
+
+            except googleapiclient.errors.HttpError as e:
+                print(f"An error occurred: {e}")
+
     #//////////// LIVE BROADCASTS ///////////
     class LiveBroadcast:
         def __init__(self, ytd_api_tools: object) -> None:
