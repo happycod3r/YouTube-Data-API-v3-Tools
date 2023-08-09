@@ -1,10 +1,12 @@
-# Python3 YouTube Data API v3 Tools
+# YouTube Data API v3 Tools Library
 
 ![YouTubeDataAPIv3Tools](./docs/youtube_data_api_tools.png)
 
-> YouTube Data API v3 Tools is a concise wrapper around the YouTube API. The `YouTubeDataAPIv3Tools` class 
-> contains hundreds of methods to interact with YouTube. These methods cover all categories such as videos, playlists, 
-> channels, thumbnails, localization etc. I made sure to cover all the bases.
+> The YouTube Data API v3 Tools Library is a concise wrapper around the YouTube API. The `YouTubeDataAPIv3Tools` 
+> class and sub-classes contain hundreds of methods to interact with YouTube. These methods cover all 
+> categories such as videos, video categories, playlists, playlist items, subscriptions, comments, 
+> comment threads, captions, live streaming, channels, thumbnails, watermarks, localizations, activities, 
+> search, members, membership levels & abuse reporting. I made sure to cover all the bases.
 
 ## [Setup](#setup)
         
@@ -82,25 +84,52 @@ First import the `youtube_api_tools` module.
 import youtube_api_tools
 ```
 
-Next create a `YouTubeDataAPIv3Tools` object and pass the path to your ***client_secret.json*** file
+Next create a `YouTubeDataAPIv3Tools` object and pass the path to your ***client_secret.json*** file path
 as the first argument to the constructor and a list of scopes that you want to use as the 
-2nd argument. Then optionally pass the name for the token file that 
-will hold the authorization token as the 3rd argument to the constructor, and lastly your 
-channel ID as the last argument to the constructor.
+2nd argument. Then optionally pass an API developer key as the 3rd argument if you have one.
 
 ```python
+_client_secret = "client_secret_913312345634-hsdfrlsskr1gqsedjdsddnjga57j84s0chml.apps.googleusercontent.com.json"
+_scopes = ["https://www.googleapis.com/auth/youtube.readonly"]
+_dev_key = "A01ssSpaAWMeM1XsfguYJFxxnDIamdfgh-tLSAs823d"
+
 youtube = youtube_api_tools.YouTubeDataAPIv3Tools(
-    "client_secret_913312345634-hsdfrlsskr1gqsedjdimjga57j84s0chml.apps.googleusercontent.com.json",
-    ["https://www.googleapis.com/auth/youtube.readonly"]
+    _client_secret,
+    _scopes,
+    _dev_key
 )
 ```
 
-The constructor will call the `get_authenticated_service()` method which will use your 
-***client_secret.json*** file to authenticate the user and will store the authorization token in 
-a ***token.pickle*** file. Pretty much all of the YouTubeDataAPIv3Tools class methods and
-subclass methods rely on this authentication, so the service returned from `get_authenticated_service` 
-will be stored in a class variable called `self.service` and passed to each sub-classes constructor.
-This way we are using the same instance of the authentication service in subsequent method calls.
+The constructor will call the `get_authenticated_service()` method which will set up the OAuth 2.0 
+flow using your ***client_secret.json*** file to authenticate the user and will store the 
+authorization token in a ***token.pickle*** file. The actual service is wrapped in a method called `_get_authenticated_service()` and dependency injected. Pretty much all of the YouTubeDataAPIv3Tools class 
+methods and subclass methods rely on this authentication, so the service returned from `_get_authenticated_service` 
+will be stored in a class variable called `self.service`. Upon instanciation of any subclass of `YouTubeDataAPIv3Tools` a reference to the YouTubeDataAPIv3Tools class will be passes. This we way have a reference to the service stored in `self.service` in all sub classes and methods. Here is an example:
+
+```python
+tube = YouTubeDataAPIv3Tools(<your json>, <scopes>, <dev key>)
+
+# pass 'tube' as the first argument to the subclasses upon
+# instanciaution.
+channel = tube.Channel(tube) 
+playlist = tube.Playlist(tube)
+item = tube.PlaylistItem(tube)
+video = tube.Video(tube)
+
+cnn_channel_id = channel.get_id(False, "CNN")
+cnn_playlist_id = playlist.get_id("US News", cnn_channel_id)
+usnews_playlist_videos = playlist.get_playlist_items(cnn_playlist_id)
+
+# Like and unlike a playlists videos based on filters.
+for playlist_video in cnn_playlist_videos:
+    video_id = playlist_video["id"]
+    video_title = playlist_video["snippet"]["title"]
+    if video_title == "somethin somethin":
+        video.like(video_id)
+    else:
+        video.unlike(video_id)
+    
+```
 
 If no calls to the API are made after a few minutes the user will have to reauthenticate and
 grant the app permissions again in the browser. The ***token.pickle*** file will no
@@ -140,7 +169,8 @@ with them in various ways.
 ### Get your channel ID:
 
 ```python
-channel_id = youtube.get_channel_id()
+tube = youtube_api_tools.YouTubeDataAPIv3Tools(arg1, arg2, ...)
+channel = tube.Channel(tube) 
 ```
 
 ### Get a playlist ID:

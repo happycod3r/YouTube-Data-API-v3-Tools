@@ -71,6 +71,7 @@ class YouTubeDataAPIv3Tools:
         file in your code to initiate the authentication process.
         
     """
+    
     def __init__(
         self, 
         _client_secrets_json_path: str,
@@ -6807,7 +6808,7 @@ class YouTubeDataAPIv3Tools:
         def __init__(self, ytd_api_tools: object) -> None:
             self.service = ytd_api_tools.service
         
-        def get_playlist_items(self, playlist_id: str, max_results: int=10) -> (list | None):
+        def get_playlist_items(self, playlist_id: str, max_results: int=10) -> (list[dict] | None):
             service = self.service
             try:
                 request = service.playlistItems().list(
@@ -13556,7 +13557,7 @@ class YouTubeDataAPIv3Tools:
         def upload_caption_track(self, video_id: str, language: str, caption_file: str) -> (bool | None):
             service = self.service
             try:
-                request = service.captions().insert(
+                service.captions().insert(
                     part="snippet",
                     body={
                         "snippet": {
@@ -13567,8 +13568,7 @@ class YouTubeDataAPIv3Tools:
                         }
                     },
                     media_body=googleapiclient.http.MediaFileUpload(caption_file, mimetype="text/vtt", resumable=True)
-                )
-                response = request.execute()
+                ).execute()
                 return True
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
@@ -13586,10 +13586,9 @@ class YouTubeDataAPIv3Tools:
         def delete_caption_track(self, track_id: str) -> (bool | None):
             service = self.service
             try:
-                request = service.captions().delete(
+                service.captions().delete(
                     id=track_id
-                )
-                response = request.execute()
+                ).execute()
                 return True
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
@@ -13606,13 +13605,12 @@ class YouTubeDataAPIv3Tools:
 
         def update_caption_track(self, track_id: str, language: str, new_name: str) -> (bool | None):
             """
-            This function allows you to update the language and name of 
-            an existing caption track identified by track_id.
+            Allows you to update the language and name of an existing caption track 
+            identified by track_id.
             """
             service = self.service
-
             try:
-                request = service.captions().update(
+                service.captions().update(
                     part="snippet",
                     body={
                         "id": track_id,
@@ -13621,11 +13619,8 @@ class YouTubeDataAPIv3Tools:
                             "name": new_name
                         }
                     }
-                )
-                response = request.execute()
-
+                ).execute()
                 return True
-
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -13664,7 +13659,7 @@ class YouTubeDataAPIv3Tools:
                         return "failed"
                     else:
                         return "processing"
-
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -13687,10 +13682,12 @@ class YouTubeDataAPIv3Tools:
                     videoId=video_id
                 )
                 response = request.execute()
-                tracks = []
-                for item in response["items"]:
-                    tracks.append(item)
-                return tracks
+                if "items" in response:
+                    tracks = []
+                    for item in response["items"]:
+                        tracks.append(item)
+                    return tracks
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -13713,7 +13710,9 @@ class YouTubeDataAPIv3Tools:
                     videoId=video_id
                 )
                 response = request.execute()
-                return response["items"][0]
+                if "items" in response:
+                    return response["items"][0]
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -13736,10 +13735,12 @@ class YouTubeDataAPIv3Tools:
                     videoId=video_id
                 )
                 response = request.execute()
-                kinds = []
-                for item in response["items"]:
-                    kinds.append(item["kind"])
-                return kinds
+                if "items" in response:
+                    kinds = []
+                    for item in response["items"]:
+                        kinds.append(item["kind"])
+                    return kinds
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -13762,7 +13763,9 @@ class YouTubeDataAPIv3Tools:
                     videoId=video_id
                 )
                 response = request.execute()
-                return response["items"][0]["kind"]
+                if "items" in response:
+                    return response["items"][0]["kind"]
+                else: return None 
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
