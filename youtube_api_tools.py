@@ -13168,137 +13168,156 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-#//////////////////////////////
-
     #//////////// VIDEO CATEGORIES ////////////
     class VideoCategories:
         def __init__(self, ytd_api_tools: object) -> None:
-            self.service = ytd_api_tools.service   
-        
-        def get_all_categories(self, country_code: str) -> (list[dict] | None):
+            self.service = ytd_api_tools.service 
+            # TO IMPLEMENT
+        #   self.REGION_CODE = region_code
+        #   self.HL = hl
+ 
+        #////// UTILITY METHODS //////
+        def get_all_categories(self, region_code: str="US", hl: str="en_US") -> (list[dict] | None):
             """
             This method retrieves all video categories available in a specific 
             region (identified by the regionCode). It prints information about 
             each category, including its ID and title.
             """
             service = self.service
-
             try:
                 request = service.videoCategories().list(
                     part="snippet",
-                    regionCode=f"{country_code}"
+                    regionCode=region_code,
+                    hl=hl
                 )
                 response = request.execute()
-                categories = []
-                for category in response["items"]:
-                    category = {}
-                    category["id"] = category["id"]
-                    category["title"] = category["snippet"]["title"]
-                    categories.append(category)
-                return categories
-
+                if "items" in response:
+                    cats = []
+                    for item in response["items"]:
+                        cats.append(item["snippet"]["title"])
+                    return cats    
+                else: return None
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no categories.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
-        def get_category_by_id(self, category_id: str):
+        def get_category_by_id(self, category_id: str, hl: str="en_US") -> (dict | None):
             """
-            This method allows you to retrieve details about a specific 
-            video category identified by its category_id. It prints information 
-            about the category, including its title.
+            Retrieve the resoucre for the category specified by category_id. Returns
+            None if unsuccessful.
             """
             service = self.service
-
             try:
                 request = service.videoCategories().list(
                     part="snippet",
-                    id=category_id
+                    id=category_id,
+                    hl=hl
                 )
                 response = request.execute()
-
                 if "items" in response:
                     category = response["items"][0]
-                    category_title = category["snippet"]["title"]
-                    print(f"Category ID: {category_id}, Title: {category_title}")
-
+                    return category
+                else: return None
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no categories.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
 
-        def search_video_categories(self, query, max_results=10):
+        def get_category_details(self, category_id: str) -> (list[str] | None):
             """
-            This method allows you to search for video categories using a query. 
-            It prints information about each category that matches the search query.
-            """
-            service = self.service
-
-            try:
-                request = service.videoCategories().list(
-                    part="snippet",
-                    maxResults=max_results,
-                    q=query
-                )
-                response = request.execute()
-
-                for category in response["items"]:
-                    category_id = category["id"]
-                    category_title = category["snippet"]["title"]
-                    print(f"Category ID: {category_id}, Title: {category_title}")
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
-
-        def get_video_category_details(self, category_id):
-            """
-            This method retrieves details about a specific video category identified by 
+            Retrieves details about a specific video category identified by 
             its category_id, including its title and whether it's assignable to videos.
+            Returns a list of details if successful and None otherwise.
             """
             service = self.service
-
             try:
                 request = service.videoCategories().list(
                     part="snippet",
                     id=category_id
                 )
                 response = request.execute()
-
                 if "items" in response:
+                    details = []
                     category = response["items"][0]
-                    category_title = category["snippet"]["title"]
-                    category_assignable = category["snippet"]["assignable"]
-                    print(f"Category ID: {category_id}, Title: {category_title}, Assignable: {category_assignable}")
-
+                    details.append(category_id)
+                    details.append(category["snippet"]["title"])
+                    details.append(category["snippet"]["assignable"])
+                    return details
+                else: return None
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no categories.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
  
-        #////// UTILITY METHODS //////
-        def get_video_categories(self, region_code="US"):
+        def get_video_categories(self, region_code="US", hl: str="en_US") -> (list[str] | None):
+            """
+            Returns a list of video categories for the give region if successful
+            and None otherwise.
+            """
             service = self.service
-
             try:
                 request = service.videoCategories().list(
                     part="snippet",
-                    regionCode=region_code
+                    regionCode=region_code,
+                    hl=hl
                 )
                 response = request.execute()
-
-                for item in response["items"]:
-                    print(f"{item['id']} - {item['snippet']['title']}")
-
+                if "items" in response:
+                    for item in response["items"]:
+                        print(f"{item['id']} - {item['snippet']['title']}")
+                else: return None
             except googleapiclient.errors.HttpError as e:
-                print(f"An error occurred: {e}")
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"There are no categories.\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None
         
         #////// CATEGORY RESOURCE //////
-        def get_video_categories_resource(self, category_id) -> (dict | None):
+        def get_category(self, category_id: str, region_code="US", hl: str="en_US") -> (dict | None):
             service = self.service
-
             try:
                 video = service.videoCategories().list(
                     part="snippet",
-                    id=category_id
+                    id=category_id,
+                    regionCode=region_code,
+                    hl=hl
                 ).execute()
-
-                resource = video["items"][0]
-                return resource
-
+                if "items" in video:
+                    resource = video["items"][0]
+                    return resource
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -13313,18 +13332,19 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CATEGORY KIND //////
-        def get_video_category_kind(self, category_id) -> (str | None):
+        def get_kind_of_category(self, category_id: str, region_code="US", hl: str="en_US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videoCategories().list(
                     part="snippet",
-                    id=category_id
+                    id=category_id,
+                    regionCode=region_code,
+                    hl=hl
                 ).execute()
-
-                kind = video["items"][0]["kind"]
-                return kind 
-
+                if "items" in video:
+                    kind = video["items"][0]["kind"]
+                    return kind 
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -13339,18 +13359,19 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CATEGORY KIND //////
-        def get_video_category_etag(self, category_id) -> (str | None):
+        def get_etag(self, category_id: str, region_code="US", hl: str="en_US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videoCategories().list(
                     part="snippet",
-                    id=category_id
+                    id=category_id,
+                    regionCode=region_code,
+                    hl=hl
                 ).execute()
-
-                etag = video["items"][0]["etag"]
-                return etag 
-
+                if "items" in video:
+                    etag = video["items"][0]["etag"]
+                    return etag 
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -13365,18 +13386,20 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CATEGORY ID //////
-        def get_video_category_id(self, category_id) -> (str | None):
+        def get_id(self, category_name: str, region_code="US", hl: str="en_US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videoCategories().list(
                     part="snippet",
-                    id=category_id
+                    regionCode=region_code,
+                    hl=hl
                 ).execute()
-
-                id = video["items"][0]["id"]
-                return id 
-
+                if "items" in video:
+                    for item in video["items"]:
+                        if item["snippet"]["title"] == category_name:
+                            id = item["id"]
+                            return id
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -13391,18 +13414,19 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CATEGORY SNIPPET //////
-        def get_video_category_snippet(self, category_id) -> (str | None):
+        def get_snippet(self, category_id: str, region_code="US", hl: str="en_US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videoCategories().list(
                     part="snippet",
-                    id=category_id
+                    id=category_id,
+                    regionCode=region_code,
+                    hl=hl
                 ).execute()
-
-                snip = video["items"][0]["snippet"]
-                return snip
-
+                if "items" in video:
+                    snip = video["items"][0]["snippet"]
+                    return snip
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -13417,18 +13441,19 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CATEGORY CHANNEL ID //////
-        def get_video_category_channel_id(self, category_id) -> (str | None):
+        def get_channel_id(self, category_id: str, region_code="US", hl: str="en_US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videoCategories().list(
                     part="snippet",
-                    id=category_id
+                    id=category_id,
+                    regionCode=region_code,
+                    hl=hl
                 ).execute()
-
-                id = video["items"][0]["snippet"]["channelId"]
-                return id
-
+                if "items" in video:
+                    id = video["items"][0]["snippet"]["channelId"]
+                    return id
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -13443,18 +13468,19 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CATEGORY CHANNEL TITLE //////
-        def get_video_category_title(self, category_id) -> (str | None):
+        def get_title(self, category_id: str, region_code="US", hl: str="en_US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videoCategories().list(
                     part="snippet",
-                    id=category_id
+                    id=category_id,
+                    regionCode=region_code,
+                    hl=hl
                 ).execute()
-
-                title = video["items"][0]["snippet"]["title"]
-                return title
-
+                if "items" in video:
+                    title = video["items"][0]["snippet"]["title"]
+                    return title
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -13469,18 +13495,19 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// CATEGORY ASSIGNABLE //////
-        def video_category_is_assignable(self, category_id) -> (bool | None):
+        def is_assignable(self, category_id: str, region_code="US", hl: str="en_US") -> (bool | None):
             service = self.service
-
             try:
                 video = service.videoCategories().list(
                     part="snippet",
-                    id=category_id
+                    id=category_id,
+                    regionCode=region_code,
+                    hl=hl
                 ).execute()
-
-                assignable = video["items"][0]["snippet"]["assignable"]
-                return bool(assignable)
-
+                if "items" in video:
+                    assignable = video["items"][0]["snippet"]["assignable"]
+                    return bool(assignable)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -13493,7 +13520,9 @@ class YouTubeDataAPIv3Tools:
             except KeyError as ke:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
-          
+        
+#//////////////////////////////
+
     #//////////// VIDEO ABUSE REPORT REASON ////////////
     class VideoAbuseReportReason:
         def __init__(self, ytd_api_tools: object) -> None:
