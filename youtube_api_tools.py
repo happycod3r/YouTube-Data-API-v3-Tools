@@ -13523,506 +13523,6 @@ class YouTubeDataAPIv3Tools:
         
 #//////////////////////////////
 
-    #//////////// VIDEO ABUSE REPORT REASON ////////////
-    class VideoAbuseReportReason:
-        def __init__(self, ytd_api_tools: object) -> None:
-            self.service = ytd_api_tools.service
-
-        #////// ENTIRE VIDEO ABUSE REPORT REASON RESOURCE //////
-        def get_video_abuse_report_reason(self, reason: str) -> (dict | None):
-            service = self.service
-
-            try:
-                video = service.videoAbuseReportReasons().list(
-                    part="snippet",
-                ).execute()
-
-                resources = video["items"]
-                for item in resources:
-                    if item["snippet"]["label"] == reason:
-                        return item
-                    return None
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as ie:
-                print(f"IndexError: Reason doesn't exist\n{ie}")
-                return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                return None 
-        
-        def get_all_video_abuse_report_reasons(self) -> (list[dict] | None):
-            service = self.service
-
-            try:
-                video = service.videoAbuseReportReasons().list(
-                    part="snippet",
-                ).execute()
-
-                resources = video["items"]
-                reasons = []
-                for item in resources:
-                    reasons.append(item)
-                return reasons
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as ie:
-                print(f"IndexError: Reason doesn't exist\n{ie}")
-                return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                return None 
-        
-        #////// REPORT REASON KIND //////
-        def get_video_abuse_report_reason_kind(self, reason_id: str) -> (str | None):
-            service = self.service
-
-            try:
-                video = service.videoAbuseReportReasons().list(
-                    part="snippet",
-                ).execute()
-
-                resources = video["items"]
-                for item in resources:
-                    if item["id"] == reason_id:
-                        return item["kind"]
-                    return None
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as ie:
-                print(f"IndexError: Reason doesn't exist\n{ie}")
-                return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                return None 
-            
-        def get_all_video_abuse_report_reason_kinds(self) -> (list[str] | None):
-            service = self.service
-
-            try:
-                video = service.videoAbuseReportReasons().list(
-                    part="snippet",
-                ).execute()
-
-                resources = video["items"]
-                kinds = []
-                for item in resources:
-                    kinds.append(item["kind"])
-                return kinds
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as ie:
-                print(f"IndexError: Reason doesn't exist\n{ie}")
-                return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                return None 
-            
-        #////// REPORT REASON ETAG //////
-        def get_video_abuse_report_reason_etag(self, reason_id: str) -> (str | None):
-            service = self.service
-
-            try:
-                video = service.videoAbuseReportReasons().list(
-                    part="snippet",
-                ).execute()
-
-                resources = video["items"]
-                for item in resources:
-                    if item["id"] == reason_id:
-                        return item["etag"]
-                    return None
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as ie:
-                print(f"IndexError: Reason doesn't exist\n{ie}")
-                return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                return None 
-            
-        def get_all_video_abuse_report_reason_etags(self) -> (list[str] | None):
-            service = self.service
-
-            try:
-                video = service.videoAbuseReportReasons().list(
-                    part="snippet",
-                ).execute()
-
-                resources = video["items"]
-                etags = []
-                for item in resources:
-                    etags.append(item["etag"])
-                return etags
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as ie:
-                print(f"IndexError: Reason doesn't exist\n{ie}")
-                return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                return None 
-            
-        #////// REPORT REASON ID //////
-        def get_video_abuse_report_reason_id(self, reason: str) -> (str | None):
-            service = self.service
-
-            try:
-                video = service.videoAbuseReportReasons().list(
-                    part="snippet",
-                ).execute()
-
-                resources = video["items"]
-                for item in resources:
-                    if item["snippet"]["label"] == reason:
-                        return item["id"]
-                    return None
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as ie:
-                print(f"IndexError: Reason doesn't exist\n{ie}")
-                return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                return None 
-
-        def get_all_video_abuse_report_reason_ids(self) -> (list[str] | None):
-            service = self.service
-
-            try:
-                video = service.videoAbuseReportReasons().list(
-                    part="snippet",
-                ).execute()
-
-                resources = video["items"]
-                ids = []
-                for item in resources:
-                    ids.append(item["id"])
-                return ids
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as ie:
-                print(f"IndexError: Reason doesn't exist\n{ie}")
-                return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                return None 
-        
-        #////// REPORT REASON SNIPPET //////
-        def get_video_abuse_report_reason_snippet(self, reason_id: str) -> (dict | None):
-            service = self.service
-
-            try:
-                video = service.videoAbuseReportReasons().list(
-                    part="snippet",
-                ).execute()
-
-                resources = video["items"]
-                for item in resources:
-                    if item["id"] == reason_id:
-                        return item["snippet"]
-                    return None
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as ie:
-                print(f"IndexError: Reason doesn't exist\n{ie}")
-                return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                return None 
-          
-        def get_all_video_abuse_report_reason_snippets(self) -> (list[dict] | None):
-            service = self.service
-
-            try:
-                video = service.videoAbuseReportReasons().list(
-                    part="snippet",
-                ).execute()
-
-                resources = video["items"]
-                snippets = []
-                for item in resources:
-                    snippets.append(item["snippet"])
-                return snippets
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as ie:
-                print(f"IndexError: Reason doesn't exist\n{ie}")
-                return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                return None 
-            
-        #////// REPORT REASON LABEL //////
-        def get_video_abuse_report_reason_label(self, reason_id: str) -> (str | None):
-            service = self.service
-
-            try:
-                video = service.videoAbuseReportReasons().list(
-                    part="snippet",
-                ).execute()
-
-                resources = video["items"]
-                for item in resources:
-                    if item["id"] == reason_id:
-                        return item["snippet"]["label"]
-                    return None
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as ie:
-                print(f"IndexError: Reason doesn't exist\n{ie}")
-                return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                return None 
-        
-        def get_all_video_abuse_report_reason_labels(self) -> (list[str] | None):
-            service = self.service
-
-            try:
-                video = service.videoAbuseReportReasons().list(
-                    part="snippet",
-                ).execute()
-
-                resources = video["items"]
-                labels = []
-                for item in resources:
-                    labels.append(item["snippet"]["label"])
-                return labels
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as ie:
-                print(f"IndexError: Reason doesn't exist\n{ie}")
-                return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                return None 
-          
-        #////// REPORT REASON SECONDARY REASON //////
-        def get_video_abuse_report_reason_secondary_reasons(self, reason_id: str) -> (dict | None):
-            service = self.service
-
-            try:
-                video = service.videoAbuseReportReasons().list(
-                    part="snippet",
-                ).execute()
-
-                resources = video["items"]
-                for item in resources:
-                    if item["id"] == reason_id:
-                        return item["snippet"]["secondaryReasons"]
-                    return None
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as ie:
-                print(f"IndexError: Reason doesn't exist\n{ie}")
-                return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                return None 
-          
-        def get_all_video_abuse_report_reason_secondary_reasons(self) -> (list[dict] | None):
-            service = self.service
-
-            try:
-                video = service.videoAbuseReportReasons().list(
-                    part="snippet",
-                ).execute()
-
-                resources = video["items"]
-                reasons = []
-                for item in resources:
-                    reasons.append(item["snippet"]["secondaryReasons"])
-                return reasons
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as ie:
-                print(f"IndexError: Reason doesn't exist\n{ie}")
-                return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                return None 
-          
-        #////// REPORT REASON SECONDARY REASON ID //////
-        def get_video_abuse_report_reason_secondary_reason_id(self, reason_id: str) -> (dict | None):
-            service = self.service
-
-            try:
-                video = service.videoAbuseReportReasons().list(
-                    part="snippet",
-                ).execute()
-
-                resources = video["items"]
-                for item in resources:
-                    if item["id"] == reason_id:
-                        return item["snippet"]["secondaryReasons"]["id"]
-                    return None
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as ie:
-                print(f"IndexError: Reason doesn't exist\n{ie}")
-                return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                return None 
-          
-        def get_all_video_abuse_report_reason_secondary_reason_ids(self) -> (list[str] | None):
-            service = self.service
-
-            try:
-                video = service.videoAbuseReportReasons().list(
-                    part="snippet",
-                ).execute()
-
-                resources = video["items"]
-                ids = []
-                for item in resources:
-                    ids.append(item["snippet"]["secondaryReasons"]["id"])
-                return ids
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as ie:
-                print(f"IndexError: Reason doesn't exist\n{ie}")
-                return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                return None 
-          
-        #////// REPORT REASON SECONDARY REASON LABEL //////
-        def get_video_abuse_report_reason_secondary_reason_label(self, reason_id: str) -> (dict | None):
-            service = self.service
-
-            try:
-                video = service.videoAbuseReportReasons().list(
-                    part="snippet",
-                ).execute()
-
-                resources = video["items"]
-                for item in resources:
-                    if item["id"] == reason_id:
-                        return item["snippet"]["secondaryReasons"]["label"]
-                    return None
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as ie:
-                print(f"IndexError: Reason doesn't exist\n{ie}")
-                return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                return None 
-          
-        def get_all_video_abuse_report_reason_secondary_reason_labels(self) -> (list[str] | None):
-            service = self.service
-
-            try:
-                video = service.videoAbuseReportReasons().list(
-                    part="snippet",
-                ).execute()
-
-                resources = video["items"]
-                labels = []
-                for item in resources:
-                    labels.append(item["snippet"]["secondaryReasons"]["label"])
-                return labels
-
-            except googleapiclient.errors.HttpError as e:
-                print(f"An API error occurred: {e}")
-                return None
-            except IndexError as ie:
-                print(f"IndexError: Reason doesn't exist\n{ie}")
-                return None
-            except TypeError as te:
-                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                return None
-            except KeyError as ke:
-                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                return None 
-          
     #//////////// CAPTION ////////////
     class Captions:
         def __init__(self, ytd_api_tools: object) -> None:
@@ -19879,505 +19379,489 @@ class YouTubeDataAPIv3Tools:
             except KeyError as ke:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
-
+            
         #//////////// VIDEO ABUSE REPORT REASON ////////////
-        class VideoAbuseReportReason:
-            def __init__(self, ytd_api_tools: object) -> None:
-                self.service = ytd_api_tools.service
+    class VideoAbuseReportReason:
+        def __init__(self, ytd_api_tools: object) -> None:
+            self.service = ytd_api_tools.service
 
-            #////// ENTIRE VIDEO ABUSE REPORT REASON RESOURCE //////
-            def get_video_abuse_report_reason(self, reason: str) -> (dict | None):
-                service = self.service
-
-                try:
-                    video = service.videoAbuseReportReasons().list(
-                        part="snippet",
-                    ).execute()
-
+        #////// ENTIRE VIDEO ABUSE REPORT REASON RESOURCE //////
+        def get_report_reason(self, reason: str) -> (dict | None):
+            service = self.service
+            try:
+                video = service.videoAbuseReportReasons().list(
+                    part="snippet",
+                ).execute()
+                if "items" in video:
                     resources = video["items"]
                     for item in resources:
                         if item["snippet"]["label"] == reason:
                             return item
                         return None
-
-                except googleapiclient.errors.HttpError as e:
-                    print(f"An API error occurred: {e}")
-                    return None
-                except IndexError as ie:
-                    print(f"IndexError: Reason doesn't exist\n{ie}")
-                    return None
-                except TypeError as te:
-                    print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                    return None
-                except KeyError as ke:
-                    print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                    return None 
-            
-            def get_all_video_abuse_report_reasons(self) -> (list[dict] | None):
-                service = self.service
-
-                try:
-                    video = service.videoAbuseReportReasons().list(
-                        part="snippet",
-                    ).execute()
-
+                else: return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"IndexError: Reason doesn't exist\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+        
+        def get_report_reasons(self) -> (list[dict] | None):
+            service = self.service
+            try:
+                video = service.videoAbuseReportReasons().list(
+                    part="snippet",
+                ).execute()
+                if "items" in video:
                     resources = video["items"]
                     reasons = []
                     for item in resources:
                         reasons.append(item)
                     return reasons
-
-                except googleapiclient.errors.HttpError as e:
-                    print(f"An API error occurred: {e}")
-                    return None
-                except IndexError as ie:
-                    print(f"IndexError: Reason doesn't exist\n{ie}")
-                    return None
-                except TypeError as te:
-                    print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                    return None
-                except KeyError as ke:
-                    print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                    return None 
-            
-            #////// REPORT REASON KIND //////
-            def get_video_abuse_report_reason_kind(self, reason_id: str) -> (str | None):
-                service = self.service
-
-                try:
-                    video = service.videoAbuseReportReasons().list(
-                        part="snippet",
-                    ).execute()
-
+                else: return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"IndexError: Reason doesn't exist\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+        
+        #////// REPORT REASON KIND //////
+        def get_kind_of_report_reason(self, reason_id: str) -> (str | None):
+            service = self.service
+            try:
+                video = service.videoAbuseReportReasons().list(
+                    part="snippet",
+                ).execute()
+                if "items" in video:
                     resources = video["items"]
                     for item in resources:
                         if item["id"] == reason_id:
                             return item["kind"]
-                        return None
-
-                except googleapiclient.errors.HttpError as e:
-                    print(f"An API error occurred: {e}")
-                    return None
-                except IndexError as ie:
-                    print(f"IndexError: Reason doesn't exist\n{ie}")
-                    return None
-                except TypeError as te:
-                    print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                    return None
-                except KeyError as ke:
-                    print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                    return None 
-                
-            def get_all_video_abuse_report_reason_kinds(self) -> (list[str] | None):
-                service = self.service
-
-                try:
-                    video = service.videoAbuseReportReasons().list(
-                        part="snippet",
-                    ).execute()
-
+                else: return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"IndexError: Reason doesn't exist\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+            
+        def get_all_kinds(self) -> (list[str] | None):
+            service = self.service
+            try:
+                video = service.videoAbuseReportReasons().list(
+                    part="snippet",
+                ).execute()
+                if "items" in video:
                     resources = video["items"]
                     kinds = []
                     for item in resources:
                         kinds.append(item["kind"])
                     return kinds
-
-                except googleapiclient.errors.HttpError as e:
-                    print(f"An API error occurred: {e}")
-                    return None
-                except IndexError as ie:
-                    print(f"IndexError: Reason doesn't exist\n{ie}")
-                    return None
-                except TypeError as te:
-                    print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                    return None
-                except KeyError as ke:
-                    print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                    return None 
-                
-            #////// REPORT REASON ETAG //////
-            def get_video_abuse_report_reason_etag(self, reason_id: str) -> (str | None):
-                service = self.service
-
-                try:
-                    video = service.videoAbuseReportReasons().list(
-                        part="snippet",
-                    ).execute()
-
+                else: return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"IndexError: Reason doesn't exist\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+            
+        #////// REPORT REASON ETAG //////
+        def get_etag(self, reason_id: str) -> (str | None):
+            service = self.service
+            try:
+                video = service.videoAbuseReportReasons().list(
+                    part="snippet",
+                ).execute()
+                if "items" in video:
                     resources = video["items"]
                     for item in resources:
                         if item["id"] == reason_id:
                             return item["etag"]
                         return None
-
-                except googleapiclient.errors.HttpError as e:
-                    print(f"An API error occurred: {e}")
-                    return None
-                except IndexError as ie:
-                    print(f"IndexError: Reason doesn't exist\n{ie}")
-                    return None
-                except TypeError as te:
-                    print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                    return None
-                except KeyError as ke:
-                    print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                    return None 
-                
-            def get_all_video_abuse_report_reason_etags(self) -> (list[str] | None):
-                service = self.service
-
-                try:
-                    video = service.videoAbuseReportReasons().list(
-                        part="snippet",
-                    ).execute()
-
+                else: return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"IndexError: Reason doesn't exist\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+            
+        def get_all_etags(self) -> (list[str] | None):
+            service = self.service
+            try:
+                video = service.videoAbuseReportReasons().list(
+                    part="snippet",
+                ).execute()
+                if "items" in video:
                     resources = video["items"]
                     etags = []
                     for item in resources:
                         etags.append(item["etag"])
                     return etags
-
-                except googleapiclient.errors.HttpError as e:
-                    print(f"An API error occurred: {e}")
-                    return None
-                except IndexError as ie:
-                    print(f"IndexError: Reason doesn't exist\n{ie}")
-                    return None
-                except TypeError as te:
-                    print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                    return None
-                except KeyError as ke:
-                    print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                    return None 
-                
-            #////// REPORT REASON ID //////
-            def get_video_abuse_report_reason_id(self, reason: str) -> (str | None):
-                service = self.service
-
-                try:
-                    video = service.videoAbuseReportReasons().list(
-                        part="snippet",
-                    ).execute()
-
+                else: return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"IndexError: Reason doesn't exist\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+            
+        #////// REPORT REASON ID //////
+        def get_id(self, reason: str) -> (str | None):
+            service = self.service
+            try:
+                video = service.videoAbuseReportReasons().list(
+                    part="snippet",
+                ).execute()
+                if "items" in video:
                     resources = video["items"]
                     for item in resources:
                         if item["snippet"]["label"] == reason:
                             return item["id"]
                         return None
+                else: return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"IndexError: Reason doesn't exist\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
 
-                except googleapiclient.errors.HttpError as e:
-                    print(f"An API error occurred: {e}")
-                    return None
-                except IndexError as ie:
-                    print(f"IndexError: Reason doesn't exist\n{ie}")
-                    return None
-                except TypeError as te:
-                    print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                    return None
-                except KeyError as ke:
-                    print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                    return None 
-
-            def get_all_video_abuse_report_reason_ids(self) -> (list[str] | None):
-                service = self.service
-
-                try:
-                    video = service.videoAbuseReportReasons().list(
-                        part="snippet",
-                    ).execute()
-
+        def get_all_ids(self) -> (list[str] | None):
+            service = self.service
+            try:
+                video = service.videoAbuseReportReasons().list(
+                    part="snippet",
+                ).execute()
+                if "items" in video:
                     resources = video["items"]
                     ids = []
                     for item in resources:
                         ids.append(item["id"])
                     return ids
-
-                except googleapiclient.errors.HttpError as e:
-                    print(f"An API error occurred: {e}")
-                    return None
-                except IndexError as ie:
-                    print(f"IndexError: Reason doesn't exist\n{ie}")
-                    return None
-                except TypeError as te:
-                    print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                    return None
-                except KeyError as ke:
-                    print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                    return None 
-            
-            #////// REPORT REASON SNIPPET //////
-            def get_video_abuse_report_reason_snippet(self, reason_id: str) -> (dict | None):
-                service = self.service
-
-                try:
-                    video = service.videoAbuseReportReasons().list(
-                        part="snippet",
-                    ).execute()
-
+                else: return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"IndexError: Reason doesn't exist\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+        
+        #////// REPORT REASON SNIPPET //////
+        def get_snippet(self, reason_id: str) -> (dict | None):
+            service = self.service
+            try:
+                video = service.videoAbuseReportReasons().list(
+                    part="snippet",
+                ).execute()
+                if "items" in video:
                     resources = video["items"]
                     for item in resources:
                         if item["id"] == reason_id:
                             return item["snippet"]
                         return None
-
-                except googleapiclient.errors.HttpError as e:
-                    print(f"An API error occurred: {e}")
-                    return None
-                except IndexError as ie:
-                    print(f"IndexError: Reason doesn't exist\n{ie}")
-                    return None
-                except TypeError as te:
-                    print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                    return None
-                except KeyError as ke:
-                    print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                    return None 
-            
-            def get_all_video_abuse_report_reason_snippets(self) -> (list[dict] | None):
-                service = self.service
-
-                try:
-                    video = service.videoAbuseReportReasons().list(
-                        part="snippet",
-                    ).execute()
-
+                else: return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"IndexError: Reason doesn't exist\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+          
+        def get_all_snippets(self) -> (list[dict] | None):
+            service = self.service
+            try:
+                video = service.videoAbuseReportReasons().list(
+                    part="snippet",
+                ).execute()
+                if "items" in video:
                     resources = video["items"]
                     snippets = []
                     for item in resources:
                         snippets.append(item["snippet"])
                     return snippets
-
-                except googleapiclient.errors.HttpError as e:
-                    print(f"An API error occurred: {e}")
-                    return None
-                except IndexError as ie:
-                    print(f"IndexError: Reason doesn't exist\n{ie}")
-                    return None
-                except TypeError as te:
-                    print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                    return None
-                except KeyError as ke:
-                    print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                    return None 
-                
-            #////// REPORT REASON LABEL //////
-            def get_video_abuse_report_reason_label(self, reason_id: str) -> (str | None):
-                service = self.service
-
-                try:
-                    video = service.videoAbuseReportReasons().list(
-                        part="snippet",
-                    ).execute()
-
+                else: return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"IndexError: Reason doesn't exist\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+            
+        #////// REPORT REASON LABEL //////
+        def get_label(self, reason_id: str) -> (str | None):
+            service = self.service
+            try:
+                video = service.videoAbuseReportReasons().list(
+                    part="snippet",
+                ).execute()
+                if "items" in video:
                     resources = video["items"]
                     for item in resources:
                         if item["id"] == reason_id:
                             return item["snippet"]["label"]
                         return None
-
-                except googleapiclient.errors.HttpError as e:
-                    print(f"An API error occurred: {e}")
-                    return None
-                except IndexError as ie:
-                    print(f"IndexError: Reason doesn't exist\n{ie}")
-                    return None
-                except TypeError as te:
-                    print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                    return None
-                except KeyError as ke:
-                    print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                    return None 
-            
-            def get_all_video_abuse_report_reason_labels(self) -> (list[str] | None):
-                service = self.service
-
-                try:
-                    video = service.videoAbuseReportReasons().list(
-                        part="snippet",
-                    ).execute()
-
+                else: return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"IndexError: Reason doesn't exist\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+        
+        def get_all_labels(self) -> (list[str] | None):
+            service = self.service
+            try:
+                video = service.videoAbuseReportReasons().list(
+                    part="snippet",
+                ).execute()
+                if "items" in video:
                     resources = video["items"]
                     labels = []
                     for item in resources:
                         labels.append(item["snippet"]["label"])
                     return labels
-
-                except googleapiclient.errors.HttpError as e:
-                    print(f"An API error occurred: {e}")
-                    return None
-                except IndexError as ie:
-                    print(f"IndexError: Reason doesn't exist\n{ie}")
-                    return None
-                except TypeError as te:
-                    print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                    return None
-                except KeyError as ke:
-                    print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                    return None 
-            
-            #////// REPORT REASON SECONDARY REASON //////
-            def get_video_abuse_report_reason_secondary_reasons(self, reason_id: str) -> (dict | None):
-                service = self.service
-
-                try:
-                    video = service.videoAbuseReportReasons().list(
-                        part="snippet",
-                    ).execute()
-
+                else: return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"IndexError: Reason doesn't exist\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+          
+        #////// REPORT REASON SECONDARY REASON //////
+        def get_secondary_reasons(self, reason_id: str) -> (dict | None):
+            service = self.service
+            try:
+                video = service.videoAbuseReportReasons().list(
+                    part="snippet",
+                ).execute()
+                if "items" in video:
                     resources = video["items"]
                     for item in resources:
                         if item["id"] == reason_id:
                             return item["snippet"]["secondaryReasons"]
                         return None
-
-                except googleapiclient.errors.HttpError as e:
-                    print(f"An API error occurred: {e}")
-                    return None
-                except IndexError as ie:
-                    print(f"IndexError: Reason doesn't exist\n{ie}")
-                    return None
-                except TypeError as te:
-                    print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                    return None
-                except KeyError as ke:
-                    print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                    return None 
-            
-            def get_all_video_abuse_report_reason_secondary_reasons(self) -> (list[dict] | None):
-                service = self.service
-
-                try:
-                    video = service.videoAbuseReportReasons().list(
-                        part="snippet",
-                    ).execute()
-
+                else: return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"IndexError: Reason doesn't exist\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+          
+        def get_all_secondary_reasons(self) -> (list[dict] | None):
+            service = self.service
+            try:
+                video = service.videoAbuseReportReasons().list(
+                    part="snippet",
+                ).execute()
+                if "items" in video:
                     resources = video["items"]
                     reasons = []
                     for item in resources:
                         reasons.append(item["snippet"]["secondaryReasons"])
                     return reasons
-
-                except googleapiclient.errors.HttpError as e:
-                    print(f"An API error occurred: {e}")
-                    return None
-                except IndexError as ie:
-                    print(f"IndexError: Reason doesn't exist\n{ie}")
-                    return None
-                except TypeError as te:
-                    print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                    return None
-                except KeyError as ke:
-                    print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                    return None 
-            
-            #////// REPORT REASON SECONDARY REASON ID //////
-            def get_video_abuse_report_reason_secondary_reason_id(self, reason_id: str) -> (dict | None):
-                service = self.service
-
-                try:
-                    video = service.videoAbuseReportReasons().list(
-                        part="snippet",
-                    ).execute()
-
+                else: return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"IndexError: Reason doesn't exist\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+          
+        #////// REPORT REASON SECONDARY REASON ID //////
+        def get_secondary_reason_id(self, reason_id: str) -> (dict | None):
+            service = self.service
+            try:
+                video = service.videoAbuseReportReasons().list(
+                    part="snippet",
+                ).execute()
+                if "items" in video:
                     resources = video["items"]
                     for item in resources:
                         if item["id"] == reason_id:
                             return item["snippet"]["secondaryReasons"]["id"]
                         return None
-
-                except googleapiclient.errors.HttpError as e:
-                    print(f"An API error occurred: {e}")
-                    return None
-                except IndexError as ie:
-                    print(f"IndexError: Reason doesn't exist\n{ie}")
-                    return None
-                except TypeError as te:
-                    print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                    return None
-                except KeyError as ke:
-                    print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                    return None 
-            
-            def get_all_video_abuse_report_reason_secondary_reason_ids(self) -> (list[str] | None):
-                service = self.service
-
-                try:
-                    video = service.videoAbuseReportReasons().list(
-                        part="snippet",
-                    ).execute()
-
+                else: return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"IndexError: Reason doesn't exist\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+          
+        def get_all_secondary_reason_ids(self) -> (list[str] | None):
+            service = self.service
+            try:
+                video = service.videoAbuseReportReasons().list(
+                    part="snippet",
+                ).execute()
+                if "items" in video:
                     resources = video["items"]
                     ids = []
                     for item in resources:
                         ids.append(item["snippet"]["secondaryReasons"]["id"])
                     return ids
-
-                except googleapiclient.errors.HttpError as e:
-                    print(f"An API error occurred: {e}")
-                    return None
-                except IndexError as ie:
-                    print(f"IndexError: Reason doesn't exist\n{ie}")
-                    return None
-                except TypeError as te:
-                    print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                    return None
-                except KeyError as ke:
-                    print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                    return None 
-            
-            #////// REPORT REASON SECONDARY REASON LABEL //////
-            def get_video_abuse_report_reason_secondary_reason_label(self, reason_id: str) -> (dict | None):
-                service = self.service
-
-                try:
-                    video = service.videoAbuseReportReasons().list(
-                        part="snippet",
-                    ).execute()
-
+                else: return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"IndexError: Reason doesn't exist\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+          
+        #////// REPORT REASON SECONDARY REASON LABEL //////
+        def get_secondary_reason_label(self, reason_id: str) -> (dict | None):
+            service = self.service
+            try:
+                video = service.videoAbuseReportReasons().list(
+                    part="snippet",
+                ).execute()
+                if "items" in video:
                     resources = video["items"]
                     for item in resources:
                         if item["id"] == reason_id:
                             return item["snippet"]["secondaryReasons"]["label"]
                         return None
-
-                except googleapiclient.errors.HttpError as e:
-                    print(f"An API error occurred: {e}")
-                    return None
-                except IndexError as ie:
-                    print(f"IndexError: Reason doesn't exist\n{ie}")
-                    return None
-                except TypeError as te:
-                    print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                    return None
-                except KeyError as ke:
-                    print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                    return None 
-            
-            def get_all_video_abuse_report_reason_secondary_reason_labels(self) -> (list[str] | None):
-                service = self.service
-
-                try:
-                    video = service.videoAbuseReportReasons().list(
-                        part="snippet",
-                    ).execute()
-
+                else: return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"IndexError: Reason doesn't exist\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+          
+        def get_all_secondary_reason_labels(self) -> (list[str] | None):
+            service = self.service
+            try:
+                video = service.videoAbuseReportReasons().list(
+                    part="snippet",
+                ).execute()
+                if "items" in video:
                     resources = video["items"]
                     labels = []
                     for item in resources:
                         labels.append(item["snippet"]["secondaryReasons"]["label"])
                     return labels
-
-                except googleapiclient.errors.HttpError as e:
-                    print(f"An API error occurred: {e}")
-                    return None
-                except IndexError as ie:
-                    print(f"IndexError: Reason doesn't exist\n{ie}")
-                    return None
-                except TypeError as te:
-                    print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
-                    return None
-                except KeyError as ke:
-                    print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
-                    return None 
-        
+                else: return None
+            except googleapiclient.errors.HttpError as e:
+                print(f"An API error occurred: {e}")
+                return None
+            except IndexError as ie:
+                print(f"IndexError: Reason doesn't exist\n{ie}")
+                return None
+            except TypeError as te:
+                print(f"Type error: You may have forgotten a required argument or passed the wrong type!\n{te}")
+                return None
+            except KeyError as ke:
+                print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
+                return None 
+          
+            
+            
+            
             
