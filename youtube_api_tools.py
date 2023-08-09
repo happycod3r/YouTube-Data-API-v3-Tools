@@ -9832,18 +9832,18 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// ENTIRE VIDEO RESOURCE //////
-        def get_video(self, video_id: str) -> (dict | None):
+        def get_video(self, video_id: str, region_code: str="US") -> (dict | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                video_resource = video["items"][0]
-                return video_resource
-
+                if "items" in video:
+                    video_resource = video["items"][0]
+                    return video_resource
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -9857,18 +9857,20 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None 
             
-        def get_videos_by_id(self, video_ids: list[str]) -> (list[dict] | None):
+        def get_videos_by_id(self, video_ids: list[str], region_code: str="US") -> (list[dict] | None):
             service = self.service
             videos = []
             try:
                 for id in video_ids:
                     video = service.videos().list(
                         part="snippet",
-                        id=id
+                        id=id,
+                        regionCode=region_code
                     ).execute()
-
-                    video_resource = video["items"][0]
-                    videos.append(video_resource)
+                    if "items" in video:
+                        video_resource = video["items"][0]
+                        videos.append(video_resource)
+                    else: return None
                 return videos
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
@@ -9883,20 +9885,22 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
             
-        def get_videos(self, max_results: int=10) -> (list[dict] | None):
+        def get_videos(self, max_results: int=10,  region_code: str="US") -> (list[dict] | None):
             service = self.service
             try:
                 request = service.videos().list(
                     part="snippet",
                     mine=True,
-                    maxResults=max_results
+                    maxResults=max_results,
+                    regionCode=region_code
                 )
                 response = request.execute()
-                
-                videos = []
-                for video in response["items"]:
-                    videos.append(video)
-                return videos
+                if "items" in response:
+                    videos = []
+                    for video in response["items"]:
+                        videos.append(video)
+                    return videos
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -9911,17 +9915,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO KIND //////
-        def get_video_kind(self, video_id: str) -> (str | None):
+        def get_video_kind(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                kind = video["items"][0]["kind"]
-                return kind
-
+                if "items" in video:
+                    kind = video["items"][0]["kind"]
+                    return kind
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -9936,17 +9941,18 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// VIDEO ETAG //////
-        def get_video_etag(self, video_id: str) -> (str | None):
+        def get_video_etag(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                etag = video["items"][0]["etag"]
-                return etag
-
+                if "items" in video:
+                    etag = video["items"][0]["etag"]
+                    return etag
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -9961,17 +9967,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO ID //////
-        def get_video_id(self, video_id: str) -> (str | None):
+        def get_video_id(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                id = video["items"][0]["id"]
-                return id
-
+                if "items" in video:
+                    id = video["items"][0]["id"]
+                    return id
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -9986,18 +9993,19 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO SNIPPET PART //////
-        def get_video_snippet(self, video_id: str) -> (dict | None):
+        def get_video_snippet(self, video_id: str, region_code: str="US") -> (dict | None):
             service = self.service
 
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                snippet = video["items"][0]["snippet"]
-                return snippet
-
+                if "items" in video:
+                    snippet = video["items"][0]["snippet"]
+                    return snippet
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10012,18 +10020,18 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// VIDEO PUBLISHED DATETIME //////
-        def get_video_publish_date(self, video_id: str) -> (str | None):
+        def get_video_publish_date(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                snippet = video["items"][0]["snippet"]["publishedAt"]
-                return snippet
-
+                if "items" in video:
+                    snippet = video["items"][0]["snippet"]["publishedAt"]
+                    return snippet
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10038,18 +10046,18 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// VIDEO CHANNEL ID //////
-        def get_video_channel_id(self, video_id: str) -> (str | None):
+        def get_video_channel_id(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                id = video["items"][0]["snippet"]["channelId"]
-                return id
-
+                if "items" in video:
+                    id = video["items"][0]["snippet"]["channelId"]
+                    return id
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10064,16 +10072,18 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// VIDEO TITLE //////
-        def get_video_title(self, video_id: str) -> (str | None):
+        def get_video_title(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                title = video["items"][0]["snippet"]["title"]
-                return title
+                if "items" in video:
+                    title = video["items"][0]["snippet"]["title"]
+                    return title
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10088,16 +10098,18 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// VIDEO DESCRIPTION //////
-        def get_video_description(self, video_id: str) -> (str | None):
+        def get_video_description(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                description = video["items"][0]["snippet"]["description"]
-                return description
+                if "items" in video:
+                    description = video["items"][0]["snippet"]["description"]
+                    return description
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10112,16 +10124,18 @@ class YouTubeDataAPIv3Tools:
                 return None
             
         #////// VIDEO THUMBNAILS //////
-        def get_video_thumbnails(self, video_id: str) -> (dict | None):
+        def get_video_thumbnails(self, video_id: str, region_code: str="US") -> (dict | None):
             service = self.service
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                thumbnails = video["items"][0]["snippet"]["thumbnails"]
-                return thumbnails
+                if "items" in video:
+                    thumbnails = video["items"][0]["snippet"]["thumbnails"]
+                    return thumbnails
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10157,7 +10171,6 @@ class YouTubeDataAPIv3Tools:
                     }
                 )
                 response = request.execute()
-
                 return True
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
@@ -10173,16 +10186,18 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// VIDEO DEFAULT RES THUMBNAIL //////
-        def get_video_default_res_thumbnail(self, video_id: str) -> (dict | None):
+        def get_video_default_res_thumbnail(self, video_id: str, region_code: str="US") -> (dict | None):
             service = self.service
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                thumbnail = video["items"][0]["snippet"]["thumbnails"]["default"]
-                return thumbnail
+                if "items" in video:
+                    thumbnail = video["items"][0]["snippet"]["thumbnails"]["default"]
+                    return thumbnail
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10196,16 +10211,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
          
-        def get_video_default_res_thumbnail_url(self, video_id: str) -> (str | None):
+        def get_video_default_res_thumbnail_url(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                url = video["items"][0]["snippet"]["thumbnails"]["default"]["url"]
-                return url
+                if "items" in video:
+                    url = video["items"][0]["snippet"]["thumbnails"]["default"]["url"]
+                    return url
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10219,16 +10236,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
          
-        def get_video_default_res_thumbnail_width(self, video_id: str) -> (int | None):
+        def get_video_default_res_thumbnail_width(self, video_id: str, region_code: str="US") -> (int | None):
             service = self.service
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                width = video["items"][0]["snippet"]["thumbnails"]["default"]["width"]
-                return int(width)
+                if "items" in video:
+                    width = video["items"][0]["snippet"]["thumbnails"]["default"]["width"]
+                    return int(width)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10242,16 +10261,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
           
-        def get_video_default_res_thumbnail_height(self, video_id: str) -> (int | None):
+        def get_video_default_res_thumbnail_height(self, video_id: str, region_code: str="US") -> (int | None):
             service = self.service
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                height = video["items"][0]["snippet"]["thumbnails"]["default"]["height"]
-                return int(height)
+                if "items" in video:
+                    height = video["items"][0]["snippet"]["thumbnails"]["default"]["height"]
+                    return int(height)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10266,16 +10287,18 @@ class YouTubeDataAPIv3Tools:
                 return None
             
         #////// VIDEO MEDIUM RES THUMBNAIL //////
-        def get_video_medium_res_thumbnail(self, video_id: str) -> (dict | None):
+        def get_video_medium_res_thumbnail(self, video_id: str, region_code: str="US") -> (dict | None):
             service = self.service
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                thumbnail = video["items"][0]["snippet"]["thumbnails"]["medium"]
-                return thumbnail
+                if "items" in video:
+                    thumbnail = video["items"][0]["snippet"]["thumbnails"]["medium"]
+                    return thumbnail
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10289,16 +10312,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_video_medium_res_thumbnail_url(self, video_id: str) -> (str | None):
+        def get_video_medium_res_thumbnail_url(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                url = video["items"][0]["snippet"]["thumbnails"]["medium"]["url"]
-                return url
+                if "items" in video:
+                    url = video["items"][0]["snippet"]["thumbnails"]["medium"]["url"]
+                    return url
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10312,16 +10337,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
          
-        def get_video_medium_res_thumbnail_width(self, video_id: str) -> (int | None):
+        def get_video_medium_res_thumbnail_width(self, video_id: str, region_code: str="US") -> (int | None):
             service = self.service
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                width = video["items"][0]["snippet"]["thumbnails"]["medium"]["width"]
-                return int(width)
+                if "items" in video:
+                    width = video["items"][0]["snippet"]["thumbnails"]["medium"]["width"]
+                    return int(width)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10335,16 +10362,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
           
-        def get_video_medium_res_thumbnail_height(self, video_id: str) -> (int | None):
+        def get_video_medium_res_thumbnail_height(self, video_id: str, region_code: str="US") -> (int | None):
             service = self.service
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                height = video["items"][0]["snippet"]["thumbnails"]["medium"]["height"]
-                return int(height)
+                if "items" in video:
+                    height = video["items"][0]["snippet"]["thumbnails"]["medium"]["height"]
+                    return int(height)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10359,16 +10388,18 @@ class YouTubeDataAPIv3Tools:
                 return None
           
         #////// VIDEO HIGH RES THUMBNAIL //////
-        def get_video_high_res_thumbnail(self, video_id: str) -> (dict | None):
+        def get_video_high_res_thumbnail(self, video_id: str, region_code: str="US") -> (dict | None):
             service = self.service
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                thumbnail = video["items"][0]["snippet"]["thumbnails"]["high"]
-                return thumbnail
+                if "items" in video:
+                    thumbnail = video["items"][0]["snippet"]["thumbnails"]["high"]
+                    return thumbnail
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10382,16 +10413,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_video_high_res_thumbnail_url(self, video_id: str) -> (str | None):
+        def get_video_high_res_thumbnail_url(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                url = video["items"][0]["snippet"]["thumbnails"]["high"]["url"]
-                return url
+                if "items" in video:
+                    url = video["items"][0]["snippet"]["thumbnails"]["high"]["url"]
+                    return url
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10405,16 +10438,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
          
-        def get_video_high_res_thumbnail_width(self, video_id: str) -> (int | None):
+        def get_video_high_res_thumbnail_width(self, video_id: str, region_code: str="US") -> (int | None):
             service = self.service
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                width = video["items"][0]["snippet"]["thumbnails"]["high"]["width"]
-                return int(width)
+                if "items" in video:
+                    width = video["items"][0]["snippet"]["thumbnails"]["high"]["width"]
+                    return int(width)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10428,16 +10463,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
           
-        def get_video_high_res_thumbnail_height(self, video_id: str) -> (int | None):
+        def get_video_high_res_thumbnail_height(self, video_id: str, region_code: str="US") -> (int | None):
             service = self.service
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                height = video["items"][0]["snippet"]["thumbnails"]["high"]["height"]
-                return int(height)
+                if "items" in video:
+                    height = video["items"][0]["snippet"]["thumbnails"]["high"]["height"]
+                    return int(height)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10452,16 +10489,18 @@ class YouTubeDataAPIv3Tools:
                 return None
           
         #////// VIDEO STANDARD RES THUMBNAIL //////
-        def get_video_standard_res_thumbnail(self, video_id: str) -> (dict | None):
+        def get_video_standard_res_thumbnail(self, video_id: str, region_code: str="US") -> (dict | None):
             service = self.service
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                thumbnail = video["items"][0]["snippet"]["thumbnails"]["standard"]
-                return thumbnail
+                if "items" in video:
+                    thumbnail = video["items"][0]["snippet"]["thumbnails"]["standard"]
+                    return thumbnail
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10475,16 +10514,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_video_standard_res_thumbnail_url(self, video_id: str) -> (str | None):
+        def get_video_standard_res_thumbnail_url(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                thumbnail = video["items"][0]["snippet"]["thumbnails"]["standard"]["url"]
-                return thumbnail
+                if "items" in video:
+                    thumbnail = video["items"][0]["snippet"]["thumbnails"]["standard"]["url"]
+                    return thumbnail
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10498,16 +10539,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
          
-        def get_video_standard_res_thumbnail_width(self, video_id: str) -> (int | None):
+        def get_video_standard_res_thumbnail_width(self, video_id: str, region_code: str="US") -> (int | None):
             service = self.service
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                width = video["items"][0]["snippet"]["thumbnails"]["standard"]["width"]
-                return int(width)
+                if "items" in video:
+                    width = video["items"][0]["snippet"]["thumbnails"]["standard"]["width"]
+                    return int(width)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10521,16 +10564,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
           
-        def get_video_standard_res_thumbnail_height(self, video_id: str) -> (int | None):
+        def get_video_standard_res_thumbnail_height(self, video_id: str, region_code: str="US") -> (int | None):
             service = self.service
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                height = video["items"][0]["snippet"]["thumbnails"]["standard"]["height"]
-                return int(height)
+                if "items" in video:
+                    height = video["items"][0]["snippet"]["thumbnails"]["standard"]["height"]
+                    return int(height)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10545,16 +10590,18 @@ class YouTubeDataAPIv3Tools:
                 return None
          
         #////// VIDEO MAX RES THUMBNAIL //////
-        def get_video_max_res_thumbnail(self, video_id: str) -> (dict | None):
+        def get_video_max_res_thumbnail(self, video_id: str, region_code: str="US") -> (dict | None):
             service = self.service
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                thumbnail = video["items"][0]["snippet"]["thumbnails"]["maxres"]
-                return thumbnail
+                if "items" in video:
+                    thumbnail = video["items"][0]["snippet"]["thumbnails"]["maxres"]
+                    return thumbnail
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10568,16 +10615,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_video_max_res_thumbnail_url(self, video_id: str) -> (str | None):
+        def get_video_max_res_thumbnail_url(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                thumbnail = video["items"][0]["snippet"]["thumbnails"]["maxres"]["url"]
-                return thumbnail
+                if "items" in video:
+                    thumbnail = video["items"][0]["snippet"]["thumbnails"]["maxres"]["url"]
+                    return thumbnail
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10591,16 +10640,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
          
-        def get_video_max_res_thumbnail_width(self, video_id: str) -> (int | None):
+        def get_video_max_res_thumbnail_width(self, video_id: str, region_code: str="US") -> (int | None):
             service = self.service
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                width = video["items"][0]["snippet"]["thumbnails"]["maxres"]["width"]
-                return int(width)
+                if "items" in video:
+                    width = video["items"][0]["snippet"]["thumbnails"]["maxres"]["width"]
+                    return int(width)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10614,16 +10665,18 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
           
-        def get_video_max_res_thumbnail_height(self, video_id: str) -> (int | None):
+        def get_video_max_res_thumbnail_height(self, video_id: str, region_code: str="US") -> (int | None):
             service = self.service
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                height = video["items"][0]["snippet"]["thumbnails"]["maxres"]["height"]
-                return int(height)
+                if "items" in video:    
+                    height = video["items"][0]["snippet"]["thumbnails"]["maxres"]["height"]
+                    return int(height)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10638,17 +10691,18 @@ class YouTubeDataAPIv3Tools:
                 return None
          
         #////// VIDEO CHANNEL TITLE //////
-        def get_video_channel_title(self, video_id: str) -> (list[str] | None):
+        def get_video_channel_title(self, video_id: str, region_code: str="US") -> (list[str] | None):
             service = self.service
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                id = video["items"][0]["snippet"]["channelTitle"]
-                return id
-
+                if "items" in video:
+                    id = video["items"][0]["snippet"]["channelTitle"]
+                    return id
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10663,18 +10717,18 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// VIDEO TAGS //////
-        def get_video_tags(self, video_id: str) -> (list[str] | None):
+        def get_video_tags(self, video_id: str, region_code: str="US") -> (list[str] | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                tags = video["items"][0]["snippet"]["tags"]
-                return tags
-
+                if "items" in video:
+                    tags = video["items"][0]["snippet"]["tags"]
+                    return tags
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10688,19 +10742,20 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def video_has_tag(self, video_id: str, tag: str) -> bool:
+        def video_has_tag(self, video_id: str, tag: str, region_code: str="US") -> bool:
             service = self.service
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-                tags = video["items"][0]["snippet"]["tags"]
-
-                for item in range(len(tags)):
-                    if tags[item] == tag:
-                        return True
-
+                if "items" in video:
+                    tags = video["items"][0]["snippet"]["tags"]
+                    for item in range(len(tags)):
+                        if tags[item] == tag:
+                            return True
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10715,18 +10770,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO CATEGORY ID //////
-        def get_video_category_id(self, video_id: str) -> (str | None):
+        def get_video_category_id(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                category_id = video["items"][0]["snippet"]["categoryId"]
-                return category_id
-
+                if "items" in video:
+                    category_id = video["items"][0]["snippet"]["categoryId"]
+                    return category_id
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10741,18 +10796,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO LIVE BROADCASTING CONTENT //////
-        def get_video_live_broadcast_content(self, video_id: str) -> (dict | None):
+        def get_video_live_broadcast_content(self, video_id: str, region_code: str="US") -> (dict | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                content = video["items"][0]["snippet"]["liveBroadcastContent"]
-                return content
-
+                if "items" in video:
+                    content = video["items"][0]["snippet"]["liveBroadcastContent"]
+                    return content
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10767,18 +10822,18 @@ class YouTubeDataAPIv3Tools:
                 return None
           
         #////// VIDEO DEFAULT LANGUAGE //////
-        def get_video_default_language(self, video_id: str) -> (str | None):
+        def get_video_default_language(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                lang = video["items"][0]["snippet"]["defaultLanguage"]
-                return lang
-                
+                if "items" in video:
+                    lang = video["items"][0]["snippet"]["defaultLanguage"]
+                    return lang
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10793,18 +10848,18 @@ class YouTubeDataAPIv3Tools:
                 return None   
         
         #////// VIDEO LOCALIZED DATA //////
-        def get_video_localized_data(self, video_id: str) -> (dict | None):
+        def get_video_localized_data(self, video_id: str, region_code: str="US") -> (dict | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                data = video["items"][0]["snippet"]["localized"]
-                return data
-
+                if "items" in video:
+                    data = video["items"][0]["snippet"]["localized"]
+                    return data
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10819,18 +10874,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO LOCALIZED TITLE //////
-        def get_video_localized_title(self, video_id: str) -> (str | None):
+        def get_video_localized_title(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                title = video["items"][0]["snippet"]["localized"]["title"]
-                return title
-
+                if "items" in video:
+                    title = video["items"][0]["snippet"]["localized"]["title"]
+                    return title
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10845,18 +10900,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO LOCALIZED DESCRIPTION //////
-        def get_video_localized_description(self, video_id: str) -> (str | None):
+        def get_video_localized_description(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                desc = video["items"][0]["snippet"]["localized"]["description"]
-                return desc
-
+                if "items" in video:
+                    desc = video["items"][0]["snippet"]["localized"]["description"]
+                    return desc
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10871,18 +10926,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO DEFAULT AUDIO LANGUAGE //////
-        def get_video_default_audio_language(self, video_id: str) -> (str | None):
+        def get_video_default_audio_language(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="snippet",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                lang = video["items"][0]["snippet"]["defaultAudioLanguage"]
-                return lang
-
+                if "items" in video:
+                    lang = video["items"][0]["snippet"]["defaultAudioLanguage"]
+                    return lang
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10897,18 +10952,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO CONTENT DETAILS PART //////
-        def get_video_content_details(self, video_id: str) -> (str | None):
+        def get_video_content_details(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="contentDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                details = video["items"][0]["contentDetails"]
-                return details
-
+                if "items" in video:
+                    details = video["items"][0]["contentDetails"]
+                    return details
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10923,18 +10978,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO DURATION //////
-        def get_video_duration(self, video_id: str) -> (str | None):
+        def get_video_duration(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="contentDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                duration = video["items"][0]["contentDetails"]["duration"]
-                return duration
-
+                if "items" in video:
+                    duration = video["items"][0]["contentDetails"]["duration"]
+                    return duration
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10949,18 +11004,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO DIMENSION //////
-        def get_video_dimension(self, video_id: str) -> (str | None):
+        def get_video_dimension(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="contentDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                dimension = video["items"][0]["contentDetails"]["dimension"]
-                return dimension
-
+                if "items" in video:
+                    dimension = video["items"][0]["contentDetails"]["dimension"]
+                    return dimension
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -10975,18 +11030,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO DEFINITION //////
-        def get_video_definition(self, video_id: str) -> (str | None):
+        def get_video_definition(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="contentDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                definition = video["items"][0]["contentDetails"]["definition"]
-                return definition
-
+                if "items" in video:
+                    definition = video["items"][0]["contentDetails"]["definition"]
+                    return definition
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11001,18 +11056,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO CAPTION //////
-        def get_video_caption(self, video_id: str) -> (str | None):
+        def get_video_caption(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="contentDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                caption = video["items"][0]["contentDetails"]["caption"]
-                return caption
-
+                if "items" in video:
+                    caption = video["items"][0]["contentDetails"]["caption"]
+                    return caption
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11027,18 +11082,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO LICENSED CONTENT //////
-        def get_video_licensed_content(self, video_id: str) -> (bool | None):
+        def get_video_licensed_content(self, video_id: str, region_code: str="US") -> (bool | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="contentDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                content = video["items"][0]["contentDetails"]["licensedContent"]
-                return bool(content)
-
+                if "items" in video:
+                    content = video["items"][0]["contentDetails"]["licensedContent"]
+                    return bool(content)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11053,18 +11108,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO REGION RESTRICTION //////
-        def get_video_region_restriction(self, video_id: str) -> (str | None):
+        def get_video_region_restriction(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="contentDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                restriction = video["items"][0]["contentDetails"]["regionRestriction"]
-                return restriction
-
+                if "items" in video:
+                    restriction = video["items"][0]["contentDetails"]["regionRestriction"]
+                    return restriction
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11079,18 +11134,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO REGION RESTRICTION ALLOWED //////
-        def get_video_region_restriction_allowed(self, video_id: str) -> (str | None):
+        def get_video_region_restriction_allowed(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="contentDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                allowed = video["items"][0]["contentDetails"]["regionRestriction"]["allowed"]
-                return allowed
-
+                if "items" in video:
+                    allowed = video["items"][0]["contentDetails"]["regionRestriction"]["allowed"]
+                    return allowed
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11105,18 +11160,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO REGION RESTRICTION BLOCKED //////
-        def get_video_region_restriction_blocked(self, video_id: str) -> (str | None):
+        def get_video_region_restriction_blocked(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="contentDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                blocked = video["items"][0]["contentDetails"]["regionRestriction"]["blocked"]
-                return blocked
-
+                if "items" in video:
+                    blocked = video["items"][0]["contentDetails"]["regionRestriction"]["blocked"]
+                    return blocked
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11131,18 +11186,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO CONTENT RATING //////
-        def get_video_content_rating(self, video_id: str) -> (dict | None):
+        def get_video_content_rating(self, video_id: str, region_code: str="US") -> (dict | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="contentDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                rating = video["items"][0]["contentDetails"]["contentRating"]
-                return rating
-
+                if "items" in video:
+                    rating = video["items"][0]["contentDetails"]["contentRating"]
+                    return rating
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11157,18 +11212,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PROJECTION //////
-        def get_video_projection(self, video_id: str) -> (str | None):
+        def get_video_projection(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="contentDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                projection = video["items"][0]["contentDetails"]["projection"]
-                return projection
-
+                if "items" in video:
+                    projection = video["items"][0]["contentDetails"]["projection"]
+                    return projection
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11183,18 +11238,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO HAS CUSTOM THUMBNAIL //////
-        def video_has_custom_thumbnail(self, video_id: str) -> (bool | None):
+        def video_has_custom_thumbnail(self, video_id: str, region_code: str="US") -> (bool | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="contentDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                custom = video["items"][0]["contentDetails"]["hasCustomThumbnail"]
-                return bool(custom)
-
+                if "items" in video:
+                    custom = video["items"][0]["contentDetails"]["hasCustomThumbnail"]
+                    return bool(custom)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11209,18 +11264,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO STATUS PART //////
-        def get_video_status(self, video_id: str) -> (dict | None):
+        def get_video_status(self, video_id: str, region_code: str="US") -> (dict | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="status",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                status = video["items"][0]["status"]
-                return status
-
+                if "items" in video:
+                    status = video["items"][0]["status"]
+                    return status
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11235,18 +11290,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO UPLOAD STATUS //////
-        def get_video_upload_status(self, video_id: str) -> (str | None):
+        def get_video_upload_status(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="status",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                status = video["items"][0]["status"]["uploadStatus"]
-                return status
-
+                if "items" in video:
+                    status = video["items"][0]["status"]["uploadStatus"]
+                    return status
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11261,18 +11316,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO FAILURE REASON //////
-        def get_video_failure_reason(self, video_id: str) -> (str | None):
+        def get_video_failure_reason(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="status",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                reason = video["items"][0]["status"]["failureReason"]
-                return reason
-
+                if "items" in video:
+                    reason = video["items"][0]["status"]["failureReason"]
+                    return reason
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11287,18 +11342,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO REJECTION REASON //////
-        def get_video_rejection_reason(self, video_id: str) -> (str | None):
+        def get_video_rejection_reason(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="status",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                reason = video["items"][0]["status"]["rejectionReason"]
-                return reason
-
+                if "items" in video:
+                    reason = video["items"][0]["status"]["rejectionReason"]
+                    return reason
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11313,18 +11368,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PRIVACY STATUS //////
-        def get_video_privacy_status(self, video_id: str) -> (str | None):
+        def get_video_privacy_status(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="status",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                status = video["items"][0]["status"]["privacyStatus"]
-                return status
-
+                if "items" in video:
+                    status = video["items"][0]["status"]["privacyStatus"]
+                    return status
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11339,18 +11394,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PUBLISHED DATE //////
-        def get_video_published_date(self, video_id: str) -> (str | None):
+        def get_video_published_date(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="status",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                published = video["items"][0]["status"]["publishAt"]
-                return published
-
+                if "items" in video:
+                    published = video["items"][0]["status"]["publishAt"]
+                    return published
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11365,18 +11420,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO LICENSE //////
-        def get_video_license(self, video_id: str) -> (str | None):
+        def get_video_license(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="status",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                license = video["items"][0]["status"]["license"]
-                return license
-
+                if "items" in video:
+                    license = video["items"][0]["status"]["license"]
+                    return license
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11391,18 +11446,18 @@ class YouTubeDataAPIv3Tools:
                 return None
             
         #////// VIDEO EMBEDDABLE //////
-        def video_is_embeddable(self, video_id: str) -> (bool | None):
+        def video_is_embeddable(self, video_id: str, region_code: str="US") -> (bool | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="status",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                embeddable = video["items"][0]["status"]["embeddable"]
-                return bool(embeddable)
-
+                if "items" in video:
+                    embeddable = video["items"][0]["status"]["embeddable"]
+                    return bool(embeddable)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11417,18 +11472,18 @@ class YouTubeDataAPIv3Tools:
                 return None
             
         #////// VIDEO PUBLIC STATS VIEWABLE //////
-        def video_public_stats_viewable(self, video_id: str) -> (bool | None):
+        def video_public_stats_viewable(self, video_id: str, region_code: str="US") -> (bool | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="status",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                viewable = video["items"][0]["status"]["publicStatsViewable"]
-                return bool(viewable)
-
+                if "items" in video:
+                    viewable = video["items"][0]["status"]["publicStatsViewable"]
+                    return bool(viewable)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11443,18 +11498,18 @@ class YouTubeDataAPIv3Tools:
                 return None
             
         #////// VIDEO MADE FOR KIDS //////
-        def video_is_made_for_kids(self, video_id: str) -> (bool | None):
+        def video_is_made_for_kids(self, video_id: str, region_code: str="US") -> (bool | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="status",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                for_kids = video["items"][0]["status"]["license"]
-                return bool(for_kids)
-
+                if "items" in video:
+                    for_kids = video["items"][0]["status"]["license"]
+                    return bool(for_kids)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11469,18 +11524,18 @@ class YouTubeDataAPIv3Tools:
                 return None
             
         #////// VIDEO SELF DECLARED MADE FOR KIDS //////
-        def video_self_declared_for_kids(self, video_id: str) -> (bool | None):
+        def video_self_declared_for_kids(self, video_id: str, region_code: str="US") -> (bool | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="status",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                for_kids = video["items"][0]["status"]["license"]
-                return bool(for_kids)
-
+                if "items" in video:
+                    for_kids = video["items"][0]["status"]["license"]
+                    return bool(for_kids)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11495,18 +11550,18 @@ class YouTubeDataAPIv3Tools:
                 return None
             
         #////// VIDEO STATISTICS PART //////
-        def get_video_statistics(self, video_id: str) -> (dict | None):
+        def get_video_statistics(self, video_id: str, region_code: str="US") -> (dict | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="statistics",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                rating = video["items"][0]["statistics"]
-                return rating
-
+                if "items" in video:
+                    rating = video["items"][0]["statistics"]
+                    return rating
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11521,18 +11576,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO VIEW COUNT //////
-        def get_video_view_count(self, video_id: str) -> (int | None):
+        def get_video_view_count(self, video_id: str, region_code: str="US") -> (int | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="statistics",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                count = video["items"][0]["statistics"]["viewCount"]
-                return int(count)
-
+                if "items" in video:
+                    count = video["items"][0]["statistics"]["viewCount"]
+                    return int(count)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11547,18 +11602,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO LIKE COUNT //////
-        def get_video_like_count(self, video_id: str) -> (int | None):
+        def get_video_like_count(self, video_id: str, region_code: str="US") -> (int | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="statistics",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                count = video["items"][0]["statistics"]["likeCount"]
-                return int(count)
-
+                if "items" in video:
+                    count = video["items"][0]["statistics"]["likeCount"]
+                    return int(count)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11573,18 +11628,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO DISLIKE COUNT //////
-        def get_video_dislike_count(self, video_id: str) -> (int | None):
+        def get_video_dislike_count(self, video_id: str, region_code: str="US") -> (int | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="statistics",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                count = video["items"][0]["statistics"]["dislikeCount"]
-                return int(count)
-
+                if "items" in video:
+                    count = video["items"][0]["statistics"]["dislikeCount"]
+                    return int(count)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11599,18 +11654,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO FAVORITE COUNT //////
-        def get_video_favorite_count(self, video_id: str) -> (int | None):
+        def get_video_favorite_count(self, video_id: str, region_code: str="US") -> (int | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="statistics",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                count = video["items"][0]["statistics"]["favoriteCount"]
-                return int(count)
-
+                if "items" in video:
+                    count = video["items"][0]["statistics"]["favoriteCount"]
+                    return int(count)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11625,18 +11680,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO COMMENT COUNT //////
-        def get_video_comment_count(self, video_id: str) -> (int | None):
+        def get_video_comment_count(self, video_id: str, region_code: str="US") -> (int | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="statistics",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                count = video["items"][0]["statistics"]["commentCount"]
-                return int(count)
-
+                if "items" in video:
+                    count = video["items"][0]["statistics"]["commentCount"]
+                    return int(count)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11651,18 +11706,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PLAYER PART //////
-        def get_video_player(self, video_id: str) -> (dict | None):
+        def get_video_player(self, video_id: str, region_code: str="US") -> (dict | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="player",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                player = video["items"][0]["player"]
-                return player
-
+                if "items" in video:
+                    player = video["items"][0]["player"]
+                    return player
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11677,18 +11732,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PLAYER EMBED HTML //////
-        def get_video_embed_html(self, video_id: str) -> (str | None):
+        def get_video_embed_html(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="player",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                html = video["items"][0]["player"]["embedHtml"]
-                return html
-
+                if "items" in video:
+                    html = video["items"][0]["player"]["embedHtml"]
+                    return html
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11703,18 +11758,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PLAYER EMBED HEIGHT //////
-        def get_video_embed_height(self, video_id: str) -> (float | None):
+        def get_video_embed_height(self, video_id: str, region_code: str="US") -> (float | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="player",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                height = video["items"][0]["player"]["embedHeight"]
-                return float(height)
-
+                if "items" in video:
+                    height = video["items"][0]["player"]["embedHeight"]
+                    return float(height)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11729,18 +11784,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PLAYER EMBED WIDTH //////
-        def get_video_embed_width(self, video_id: str) -> (float | None):
+        def get_video_embed_width(self, video_id: str, region_code: str="US") -> (float | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="player",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                width = video["items"][0]["player"]["embedWidth"]
-                return float(width)
-
+                if "items" in video:
+                    width = video["items"][0]["player"]["embedWidth"]
+                    return float(width)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11755,18 +11810,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO TOPIC DETAILS PART //////
-        def get_video_topic_details(self, video_id: str) -> (dict | None):
+        def get_video_topic_details(self, video_id: str, region_code: str="US") -> (dict | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="topicDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                details = video["items"][0]["topicDetails"]
-                return details
-
+                if "items" in video:
+                    details = video["items"][0]["topicDetails"]
+                    return details
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11781,18 +11836,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO TOPIC IDS //////
-        def get_video_topic_ids(self, video_id: str) -> (list[str] | None):
+        def get_video_topic_ids(self, video_id: str, region_code: str="US") -> (list[str] | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="topicDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                ids = video["items"][0]["topicDetails"]["topicIds"]
-                return ids
-
+                if "items" in video:
+                    ids = video["items"][0]["topicDetails"]["topicIds"]
+                    return ids
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11807,18 +11862,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO RELEVANT TOPIC IDS //////
-        def get_video_relevant_topic_ids(self, video_id: str) -> (list[str] | None):
+        def get_video_relevant_topic_ids(self, video_id: str, region_code: str="US") -> (list[str] | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="topicDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                ids = video["items"][0]["topicDetails"]["relevantTopicIds"]
-                return ids
-
+                if "items" in video:
+                    ids = video["items"][0]["topicDetails"]["relevantTopicIds"]
+                    return ids
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11833,18 +11888,18 @@ class YouTubeDataAPIv3Tools:
                 return None
           
         #////// VIDEO TOPIC CATEGORIES //////
-        def get_video_topic_categories(self, video_id: str) -> (list[str] | None):
+        def get_video_topic_categories(self, video_id: str, region_code: str="US") -> (list[str] | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="topicDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                cats = video["items"][0]["topicDetails"]["topicCategories"]
-                return cats
-
+                if "items" in video:
+                    cats = video["items"][0]["topicDetails"]["topicCategories"]
+                    return cats
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11859,18 +11914,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO RECORDING DETAILS PART //////
-        def get_video_recording_details(self, video_id: str) -> (dict | None):
+        def get_video_recording_details(self, video_id: str, region_code: str="US") -> (dict | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="recordingDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                details = video["items"][0]["recordingDetails"]
-                return details
-
+                if "items" in video:
+                    details = video["items"][0]["recordingDetails"]
+                    return details
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11885,18 +11940,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO RECORDING DATE //////
-        def get_video_recording_date(self, video_id: str) -> (str | None):
+        def get_video_recording_date(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="recordingDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                date = video["items"][0]["recordingDetails"]["recordingDate"]
-                return date
-
+                if "items" in video:
+                    date = video["items"][0]["recordingDetails"]["recordingDate"]
+                    return date
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11911,18 +11966,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO FILE DETAILS PART //////
-        def get_video_file_details(self, video_id: str) -> (dict | None):
+        def get_video_file_details(self, video_id: str, region_code: str="US") -> (dict | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="fileDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                details = video["items"][0]["fileDetails"]
-                return details
-
+                if "items" in video:
+                    details = video["items"][0]["fileDetails"]
+                    return details
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11937,18 +11992,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO FILE NAME //////
-        def get_video_file_name(self, video_id: str) -> (str | None):
+        def get_video_file_name(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="fileDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                name = video["items"][0]["fileDetails"]["fileName"]
-                return name
-
+                if "items" in video:
+                    name = video["items"][0]["fileDetails"]["fileName"]
+                    return name
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11963,18 +12018,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO FILE SIZE //////
-        def get_video_file_size(self, video_id: str) -> (int | None):
+        def get_video_file_size(self, video_id: str, region_code: str="US") -> (int | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="fileDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                size = video["items"][0]["fileDetails"]["fileSize"]
-                return size
-
+                if "items" in video:
+                    size = video["items"][0]["fileDetails"]["fileSize"]
+                    return size
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -11989,18 +12044,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO FILE TYPE //////
-        def get_video_file_type(self, video_id: str) -> (str | None):
+        def get_video_file_type(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="fileDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                type = video["items"][0]["fileDetails"]["fileType"]
-                return type
-
+                if "items" in video:
+                    type = video["items"][0]["fileDetails"]["fileType"]
+                    return type
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12015,18 +12070,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO CONTAINER //////
-        def get_video_container(self, video_id: str) -> (str | None):
+        def get_video_container(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="fileDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                container = video["items"][0]["fileDetails"]["container"]
-                return container
-
+                if "items" in video:
+                    container = video["items"][0]["fileDetails"]["container"]
+                    return container
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12041,18 +12096,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO STREAMS //////
-        def get_video_streams(self, video_id: str) -> (list[dict] | None):
+        def get_video_streams(self, video_id: str, region_code: str="US") -> (list[dict] | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="fileDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                stream = video["items"][0]["fileDetails"]["videoStreams"]
-                return stream
-
+                if "items" in video:
+                    stream = video["items"][0]["fileDetails"]["videoStreams"]
+                    return stream
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12067,18 +12122,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO STREAMS PIXEL WIDTH //////
-        def get_video_streams_pixel_width(self, video_id: str) -> (int | None):
+        def get_video_streams_pixel_width(self, video_id: str, region_code: str="US") -> (int | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="fileDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                width = video["items"][0]["fileDetails"]["videoStreams"][0]["widthPixels"]
-                return width
-
+                if "items" in video:
+                    width = video["items"][0]["fileDetails"]["videoStreams"][0]["widthPixels"]
+                    return width
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12093,18 +12148,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO STREAMS PIXEL HEIGHT //////
-        def get_video_streams_pixel_height(self, video_id: str) -> (int | None):
+        def get_video_streams_pixel_height(self, video_id: str, region_code: str="US") -> (int | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="fileDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                height = video["items"][0]["fileDetails"]["videoStreams"][0]["heightPixels"]
-                return height
-
+                if "items" in video:
+                    height = video["items"][0]["fileDetails"]["videoStreams"][0]["heightPixels"]
+                    return height
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12119,18 +12174,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO STREAMS FRAMERATE FPS //////
-        def get_video_streams_framerate_fps(self, video_id: str) -> (int | None):
+        def get_video_streams_framerate_fps(self, video_id: str, region_code: str="US") -> (int | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="fileDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                fps = video["items"][0]["fileDetails"]["videoStreams"][0]["frameRateFps"]
-                return fps
-
+                if "items" in video:
+                    fps = video["items"][0]["fileDetails"]["videoStreams"][0]["frameRateFps"]
+                    return fps
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12145,18 +12200,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO STREAMS ASPECT RATIO //////
-        def get_video_streams_aspect_ratio(self, video_id: str) -> (int | None):
+        def get_video_streams_aspect_ratio(self, video_id: str, region_code: str="US") -> (int | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="fileDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                ratio = video["items"][0]["fileDetails"]["videoStreams"][0]["aspectRatio"]
-                return ratio
-
+                if "items" in video:
+                    ratio = video["items"][0]["fileDetails"]["videoStreams"][0]["aspectRatio"]
+                    return ratio
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12171,18 +12226,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO STREAMS CODEC //////
-        def get_video_streams_codec(self, video_id: str) -> (str | None):
+        def get_video_streams_codec(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="fileDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                codec = video["items"][0]["fileDetails"]["videoStreams"][0]["codec"]
-                return codec
-
+                if "items" in video:
+                    codec = video["items"][0]["fileDetails"]["videoStreams"][0]["codec"]
+                    return codec
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12197,18 +12252,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO STREAMS BITRATE BPS //////
-        def get_video_streams_bitrate_bps(self, video_id: str) -> (float | None):
+        def get_video_streams_bitrate_bps(self, video_id: str, region_code: str="US") -> (float | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="fileDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                bps = video["items"][0]["fileDetails"]["videoStreams"][0]["bitrateBps"]
-                return float(bps)
-
+                if "items" in video:
+                    bps = video["items"][0]["fileDetails"]["videoStreams"][0]["bitrateBps"]
+                    return float(bps)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12223,18 +12278,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO STREAMS ROTATION //////
-        def get_video_streams_rotation(self, video_id: str) -> (str | None):
+        def get_video_streams_rotation(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="fileDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                rotation = video["items"][0]["fileDetails"]["videoStreams"][0]["rotation"]
-                return rotation
-
+                if "items" in video:
+                    rotation = video["items"][0]["fileDetails"]["videoStreams"][0]["rotation"]
+                    return rotation
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12249,18 +12304,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO STREAMS VENDOR //////
-        def get_video_streams_vendor(self, video_id: str) -> (str | None):
+        def get_video_streams_vendor(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="fileDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                vendor = video["items"][0]["fileDetails"]["videoStreams"][0]["vendor"]
-                return vendor
-
+                if "items" in video:
+                    vendor = video["items"][0]["fileDetails"]["videoStreams"][0]["vendor"]
+                    return vendor
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12275,18 +12330,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// AUDIO STREAMS //////
-        def get_audio_streams(self, video_id: str) -> (list[dict] | None):
+        def get_audio_streams(self, video_id: str, region_code: str="US") -> (list[dict] | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="fileDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                stream = video["items"][0]["fileDetails"]["audioStreams"]
-                return stream
-
+                if "items" in video:
+                    stream = video["items"][0]["fileDetails"]["audioStreams"]
+                    return stream
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12301,18 +12356,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// AUDIO STREAMS CHANNEL COUNT //////
-        def get_audio_streams_channel_count(self, video_id: str) -> (int | None):
+        def get_audio_streams_channel_count(self, video_id: str, region_code: str="US") -> (int | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="fileDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                count = video["items"][0]["fileDetails"]["audioStreams"][0]["channelCount"]
-                return int(count)
-
+                if "items" in video:
+                    count = video["items"][0]["fileDetails"]["audioStreams"][0]["channelCount"]
+                    return int(count)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12327,18 +12382,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// AUDIO STREAMS CODEC //////
-        def get_audio_streams_codec(self, video_id: str) -> (str | None):
+        def get_audio_streams_codec(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="fileDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                codec = video["items"][0]["fileDetails"]["audioStreams"][0]["codec"]
-                return codec
-
+                if "items" in video:
+                    codec = video["items"][0]["fileDetails"]["audioStreams"][0]["codec"]
+                    return codec
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12353,18 +12408,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// AUDIO STREAMS BITRATE BPS //////
-        def get_audio_streams_bitrate_bps(self, video_id: str) -> (float | None):
+        def get_audio_streams_bitrate_bps(self, video_id: str, region_code: str="US") -> (float | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="fileDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                bps = video["items"][0]["fileDetails"]["audioStreams"][0]["bitrateBps"]
-                return float(bps)
-
+                if "items" in video:
+                    bps = video["items"][0]["fileDetails"]["audioStreams"][0]["bitrateBps"]
+                    return float(bps)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12379,18 +12434,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// AUDIO STREAMS VENDOR //////
-        def get_audio_streams_vendor(self, video_id: str) -> (str | None):
+        def get_audio_streams_vendor(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="fileDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                vendor = video["items"][0]["fileDetails"]["audioStreams"][0]["vendor"]
-                return vendor
-
+                if "items" in video:
+                    vendor = video["items"][0]["fileDetails"]["audioStreams"][0]["vendor"]
+                    return vendor
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12405,18 +12460,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO DURATION MS //////
-        def get_video_duration_ms(self, video_id: str) -> (int | None):
+        def get_video_duration_ms(self, video_id: str, region_code: str="US") -> (int | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="fileDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                count = video["items"][0]["fileDetails"]["durationMs"]
-                return int(count)
-
+                if "items" in video:
+                    count = video["items"][0]["fileDetails"]["durationMs"]
+                    return int(count)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12431,18 +12486,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO BITRATE BPS //////
-        def get_video_bitrate_bps(self, video_id: str) -> (int | None):
+        def get_video_bitrate_bps(self, video_id: str, region_code: str="US") -> (int | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="fileDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                bps = video["items"][0]["fileDetails"]["bitrateBps"]
-                return int(bps)
-
+                if "items" in video:
+                    bps = video["items"][0]["fileDetails"]["bitrateBps"]
+                    return int(bps)
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12457,18 +12512,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO CREATION TIME //////
-        def get_video_creation_time(self, video_id: str) -> (str | None):
+        def get_video_creation_time(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="fileDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                time = video["items"][0]["fileDetails"]["creationTime"]
-                return time
-
+                if "items" in video:
+                    time = video["items"][0]["fileDetails"]["creationTime"]
+                    return time
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12483,18 +12538,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PROCESSING DETAILS PART //////
-        def get_video_processing_deatils(self, video_id: str) -> (dict | None):
+        def get_video_processing_deatils(self, video_id: str, region_code: str="US") -> (dict | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="processingDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                details = video["items"][0]["processingDetails"]
-                return details
-
+                if "items" in video:
+                    details = video["items"][0]["processingDetails"]
+                    return details
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12509,18 +12564,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PROCESSING STATUS //////
-        def get_video_processing_status(self, video_id: str) -> (str | None):
+        def get_video_processing_status(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="processingDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                status = video["items"][0]["processingDetails"]["processingStatus"]
-                return status
-
+                if "items" in video:
+                    status = video["items"][0]["processingDetails"]["processingStatus"]
+                    return status
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12535,18 +12590,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PROCESSING PROGRESS //////
-        def get_video_processing_progress(self, video_id: str) -> (dict | None):
+        def get_video_processing_progress(self, video_id: str, region_code: str="US") -> (dict | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="processingDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                progress = video["items"][0]["processingDetails"]["processingProgress"]
-                return progress
-
+                if "items" in video:
+                    progress = video["items"][0]["processingDetails"]["processingProgress"]
+                    return progress
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12561,18 +12616,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PROCESSING PROGRESS PARTS TOTAL //////
-        def get_video_processing_progress_parts_total(self, video_id: str) -> (float | None):
+        def get_video_processing_progress_parts_total(self, video_id: str, region_code: str="US") -> (float | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="processingDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                parts_total = video["items"][0]["processingDetails"]["processingProgress"]["partsTotal"]
-                return parts_total
-
+                if "items" in video:
+                    parts_total = video["items"][0]["processingDetails"]["processingProgress"]["partsTotal"]
+                    return parts_total
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12587,18 +12642,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PROCESSING PROGRESS PARTS PROCESSED //////
-        def get_video_processing_progress_parts_processed(self, video_id: str) -> (float | None):
+        def get_video_processing_progress_parts_processed(self, video_id: str, region_code: str="US") -> (float | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="processingDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                parts_processed = video["items"][0]["processingDetails"]["processingProgress"]["partsProcessed"]
-                return parts_processed
-
+                if "items" in video:
+                    parts_processed = video["items"][0]["processingDetails"]["processingProgress"]["partsProcessed"]
+                    return parts_processed
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12613,18 +12668,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PROCESSING PROGRESS TIME LEFT MS //////
-        def get_video_processing_progress_time_left_ms(self, video_id: str) -> (float | None):
+        def get_video_processing_progress_time_left_ms(self, video_id: str, region_code: str="US") -> (float | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="processingDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                time = video["items"][0]["processingDetails"]["processingProgress"]["timeLeftMs"]
-                return time
-
+                if "items" in video:
+                    time = video["items"][0]["processingDetails"]["processingProgress"]["timeLeftMs"]
+                    return time
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12639,18 +12694,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PROCESSING PROCESSING FAILURE REASON //////
-        def get_video_processing_failure_reason(self, video_id: str) -> (str | None):
+        def get_video_processing_failure_reason(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="processingDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                reason = video["items"][0]["processingDetails"]["processingFailureReason"]
-                return reason
-
+                if "items" in video:
+                    reason = video["items"][0]["processingDetails"]["processingFailureReason"]
+                    return reason
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12665,18 +12720,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PROCESSING PROCESSING FILE DETAILS AVAILABILITY //////
-        def get_video_processing_file_details_availability(self, video_id: str) -> (str | None):
+        def get_video_processing_file_details_availability(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="processingDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                availability = video["items"][0]["processingDetails"]["fileDetailsAvailability"]
-                return availability
-
+                if "items" in video:
+                    availability = video["items"][0]["processingDetails"]["fileDetailsAvailability"]
+                    return availability
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12691,18 +12746,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PROCESSING ISSUES AVAILABILITY //////
-        def get_video_processing_issues_availability(self, video_id: str) -> (str | None):
+        def get_video_processing_issues_availability(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="processingDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                availability = video["items"][0]["processingDetails"]["processingIssuesAvailability"]
-                return availability
-
+                if "items" in video:
+                    availability = video["items"][0]["processingDetails"]["processingIssuesAvailability"]
+                    return availability
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12717,18 +12772,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PROCESSING TAG SUGGESTIONS AVAILABILITY //////
-        def get_video_processing_tag_suggestions_availability(self, video_id: str) -> (str | None):
+        def get_video_processing_tag_suggestions_availability(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="processingDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                availability = video["items"][0]["processingDetails"]["tagSuggestionsAvailability"]
-                return availability
-
+                if "items" in video:
+                    availability = video["items"][0]["processingDetails"]["tagSuggestionsAvailability"]
+                    return availability
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12743,18 +12798,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PROCESSING EDITOR SUGGESTIONS AVAILABILITY //////
-        def get_video_processing_editor_suggestions_availability(self, video_id: str) -> (str | None):
+        def get_video_processing_editor_suggestions_availability(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="processingDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                availability = video["items"][0]["processingDetails"]["editorSuggestionsAvailability"]
-                return availability
-
+                if "items" in video:
+                    availability = video["items"][0]["processingDetails"]["editorSuggestionsAvailability"]
+                    return availability
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12769,18 +12824,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO PROCESSING THUMBNAILS AVAILABILITY //////
-        def get_video_processing_thumbnails_availability(self, video_id: str) -> (str | None):
+        def get_video_processing_thumbnails_availability(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="processingDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                availability = video["items"][0]["processingDetails"]["thumbnailsAvailability"]
-                return availability
-
+                if "items" in video:
+                    availability = video["items"][0]["processingDetails"]["thumbnailsAvailability"]
+                    return availability 
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12795,18 +12850,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO SUGGESTIONS PART //////
-        def get_video_suggestions(self, video_id: str) -> (dict | None):
+        def get_video_suggestions(self, video_id: str, region_code: str="US") -> (dict | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="suggestions",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                suggestions_part = video["items"][0]["suggestions"]
-                return suggestions_part
-
+                if "items" in video:
+                    suggestions_part = video["items"][0]["suggestions"]
+                    return suggestions_part
+                else: return None    
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12821,18 +12876,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO SUGGESTIONS PROCESSING ERRORS //////
-        def get_video_suggestions_processing_errors(self, video_id: str) -> (list[str] | None):
+        def get_video_suggestions_processing_errors(self, video_id: str, region_code: str="US") -> (list[str] | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="suggestions",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                errors = video["items"][0]["suggestions"]["processingErrors"]
-                return errors
-
+                if "items" in video:
+                    errors = video["items"][0]["suggestions"]["processingErrors"]
+                    return errors
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12847,18 +12902,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO SUGGESTIONS PROCESSING WARNINGS //////
-        def get_video_suggestions_processing_warnings(self, video_id: str) -> (list[str] | None):
+        def get_video_suggestions_processing_warnings(self, video_id: str, region_code: str="US") -> (list[str] | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="suggestions",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                warns = video["items"][0]["suggestions"]["processingWarnings"]
-                return warns
-
+                if "items" in video:
+                    warns = video["items"][0]["suggestions"]["processingWarnings"]
+                    return warns
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12873,18 +12928,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO SUGGESTIONS PROCESSING HINTS //////
-        def get_video_suggestions_processing_hints(self, video_id: str) -> (list[str] | None):
+        def get_video_suggestions_processing_hints(self, video_id: str, region_code: str="US") -> (list[str] | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="suggestions",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                hints = video["items"][0]["suggestions"]["processingHints"]
-                return hints
-
+                if "items" in video:
+                    hints = video["items"][0]["suggestions"]["processingHints"]
+                    return hints
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12899,18 +12954,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO TAG SUGGESTIONS //////
-        def get_video_tag_suggestions(self, video_id: str) -> (list[dict] | None):
+        def get_video_tag_suggestions(self, video_id: str, region_code: str="US") -> (list[dict] | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="suggestions",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                suggestions = video["items"][0]["suggestions"]["tagSuggestions"]
-                return suggestions
-
+                if "items" in video:
+                    suggestions = video["items"][0]["suggestions"]["tagSuggestions"]
+                    return suggestions
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12925,18 +12980,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO EDITOR SUGGESTIONS //////
-        def get_video_editor_suggestions(self, video_id: str) -> (list[str] | None):
+        def get_video_editor_suggestions(self, video_id: str, region_code: str="US") -> (list[str] | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="suggestions",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                suggestions = video["items"][0]["suggestions"]["editorSuggestions"]
-                return suggestions
-
+                if "items" in video:
+                    suggestions = video["items"][0]["suggestions"]["editorSuggestions"]
+                    return suggestions
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12951,18 +13006,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO LIVE STREAMING DETAILS PART //////
-        def get_video_live_streaming_details(self, video_id: str) -> (dict | None):
+        def get_video_live_streaming_details(self, video_id: str, region_code: str="US") -> (dict | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="liveStreamingDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                details = video["items"][0]["liveStreamingDetails"]
-                return details
-
+                if "items" in video:
+                    details = video["items"][0]["liveStreamingDetails"]
+                    return details
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -12977,18 +13032,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO LIVE STREAMING ACTUAL START TIME //////
-        def get_video_live_streaming_actual_start_time(self, video_id: str) -> (str | None):
+        def get_video_live_streaming_actual_start_time(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="liveStreamingDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                time = video["items"][0]["liveStreamingDetails"]["actualStartTime"]
-                return time 
-
+                if "items" in video:
+                    time = video["items"][0]["liveStreamingDetails"]["actualStartTime"]
+                    return time 
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -13003,18 +13058,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO LIVE STREAMING ACTUAL END TIME //////
-        def get_video_live_streaming_actual_end_time(self, video_id: str) -> (str | None):
+        def get_video_live_streaming_actual_end_time(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="liveStreamingDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                time = video["items"][0]["liveStreamingDetails"]["actualEndTime"]
-                return time 
-
+                if "items" in video:
+                    time = video["items"][0]["liveStreamingDetails"]["actualEndTime"]
+                    return time
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -13029,18 +13084,19 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO LIVE STREAMING SCHEDULED START TIME //////
-        def get_video_live_streaming_scheduled_start_time(self, video_id: str) -> (str | None):
+        def get_video_live_streaming_scheduled_start_time(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
 
             try:
                 video = service.videos().list(
                     part="liveStreamingDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                time = video["items"][0]["liveStreamingDetails"]["scheduledStartTime"]
-                return time 
-
+                if "items" in video:
+                    time = video["items"][0]["liveStreamingDetails"]["scheduledStartTime"]
+                    return time     
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -13055,18 +13111,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO LIVE STREAMING CONCURRENT VIEWERS //////
-        def get_video_live_streaming_concurrent_viewers(self, video_id: str) -> (int | None):
+        def get_video_live_streaming_concurrent_viewers(self, video_id: str, region_code: str="US") -> (int | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="liveStreamingDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                viewers = video["items"][0]["liveStreamingDetails"]["concurrentViewers"]
-                return viewers
-
+                if "itesm" in video:
+                    viewers = video["items"][0]["liveStreamingDetails"]["concurrentViewers"]
+                    return viewers
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -13081,18 +13137,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO LIVE STREAMING ACTIVE LIVE CHAT ID //////
-        def get_video_live_streaming_active_live_chat_id(self, video_id: str) -> (str | None):
+        def get_video_live_streaming_active_live_chat_id(self, video_id: str, region_code: str="US") -> (str | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="liveStreamingDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                id = video["items"][0]["liveStreamingDetails"]["activeLiveChatId"]
-                return id 
-
+                if "items" in video:
+                    id = video["items"][0]["liveStreamingDetails"]["activeLiveChatId"]
+                    return id 
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -13107,18 +13163,18 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// VIDEO LOCALIZATIONS PART //////
-        def get_video_localizations(self, video_id: str) -> (dict | None):
+        def get_video_localizations(self, video_id: str, region_code: str="US") -> (dict | None):
             service = self.service
-
             try:
                 video = service.videos().list(
                     part="liveStreamingDetails",
-                    id=video_id
+                    id=video_id,
+                    regionCode=region_code
                 ).execute()
-
-                local = video["items"][0]["localizations"]
-                return local 
-
+                if "items" in video:
+                    local = video["items"][0]["localizations"]
+                    return local 
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
