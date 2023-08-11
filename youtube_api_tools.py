@@ -13522,8 +13522,6 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-#//////////////////////////////
-
     #//////////// CAPTION ////////////
     class Captions:
         def __init__(self, ytd_api_tools: object) -> None:
@@ -14640,7 +14638,9 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{e}")
                 return None
         
-    #//////////// SUBSSCRIPTIONS ////////////
+#//////////////////////////////
+
+    #//////////// SUBSCRIPTIONS ////////////
     class Subscriptions:
         def __init__(self, ytd_api_tools: object) -> None:
             self.service = ytd_api_tools.service
@@ -14826,7 +14826,7 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
 
-        def get_my_subscription_count(self) -> (int | None):
+        def get_my_subs_count(self) -> (int | None):
             service = self.service
 
             try:
@@ -14853,22 +14853,30 @@ class YouTubeDataAPIv3Tools:
                 return None
 
         #////// ENTIRE SUBSCRIPTION RESOURCE //////
-        def get_all_subscriptions(self) -> (list[dict] | None):
+        def get_all_subscriptions(self, your_channel: bool=True, channel_id: str=None) -> (list[dict] | None):
             service = self.service
-
+            response = None
             try:
-                request = service.subscriptions().list(
-                    part="snippet",
-                    mine=True
-                )
-                response = request.execute()
-
-                subscriptions = []
-                subscription_info = response["items"]
-                for sub in subscription_info:
-                    subscriptions.append(sub)
-                
-                return subscriptions
+                if not your_channel:
+                    request = service.subscriptions().list(
+                        part="snippet",
+                        channelId=channel_id
+                    )
+                    response = request.execute()
+                else:
+                    request = service.subscriptions().list(
+                        part="snippet",
+                        mine=your_channel
+                    )
+                    response = request.execute()
+                if "items" in response:
+                    subscriptions = []
+                    subscription_info = response["items"]
+                    for sub in subscription_info:
+                        subscriptions.append(sub)
+                    
+                    return subscriptions
+                else: return None
 
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
@@ -14885,7 +14893,6 @@ class YouTubeDataAPIv3Tools:
         
         def get_subscription_by_index(self, channel_id: str=None, index: int=0) -> (dict | None):
             service = self.service
-
             try:
                 request = service.subscriptions().list(
                     part="snippet",
@@ -14893,10 +14900,10 @@ class YouTubeDataAPIv3Tools:
                     mine=True
                 )
                 response = request.execute()
-
-                subscription_info = response["items"][index]
-                return subscription_info
-
+                if "items" in response:
+                    subscription_info = response["items"][index]
+                    return subscription_info
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -14939,9 +14946,8 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// SUBSCRIPTION KIND //////
-        def get_subscription_kind(self, sub_id: str, channel_id: str=None) -> (dict | None):
+        def get_kind_of_subscription(self, sub_id: str, channel_id: str=None) -> (dict | None):
             service = self.service
-
             try:
                 request = service.subscriptions().list(
                     part="snippet",
@@ -14950,10 +14956,10 @@ class YouTubeDataAPIv3Tools:
                     mine=True
                 )
                 response = request.execute()
-
-                subscription = response["items"][0]["kind"]
-                return subscription
-
+                if "items" in response:
+                    subscription = response["items"][0]["kind"]
+                    return subscription
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -14967,19 +14973,29 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_subscriptions_kinds(self) -> (list[str] | None):
+        def get_all_subscription_kinds(self, your_channel: bool=True, channel_id: str=None) -> (list[str] | None):
             service = self.service
+            response = None
             try:
-                request = service.subscriptions().list(
-                    part="snippet",
-                    mine=True
-                )
-                response = request.execute()
-                info = []
-                subscription_info = response["items"]
-                for sub in subscription_info:
-                    info.append(sub["kind"])
-                return info
+                if not your_channel:
+                    request = service.subscriptions().list(
+                        part="snippet",
+                        channelId=channel_id
+                    )
+                    response = request.execute()
+                else: 
+                    request = service.subscriptions().list(
+                        part="snippet",
+                        mine=your_channel
+                    )
+                    response = request.execute()
+                if "items" in response:
+                    info = []
+                    subscription_info = response["items"]
+                    for sub in subscription_info:
+                        info.append(sub["kind"])
+                    return info
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -14994,7 +15010,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// SUBSCRIPTION ETAG //////
-        def get_subscription_etag(self, sub_id: str, channel_id: str=None) -> (dict | None):
+        def get_etag(self, sub_id: str, channel_id: str=None) -> (dict | None):
             service = self.service
 
             try:
@@ -15022,19 +15038,29 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_subscriptions_etags(self) -> (list[str] | None):
+        def get_all_subscription_etags(self, your_channel: bool=True, channel_id: str=None) -> (list[str] | None):
             service = self.service
+            response = None
             try:
-                request = service.subscriptions().list(
-                    part="snippet",
-                    mine=True
-                )
-                response = request.execute()
-                info = []
-                subscription_info = response["items"]
-                for sub in subscription_info:
-                    info.append(sub["etag"])
-                return info
+                if not your_channel:
+                    request = service.subscriptions().list(
+                        part="snippet",
+                        channelId=channel_id
+                    )
+                    response = request.execute()
+                else:
+                    request = service.subscriptions().list(
+                        part="snippet",
+                        mine=your_channel
+                    )
+                    response = request.execute()
+                if "items" in response:
+                    info = []
+                    subscription_info = response["items"]
+                    for sub in subscription_info:
+                        info.append(sub["etag"])
+                    return info
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -15049,7 +15075,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// SUBSCRIPTION ID //////
-        def get_subscription_id(self, sub_id: str, channel_id: str=None) -> (dict | None):
+        def get_id(self, sub_id: str, channel_id: str=None) -> (dict | None):
             service = self.service
 
             try:
@@ -15077,19 +15103,29 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_subscriptions_ids(self) -> (list[str] | None):
+        def get_all_subscription_ids(self, your_channel: bool=True, channel_id: str=None) -> (list[str] | None):
             service = self.service
+            response = None
             try:
-                request = service.subscriptions().list(
-                    part="snippet",
-                    mine=True
-                )
-                response = request.execute()
-                info = []
-                subscription_info = response["items"]
-                for sub in subscription_info:
-                    info.append(sub["id"])
-                return info
+                if not your_channel:
+                    request = service.subscriptions().list(
+                        part="snippet",
+                        channelId=channel_id
+                    )
+                    response = request.execute()
+                else:    
+                    request = service.subscriptions().list(
+                        part="snippet",
+                        mine=True
+                    )
+                    response = request.execute()
+                if "items" in response:
+                    info = []
+                    subscription_info = response["items"]
+                    for sub in subscription_info:
+                        info.append(sub["id"])
+                    return info
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -15104,7 +15140,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// SUBSCRIPTION SNIPPET //////
-        def get_subscription_snippet(self, sub_id: str, channel_id: str=None) -> (dict | None):
+        def get_snippet(self, sub_id: str, channel_id: str=None) -> (dict | None):
             service = self.service
 
             try:
@@ -15132,19 +15168,29 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_subscriptions_snippets(self) -> (list[str] | None):
+        def get_all_subscription_snippets(self, your_channel: bool=True, channel_id: str=None) -> (list[str] | None):
             service = self.service
+            response = None
             try:
-                request = service.subscriptions().list(
-                    part="snippet",
-                    mine=True
-                )
-                response = request.execute()
-                info = []
-                subscription_info = response["items"]
-                for sub in subscription_info:
-                    info.append(sub["snippet"])
-                return info
+                if not your_channel:
+                    request = service.subscriptions().list(
+                        part="snippet",
+                        channelId=channel_id
+                    )
+                    response = request.execute()
+                else:
+                    request = service.subscriptions().list(
+                        part="snippet",
+                        mine=True
+                    )
+                    response = request.execute()
+                if "items" in response:
+                    info = []
+                    subscription_info = response["items"]
+                    for sub in subscription_info:
+                        info.append(sub["snippet"])
+                    return info
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -15159,7 +15205,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// SUBSCRIPTION PUBLISH DATE //////
-        def get_subscription_published_date(self, sub_id: str, channel_id: str=None) -> (dict | None):
+        def get_date_published(self, sub_id: str, channel_id: str=None) -> (dict | None):
             service = self.service
 
             try:
@@ -15187,19 +15233,29 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_subscriptions_publish_dates(self) -> (list[str] | None):
+        def get_all_subscription_publish_dates(self, your_channel: bool=True, channel_id: str=None) -> (list[str] | None):
             service = self.service
+            response = None
             try:
-                request = service.subscriptions().list(
-                    part="snippet",
-                    mine=True
-                )
-                response = request.execute()
-                info = []
-                subscription_info = response["items"]
-                for sub in subscription_info:
-                    info.append(sub["snippet"]["publishedAt"])
-                return info
+                if not your_channel:
+                    request = service.subscriptions().list(
+                        part="snippet",
+                        channelId=channel_id
+                    )
+                    response = request.execute()
+                else:
+                    request = service.subscriptions().list(
+                        part="snippet",
+                        mine=True
+                    )
+                    response = request.execute()
+                if "items" in response:
+                    info = []
+                    subscription_info = response["items"]
+                    for sub in subscription_info:
+                        info.append(sub["snippet"]["publishedAt"])
+                    return info
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -15214,7 +15270,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// SUBSCRIPTION CHANNEL TITLE //////
-        def get_subscription_channel_title(self, sub_id: str, channel_id: str=None) -> (dict | None):
+        def get_channel_title(self, sub_id: str, channel_id: str=None) -> (dict | None):
             service = self.service
 
             try:
@@ -15242,19 +15298,29 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_subscriptions_channel_titles(self) -> (list[str] | None):
+        def get_all_subscription_channel_titles(self, your_channel: bool=True, channel_id: str=None) -> (list[str] | None):
             service = self.service
+            response = None
             try:
-                request = service.subscriptions().list(
-                    part="snippet",
-                    mine=True
-                )
-                response = request.execute()
-                info = []
-                subscription_info = response["items"]
-                for sub in subscription_info:
-                    info.append(sub["snippet"]["channelTitle"])
-                return info
+                if not your_channel:
+                    request = service.subscriptions().list(
+                        part="snippet",
+                        channelId=channel_id
+                    )
+                    response = request.execute()
+                else:
+                    request = service.subscriptions().list(
+                        part="snippet",
+                        mine=True
+                    )
+                    response = request.execute()
+                if "items" in response:
+                    info = []
+                    subscription_info = response["items"]
+                    for sub in subscription_info:
+                        info.append(sub["snippet"]["channelTitle"])
+                    return info
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -15269,7 +15335,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// SUBSCRIPTION TITLE //////
-        def get_subscription_title(self, sub_id: str, channel_id: str=None) -> (dict | None):
+        def get_title(self, sub_id: str, channel_id: str=None) -> (dict | None):
             service = self.service
 
             try:
@@ -15297,19 +15363,30 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_subscriptions_titles(self) -> (list[str] | None):
+        def get_all_subscription_titles(self, your_channel: bool=True, channel_id: str=None) -> (list[str] | None):
             service = self.service
+            response = None
             try:
-                request = service.subscriptions().list(
-                    part="snippet",
-                    mine=True
-                )
-                response = request.execute()
-                info = []
-                subscription_info = response["items"]
-                for sub in subscription_info:
-                    info.append(sub["snippet"]["title"])
-                return info
+                response = None
+                if not your_channel:
+                    request = service.subscriptions().list(
+                        part="snippet",
+                        channelId=channel_id
+                    )
+                    response = request.execute()
+                else:
+                    request = service.subscriptions().list(
+                        part="snippet",
+                        mine=your_channel
+                    )
+                    response = request.execute()
+                if "items" in response:
+                    info = []
+                    subscription_info = response["items"]
+                    for sub in subscription_info:
+                        info.append(sub["snippet"]["title"])
+                    return info
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -15324,7 +15401,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// SUBSCRIPTION DESCRIPTION //////
-        def get_subscription_description(self, sub_id: str, channel_id: str=None) -> (dict | None):
+        def get_description(self, sub_id: str, channel_id: str=None) -> (dict | None):
             service = self.service
 
             try:
@@ -15352,19 +15429,29 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_subscriptions_descriptions(self) -> (list[str] | None):
+        def get_all_subscription_descriptions(self, your_channel: bool=True, channel_id: str=None) -> (list[str] | None):
             service = self.service
+            response = None
             try:
-                request = service.subscriptions().list(
-                    part="snippet",
-                    mine=True
-                )
-                response = request.execute()
-                info = []
-                subscription_info = response["items"]
-                for sub in subscription_info:
-                    info.append(sub["snippet"]["description"])
-                return info
+                if not your_channel:
+                    request = service.subscriptions().list(
+                        part="snippet",
+                        channelId=channel_id
+                    )
+                    response = request.execute()
+                else:
+                    request = service.subscriptions().list(
+                        part="snippet",
+                        mine=your_channel
+                    )
+                    response = request.execute()
+                if "items" in response:
+                    info = []
+                    subscription_info = response["items"]
+                    for sub in subscription_info:
+                        info.append(sub["snippet"]["description"])
+                    return info
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -15379,7 +15466,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// SUBSCRIPTION RESOURCE ID //////
-        def get_subscription_resource_id(self, sub_id: str, channel_id: str=None) -> (dict | None):
+        def get_resource_id(self, sub_id: str, channel_id: str=None) -> (dict | None):
             service = self.service
 
             try:
@@ -15407,19 +15494,29 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_subscriptions_resource_ids(self) -> (list[str] | None):
+        def get_all_subscription_resource_ids(self, your_channel: bool=True, channel_id: str=None) -> (list[str] | None):
             service = self.service
+            response = None
             try:
-                request = service.subscriptions().list(
-                    part="snippet",
-                    mine=True
-                )
-                response = request.execute()
-                info = []
-                subscription_info = response["items"]
-                for sub in subscription_info:
-                    info.append(sub["snippet"]["resourceId"])
-                return info
+                if not your_channel:
+                    request = service.subscriptions().list(
+                        part="snippet",
+                        channelId=channel_id
+                    )
+                    response = request.execute()
+                else:
+                    request = service.subscriptions().list(
+                        part="snippet",
+                        mine=True
+                    )
+                    response = request.execute()
+                if "items" in response:
+                    info = []
+                    subscription_info = response["items"]
+                    for sub in subscription_info:
+                        info.append(sub["snippet"]["resourceId"])
+                    return info
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -15434,7 +15531,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// SUBSCRIPTION RESOURCE ID KIND //////
-        def get_subscription_resource_id_kind(self, sub_id: str, channel_id: str=None) -> (dict | None):
+        def get_resource_id_kind(self, sub_id: str, channel_id: str=None) -> (dict | None):
             service = self.service
 
             try:
@@ -15462,19 +15559,22 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_subscriptions_resource_id_kinds(self) -> (list[str] | None):
+        def get_all_subscription_resource_id_kinds(self, your_channel: bool=True, channel_id: str=None) -> (list[str] | None):
             service = self.service
+            response = None
             try:
                 request = service.subscriptions().list(
                     part="snippet",
                     mine=True
                 )
                 response = request.execute()
-                info = []
-                subscription_info = response["items"]
-                for sub in subscription_info:
-                    info.append(sub["snippet"]["resourceId"]["kind"])
-                return info
+                if "items" in response:
+                    info = []
+                    subscription_info = response["items"]
+                    for sub in subscription_info:
+                        info.append(sub["snippet"]["resourceId"]["kind"])
+                    return info
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -15489,7 +15589,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// SUBSCRIPTION RESOURCE ID CHANNEL ID //////
-        def get_subscription_resource_id_channel_id(self, sub_id: str, channel_id: str=None) -> (dict | None):
+        def get_resource_channel_id(self, sub_id: str, channel_id: str=None) -> (dict | None):
             service = self.service
 
             try:
@@ -15517,19 +15617,22 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_subscriptions_resource_id_channel_ids(self) -> (list[str] | None):
+        def get_all_subscription_resource_channel_ids(self, your_channel: bool=True, channel_id: str=None) -> (list[str] | None):
             service = self.service
+            response = None
             try:
                 request = service.subscriptions().list(
                     part="snippet",
                     mine=True
                 )
                 response = request.execute()
-                info = []
-                subscription_info = response["items"]
-                for sub in subscription_info:
-                    info.append(sub["snippet"]["resourceId"]["channelIds"])
-                return info
+                if "items" in response:
+                    info = []
+                    subscription_info = response["items"]
+                    for sub in subscription_info:
+                        info.append(sub["snippet"]["resourceId"]["channelIds"])
+                    return info
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -15544,7 +15647,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// SUBSCRIPTION CHANNEL ID //////
-        def get_subscription_channel_id(self, sub_id: str, channel_id: str=None) -> (dict | None):
+        def get_channel_id(self, sub_id: str, channel_id: str=None) -> (dict | None):
             service = self.service
 
             try:
@@ -15572,19 +15675,22 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_subscriptions_channel_ids(self) -> (list[str] | None):
+        def get_all_subscription_channel_ids(self, your_channel: bool=True, channel_id: str=None) -> (list[str] | None):
             service = self.service
+            response = None
             try:
                 request = service.subscriptions().list(
                     part="snippet",
                     mine=True
                 )
                 response = request.execute()
-                info = []
-                subscription_info = response["items"]
-                for sub in subscription_info:
-                    info.append(sub["snippet"]["channelId"])
-                return info
+                if "items" in response:
+                    info = []
+                    subscription_info = response["items"]
+                    for sub in subscription_info:
+                        info.append(sub["snippet"]["channelId"])
+                    return info
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -15599,7 +15705,7 @@ class YouTubeDataAPIv3Tools:
                 return None
         
         #////// SUBSCRIPTION THUMBNAIL //////
-        def get_subscription_thumbnail(self, sub_id: str, channel_id: str=None) -> (dict | None):
+        def get_thumbnail(self, sub_id: str, channel_id: str=None) -> (dict | None):
             service = self.service
 
             try:
@@ -15627,19 +15733,22 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_subscriptions_thumbnails(self) -> (list[str] | None):
+        def get_all_subscription_thumbnails(self, your_channel: bool=True, channel_id: str=None) -> (list[str] | None):
             service = self.service
+            response = None
             try:
                 request = service.subscriptions().list(
                     part="snippet",
                     mine=True
                 )
                 response = request.execute()
-                info = []
-                subscription_info = response["items"]
-                for sub in subscription_info:
-                    info.append(sub["snippet"]["thumbnail"])
-                return info
+                if "items" in response:
+                    info = []
+                    subscription_info = response["items"]
+                    for sub in subscription_info:
+                        info.append(sub["snippet"]["thumbnail"])
+                    return info
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -15654,7 +15763,7 @@ class YouTubeDataAPIv3Tools:
                 return None
          
         #////// SUBSCRIPTION CONTENT DETAILS //////
-        def get_subscription_content_details(self, sub_id: str, channel_id: str=None) -> (dict | None):
+        def get_content_details(self, sub_id: str, channel_id: str=None) -> (dict | None):
             service = self.service
 
             try:
@@ -15682,19 +15791,22 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_subscriptions_content_details(self) -> (list[str] | None):
+        def get_all_subscription_content_details(self, your_channel: bool=True, channel_id: str=None) -> (list[str] | None):
             service = self.service
+            response = None
             try:
                 request = service.subscriptions().list(
                     part="contentDetails",
                     mine=True
                 )
                 response = request.execute()
-                info = []
-                subscription_info = response["items"]
-                for sub in subscription_info:
-                    info.append(sub["contentDetails"])
-                return info
+                if "items" in response:
+                    info = []
+                    subscription_info = response["items"]
+                    for sub in subscription_info:
+                        info.append(sub["contentDetails"])
+                    return info
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -15709,7 +15821,7 @@ class YouTubeDataAPIv3Tools:
                 return None
          
         #////// SUBSCRIPTION TOTAL ITEM COUNT //////
-        def get_subscription_total_item_count(self, sub_id: str, channel_id: str=None) -> (int | None):
+        def get_total_item_count(self, sub_id: str, channel_id: str=None) -> (int | None):
             service = self.service
 
             try:
@@ -15737,19 +15849,22 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_subscriptions_total_item_counts(self) -> (list[int] | None):
+        def get_all_subscription_total_item_counts(self, your_channel: bool=True, channel_id: str=None) -> (list[int] | None):
             service = self.service
+            response = None
             try:
                 request = service.subscriptions().list(
                     part="contentDetails",
                     mine=True
                 )
                 response = request.execute()
-                info = []
-                subscription_info = response["items"]
-                for sub in subscription_info:
-                    info.append(int(sub["contentDetails"]["totalItemCount"]))
-                return info
+                if "items" in response:
+                    info = []
+                    subscription_info = response["items"]
+                    for sub in subscription_info:
+                        info.append(int(sub["contentDetails"]["totalItemCount"]))
+                    return info
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -15764,7 +15879,7 @@ class YouTubeDataAPIv3Tools:
                 return None
           
         #////// SUBSCRIPTION NEW ITEM COUNT //////
-        def get_subscription_new_item_count(self, sub_id: str, channel_id: str=None) -> (int | None):
+        def get_new_item_count(self, sub_id: str, channel_id: str=None) -> (int | None):
             service = self.service
 
             try:
@@ -15792,19 +15907,22 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_subscriptions_new_item_counts(self) -> (list[int] | None):
+        def get_all_subscription_new_item_counts(self, your_channel: bool=True, channel_id: str=None) -> (list[int] | None):
             service = self.service
+            response = None
             try:
                 request = service.subscriptions().list(
                     part="contentDetails",
                     mine=True
                 )
                 response = request.execute()
-                info = []
-                subscription_info = response["items"]
-                for sub in subscription_info:
-                    info.append(int(sub["contentDetails"]["newItemCount"]))
-                return info
+                if "items" in response:
+                    info = []
+                    subscription_info = response["items"]
+                    for sub in subscription_info:
+                        info.append(int(sub["contentDetails"]["newItemCount"]))
+                    return info
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -15819,7 +15937,7 @@ class YouTubeDataAPIv3Tools:
                 return None
           
         #////// SUBSCRIPTION ACTIVITY TYPE //////
-        def get_subscription_activity_type(self, sub_id: str, channel_id: str=None) -> (str | None):
+        def get_activity_type(self, sub_id: str, channel_id: str=None) -> (str | None):
             service = self.service
 
             try:
@@ -15847,19 +15965,22 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_subscriptions_activity_types(self) -> (list[int] | None):
+        def get_all_subscription_activity_types(self, your_channel: bool=True, channel_id: str=None) -> (list[int] | None):
             service = self.service
+            response = None
             try:
                 request = service.subscriptions().list(
                     part="contentDetails",
                     mine=True
                 )
                 response = request.execute()
-                info = []
-                subscription_info = response["items"]
-                for sub in subscription_info:
-                    info.append(int(sub["contentDetails"]["newItemCount"]))
-                return info
+                if "items" in response:
+                    info = []
+                    subscription_info = response["items"]
+                    for sub in subscription_info:
+                        info.append(int(sub["contentDetails"]["newItemCount"]))
+                    return info
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -15902,19 +16023,22 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_subscribers_snippets(self) -> (list[dict] | None):
+        def get_all_subscriber_snippets(self, your_channel: bool=True, channel_id: str=None) -> (list[dict] | None):
             service = self.service
+            response = None
             try:
                 request = service.subscriptions().list(
                     part="subscriberSnippet",
                     mine=True
                 )
                 response = request.execute()
-                info = []
-                subscription_info = response["items"]
-                for sub in subscription_info:
-                    info.append(int(sub["subscriberSnippet"]))
-                return info
+                if "items" in response:
+                    info = []
+                    subscription_info = response["items"]
+                    for sub in subscription_info:
+                        info.append(int(sub["subscriberSnippet"]))
+                    return info
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -15957,19 +16081,22 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_subscribers_titles(self) -> (list[str] | None):
+        def get_all_subscriber_titles(self, your_channel: bool=True, channel_id: str=None) -> (list[str] | None):
             service = self.service
+            response = None
             try:
                 request = service.subscriptions().list(
                     part="subscriberSnippet",
                     mine=True
                 )
                 response = request.execute()
-                info = []
-                subscription_info = response["items"]
-                for sub in subscription_info:
-                    info.append(int(sub["subscriberSnippet"]["title"]))
-                return info
+                if "items" in response:
+                    info = []
+                    subscription_info = response["items"]
+                    for sub in subscription_info:
+                        info.append(int(sub["subscriberSnippet"]["title"]))
+                    return info
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -16012,19 +16139,22 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_subscribers_descriptions(self) -> (list[str] | None):
+        def get_all_subscriber_descriptions(self, your_channel: bool=True, channel_id: str=None) -> (list[str] | None):
             service = self.service
+            response = None
             try:
                 request = service.subscriptions().list(
                     part="subscriberSnippet",
                     mine=True
                 )
                 response = request.execute()
-                info = []
-                subscription_info = response["items"]
-                for sub in subscription_info:
-                    info.append(int(sub["subscriberSnippet"]["description"]))
-                return info
+                if "items" in response:
+                    info = []
+                    subscription_info = response["items"]
+                    for sub in subscription_info:
+                        info.append(int(sub["subscriberSnippet"]["description"]))
+                    return info
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -16067,19 +16197,22 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_subscribers_channel_ids(self) -> (list[str] | None):
+        def get_all_subscriber_channel_ids(self, your_channel: bool=True, channel_id: str=None) -> (list[str] | None):
             service = self.service
+            response = None
             try:
                 request = service.subscriptions().list(
                     part="subscriberSnippet",
                     mine=True
                 )
                 response = request.execute()
-                info = []
-                subscription_info = response["items"]
-                for sub in subscription_info:
-                    info.append(int(sub["subscriberSnippet"]["channelId"]))
-                return info
+                if "items" in response:
+                    info = []
+                    subscription_info = response["items"]
+                    for sub in subscription_info:
+                        info.append(int(sub["subscriberSnippet"]["channelId"]))
+                    return info
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
@@ -16122,19 +16255,22 @@ class YouTubeDataAPIv3Tools:
                 print(f"Key error: Bad key. Field doesn't exists!\n{ke}")
                 return None
         
-        def get_all_subscribers_thumbnails(self) -> (list[str] | None):
+        def get_all_subscriber_thumbnails(self, your_channel: bool=True, channel_id: str=None) -> (list[str] | None):
             service = self.service
+            response = None
             try:
                 request = service.subscriptions().list(
                     part="subscriberSnippet",
                     mine=True
                 )
                 response = request.execute()
-                info = []
-                subscription_info = response["items"]
-                for sub in subscription_info:
-                    info.append(int(sub["subscriberSnippet"]["thumbnails"]))
-                return info
+                if "items" in response:
+                    info = []
+                    subscription_info = response["items"]
+                    for sub in subscription_info:
+                        info.append(int(sub["subscriberSnippet"]["thumbnails"]))
+                    return info
+                else: return None
             except googleapiclient.errors.HttpError as e:
                 print(f"An API error occurred: {e}")
                 return None
